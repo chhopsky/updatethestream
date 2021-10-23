@@ -22,7 +22,6 @@ class Game(BaseModel):
     winner: int = 3
 
 class Tournament(BaseModel):
-   
     def load_from(self, filename="tournament-config.json"):
         with open(filename) as f:
             data = json.load(f)
