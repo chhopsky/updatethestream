@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="live_tab">
      <attribute name="title">
@@ -83,7 +83,7 @@
          <height>71</height>
         </rect>
        </property>
-       <layout class="QVBoxLayout" name="current_score_vbox">
+       <layout class="QVBoxLayout" name="round_score_vbox">
         <item>
          <widget class="QLabel" name="team1_score_label">
           <property name="sizePolicy">
@@ -118,7 +118,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QLabel" name="score_label">
+      <widget class="QLabel" name="final_score_label">
        <property name="geometry">
         <rect>
          <x>180</x>
@@ -248,7 +248,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QListWidget" name="listWidget">
+      <widget class="QListWidget" name="schedule_listwidget">
        <property name="geometry">
         <rect>
          <x>280</x>
@@ -273,7 +273,7 @@
         </property>
        </item>
       </widget>
-      <widget class="QListWidget" name="listWidget_2">
+      <widget class="QListWidget" name="standings_listwidget">
        <property name="geometry">
         <rect>
          <x>595</x>
@@ -322,7 +322,7 @@
          <height>71</height>
         </rect>
        </property>
-       <layout class="QVBoxLayout" name="current_score_vbox_2">
+       <layout class="QVBoxLayout" name="game_score_vbox">
         <property name="leftMargin">
          <number>5</number>
         </property>
@@ -330,10 +330,10 @@
          <number>5</number>
         </property>
         <item>
-         <widget class="QLineEdit" name="lineEdit_2"/>
+         <widget class="QLineEdit" name="team1_final_score_field"/>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit"/>
+         <widget class="QLineEdit" name="team2_final_score_field"/>
         </item>
        </layout>
       </widget>
