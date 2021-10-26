@@ -1,5 +1,4 @@
-#from PyQt5.QtWidgets import *
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QApplication, QHBoxLayout, QWidget, QPushButton, QVBoxLayout, QLabel, QFileDialog
 import json
 from tourneydefs import Tournament, Match, Team
 
@@ -43,11 +42,17 @@ team1win.clicked.connect(on_team1win_click)
 team2win.clicked.connect(on_team2win_click)
 label = QLabel("Someone Update The Stream")
 
-layout = QVBoxLayout()
-layout.addWidget(label)
+# the buttons for who won
+layout = QHBoxLayout()
 layout.addWidget(team1win)
 layout.addWidget(team2win)
-window.setLayout(layout)
+
+load_widget = QFileDialog()
+
+toplayout = QVBoxLayout()
+toplayout.addWidget(label)
+toplayout.addLayout(layout)
+window.setLayout(toplayout)
 
 window.show()
 app.exec()
