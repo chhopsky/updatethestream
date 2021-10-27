@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, uic
+from tourneydefs import Tournament, Match, Team
 import sys
 
 class Ui(QtWidgets.QMainWindow):

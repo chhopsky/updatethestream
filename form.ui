@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>Someone, Update The Stream!</class>
- <widget class="QMainWindow" name="Someone, Update The Stream!">
+ <widget class="QMainWindow" name="udts">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -869,7 +869,14 @@
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>About</string>
+    </property>
+    <addaction name="actiontell_me_about_this_app_please"/>
+   </widget>
    <addaction name="menuSomeone_Update_The_Stream"/>
+   <addaction name="menuAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
@@ -907,6 +914,11 @@
   <action name="actionSave_Tournament_In_Current_State">
    <property name="text">
     <string>Save Tournament In Current State</string>
+   </property>
+  </action>
+  <action name="actiontell_me_about_this_app_please">
+   <property name="text">
+    <string>tell me about this app, please</string>
    </property>
   </action>
  </widget>
