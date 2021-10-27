@@ -6,21 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>799</width>
+    <width>800</width>
     <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Someone, Update The Stream!</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>0</x>
       <y>0</y>
-      <width>781</width>
-      <height>551</height>
+      <width>800</width>
+      <height>600</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -67,8 +67,8 @@
        <rect>
         <x>0</x>
         <y>120</y>
-        <width>771</width>
-        <height>401</height>
+        <width>790</width>
+        <height>410</height>
        </rect>
       </property>
       <property name="title">
@@ -77,7 +77,7 @@
       <widget class="QWidget" name="verticalLayoutWidget_3">
        <property name="geometry">
         <rect>
-         <x>240</x>
+         <x>250</x>
          <y>40</y>
          <width>21</width>
          <height>71</height>
@@ -121,9 +121,9 @@
       <widget class="QLabel" name="final_score_label">
        <property name="geometry">
         <rect>
-         <x>180</x>
+         <x>190</x>
          <y>20</y>
-         <width>51</width>
+         <width>61</width>
          <height>20</height>
         </rect>
        </property>
@@ -134,10 +134,10 @@
       <widget class="QWidget" name="verticalLayoutWidget_2">
        <property name="geometry">
         <rect>
-         <x>9</x>
+         <x>10</x>
          <y>40</y>
-         <width>171</width>
-         <height>71</height>
+         <width>170</width>
+         <height>70</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="win_controls_vbox">
@@ -168,8 +168,8 @@
         <rect>
          <x>70</x>
          <y>20</y>
-         <width>81</width>
-         <height>16</height>
+         <width>80</width>
+         <height>15</height>
         </rect>
        </property>
        <property name="text">
@@ -179,10 +179,10 @@
       <widget class="QLabel" name="standings_label">
        <property name="geometry">
         <rect>
-         <x>650</x>
+         <x>670</x>
          <y>20</y>
-         <width>47</width>
-         <height>13</height>
+         <width>50</width>
+         <height>15</height>
         </rect>
        </property>
        <property name="text">
@@ -194,8 +194,8 @@
         <rect>
          <x>400</x>
          <y>20</y>
-         <width>47</width>
-         <height>13</height>
+         <width>50</width>
+         <height>15</height>
         </rect>
        </property>
        <property name="text">
@@ -207,8 +207,8 @@
         <rect>
          <x>10</x>
          <y>110</y>
-         <width>251</width>
-         <height>281</height>
+         <width>260</width>
+         <height>280</height>
         </rect>
        </property>
        <layout class="QFormLayout" name="info_form">
@@ -253,8 +253,8 @@
         <rect>
          <x>280</x>
          <y>40</y>
-         <width>311</width>
-         <height>351</height>
+         <width>310</width>
+         <height>350</height>
         </rect>
        </property>
        <item>
@@ -278,8 +278,8 @@
         <rect>
          <x>595</x>
          <y>40</y>
-         <width>171</width>
-         <height>351</height>
+         <width>190</width>
+         <height>350</height>
         </rect>
        </property>
        <item>
@@ -318,8 +318,8 @@
         <rect>
          <x>180</x>
          <y>40</y>
-         <width>61</width>
-         <height>71</height>
+         <width>70</width>
+         <height>70</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="game_score_vbox">
@@ -341,7 +341,7 @@
      <widget class="QWidget" name="verticalLayoutWidget_5">
       <property name="geometry">
        <rect>
-        <x>600</x>
+        <x>460</x>
         <y>10</y>
         <width>160</width>
         <height>80</height>
@@ -363,7 +363,7 @@
      <widget class="QWidget" name="verticalLayoutWidget_6">
       <property name="geometry">
        <rect>
-        <x>290</x>
+        <x>240</x>
         <y>10</y>
         <width>160</width>
         <height>80</height>
@@ -392,6 +392,44 @@
        </item>
       </layout>
      </widget>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>650</x>
+        <y>0</y>
+        <width>120</width>
+        <height>50</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="pixmap">
+       <pixmap>chhtvlogo.png</pixmap>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>660</x>
+        <y>40</y>
+        <width>111</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>esports for everyone</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="teams_tab">
      <attribute name="title">
@@ -402,7 +440,7 @@
        <rect>
         <x>100</x>
         <y>10</y>
-        <width>191</width>
+        <width>190</width>
         <height>74</height>
        </rect>
       </property>
@@ -466,7 +504,7 @@
         <x>10</x>
         <y>10</y>
         <width>75</width>
-        <height>23</height>
+        <height>25</height>
        </rect>
       </property>
       <property name="text">
@@ -478,8 +516,8 @@
        <rect>
         <x>100</x>
         <y>100</y>
-        <width>191</width>
-        <height>74</height>
+        <width>190</width>
+        <height>75</height>
        </rect>
       </property>
       <layout class="QFormLayout" name="edit_team_form">
@@ -541,8 +579,8 @@
        <rect>
         <x>10</x>
         <y>100</y>
-        <width>71</width>
-        <height>23</height>
+        <width>70</width>
+        <height>25</height>
        </rect>
       </property>
       <property name="text">
@@ -554,8 +592,8 @@
        <rect>
         <x>220</x>
         <y>180</y>
-        <width>71</width>
-        <height>23</height>
+        <width>70</width>
+        <height>25</height>
        </rect>
       </property>
       <property name="text">
@@ -567,7 +605,7 @@
        <rect>
         <x>100</x>
         <y>180</y>
-        <width>91</width>
+        <width>90</width>
         <height>20</height>
        </rect>
       </property>
@@ -580,8 +618,8 @@
        <rect>
         <x>310</x>
         <y>10</y>
-        <width>451</width>
-        <height>501</height>
+        <width>450</width>
+        <height>500</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -637,7 +675,7 @@
         <x>10</x>
         <y>10</y>
         <width>75</width>
-        <height>23</height>
+        <height>25</height>
        </rect>
       </property>
       <property name="text">
@@ -649,8 +687,8 @@
        <rect>
         <x>220</x>
         <y>180</y>
-        <width>71</width>
-        <height>23</height>
+        <width>70</width>
+        <height>25</height>
        </rect>
       </property>
       <property name="text">
@@ -662,8 +700,8 @@
        <rect>
         <x>100</x>
         <y>100</y>
-        <width>191</width>
-        <height>74</height>
+        <width>190</width>
+        <height>75</height>
        </rect>
       </property>
       <layout class="QFormLayout" name="edit_match_form_layout">
@@ -712,8 +750,8 @@
        <rect>
         <x>310</x>
         <y>10</y>
-        <width>451</width>
-        <height>501</height>
+        <width>450</width>
+        <height>500</height>
        </rect>
       </property>
       <item>
@@ -737,8 +775,8 @@
        <rect>
         <x>10</x>
         <y>100</y>
-        <width>71</width>
-        <height>23</height>
+        <width>70</width>
+        <height>25</height>
        </rect>
       </property>
       <property name="text">
@@ -750,8 +788,8 @@
        <rect>
         <x>100</x>
         <y>10</y>
-        <width>191</width>
-        <height>74</height>
+        <width>190</width>
+        <height>75</height>
        </rect>
       </property>
       <layout class="QFormLayout" name="add_match_form_layout">
@@ -800,7 +838,7 @@
        <rect>
         <x>100</x>
         <y>180</y>
-        <width>91</width>
+        <width>90</width>
         <height>20</height>
        </rect>
       </property>
@@ -816,7 +854,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>799</width>
+     <width>800</width>
      <height>21</height>
     </rect>
    </property>
