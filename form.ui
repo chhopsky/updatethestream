@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Someone, Update The Stream!</class>
+ <class>udts</class>
  <widget class="QMainWindow" name="udts">
   <property name="geometry">
    <rect>
@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="live_tab">
      <attribute name="title">
@@ -257,21 +257,6 @@
          <height>350</height>
         </rect>
        </property>
-       <item>
-        <property name="text">
-         <string>Match 1: TSM vs CLG, best of 5</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Match 2: PentanetGG vs IMAY, best of 3</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Match 3: Team World Elite vs SIN Gaming, best of 1</string>
-        </property>
-       </item>
       </widget>
       <widget class="QListWidget" name="standings_listwidget">
        <property name="geometry">
@@ -282,36 +267,6 @@
          <height>350</height>
         </rect>
        </property>
-       <item>
-        <property name="text">
-         <string>SIN Gaming, 250 points</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>IMAY, 200 points</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Team World Elite, 150 points</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>PentanetGG, 145 points</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>TSM, 5 points</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>CLG, -2 points</string>
-        </property>
-       </item>
       </widget>
       <widget class="QWidget" name="verticalLayoutWidget_4">
        <property name="geometry">
@@ -630,36 +585,6 @@
       </property>
       <item>
        <property name="text">
-        <string>TSM - Team Solo Mid - 0 points</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>IMAY - IMAY - 0 points</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>PGG - Pentanet GG - 0 points</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>WE - Team World Elite - 0 points</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>SIN - SIN Gaming - 0 points</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>CLG - Counter-Logic Gaming - 4 points</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
         <string/>
        </property>
       </item>
@@ -754,21 +679,6 @@
         <height>500</height>
        </rect>
       </property>
-      <item>
-       <property name="text">
-        <string>TSM vs CLG, BO5</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>IMAY vs PGG, BO3</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>WE vs SIN, BO1</string>
-       </property>
-      </item>
      </widget>
      <widget class="QPushButton" name="save_match_edit_button">
       <property name="geometry">
