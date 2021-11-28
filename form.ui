@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="live_tab">
      <attribute name="title">
@@ -218,19 +218,6 @@
         <property name="topMargin">
          <number>5</number>
         </property>
-        <item row="0" column="0" colspan="3">
-         <widget class="QPushButton" name="undo_button">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Undo Last Match Result</string>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="0">
          <widget class="QLabel" name="best_of_label">
           <property name="text">
@@ -621,6 +608,9 @@
       </property>
      </widget>
      <widget class="QPushButton" name="delete_match_button">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>220</x>
@@ -679,7 +669,38 @@
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QComboBox" name="edit_match_bestof_dropdown"/>
+        <widget class="QComboBox" name="edit_match_bestof_dropdown">
+         <item>
+          <property name="text">
+           <string>1</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>2</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>3</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>5</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>7</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>9</string>
+          </property>
+         </item>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -693,7 +714,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QPushButton" name="save_match_edit_button">
+     <widget class="QPushButton" name="edit_match_button">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -717,42 +738,73 @@
       </property>
       <layout class="QFormLayout" name="add_match_form_layout">
        <item row="0" column="0">
-        <widget class="QLabel" name="add_team_1_label">
+        <widget class="QLabel" name="add_match_team1_label">
          <property name="text">
           <string>Team 1</string>
          </property>
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="add_team_2_label">
+        <widget class="QLabel" name="add_match_team2_label">
          <property name="text">
           <string>Team 2</string>
          </property>
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="add_best_of_label">
+        <widget class="QLabel" name="add_match_bestof_label">
          <property name="text">
           <string>Best Of</string>
          </property>
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QComboBox" name="add_team_1_dropdown">
+        <widget class="QComboBox" name="add_match_team1_dropdown">
          <property name="editable">
           <bool>false</bool>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QComboBox" name="add_team_2_dropdown">
+        <widget class="QComboBox" name="add_match_team2_dropdown">
          <property name="editable">
           <bool>false</bool>
          </property>
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QComboBox" name="add_best_of_dropdown"/>
+        <widget class="QComboBox" name="add_match_bestof_dropdown">
+         <item>
+          <property name="text">
+           <string>1</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>2</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>3</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>5</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>7</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>9</string>
+          </property>
+         </item>
+        </widget>
        </item>
       </layout>
      </widget>

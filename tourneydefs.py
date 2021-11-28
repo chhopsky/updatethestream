@@ -83,6 +83,12 @@ class Tournament(BaseModel):
     def add_edit_team(self, team_to_add_edit, callback = None):
         self.teams[team_to_add_edit.tricode] = team_to_add_edit
         print(self.teams)
+    
+    def add_match(self, match):
+        self.matches.append(match)
+
+    def delete_match(self, match_id):
+        del(self.matches[match_id])
 
     teams: Dict = {}
     matches: List[Match] = []
