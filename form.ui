@@ -218,28 +218,41 @@
         <property name="topMargin">
          <number>5</number>
         </property>
-        <item row="0" column="0">
+        <item row="0" column="0" colspan="3">
+         <widget class="QPushButton" name="undo_button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Undo Last Match Result</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
          <widget class="QLabel" name="best_of_label">
           <property name="text">
            <string>Best of:</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
+        <item row="1" column="1">
          <widget class="QLabel" name="best_of_count_label">
           <property name="text">
            <string>5</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0">
+        <item row="2" column="0">
          <widget class="QLabel" name="up_next_label">
           <property name="text">
            <string>Up Next:</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
+        <item row="2" column="1">
          <widget class="QLabel" name="up_next_match">
           <property name="text">
            <string>PGG vs IMAY</string>
@@ -371,7 +384,7 @@
        <rect>
         <x>660</x>
         <y>40</y>
-        <width>111</width>
+        <width>120</width>
         <height>20</height>
        </rect>
       </property>
