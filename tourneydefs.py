@@ -29,13 +29,18 @@ class Tournament(BaseModel):
         with open(filename) as f:
             data = json.load(f)
 
+        self.mapping = {}
+
         for tricode, team in data["teams"].items():
             print(team)
             team = Team(**team)
             self.add_team(team)
+            self.mapping[team.tricode] = team.id
 
         for current_match in data["matches"]:
             match = Match(**current_match)
+            match.teams[0] = self.mapping.get(match.teams[0], match.teams[0])
+            match.teams[1] = self.mapping.get(match.teams[1], match.teams[1])
             self.matches.append(match)
         return
 
@@ -49,14 +54,14 @@ class Tournament(BaseModel):
             print(match)
             f_teams = open(f"streamlabels\match-{index}-teams.txt", "w")
             team1 = self.teams.get(match.teams[0])
-            if team1 is None:
-                team1 = self.get_team_id_by_tricode(match.teams[0])
+            # if team1 is None:
+            #     team1 = self.get_team_id_by_tricode(match.teams[0])
             team2 = self.teams.get(match.teams[1])
-            if team2 is None:
-                team2 = self.get_team_id_by_tricode(match.teams[1])
+            # if team2 is None:
+            #     team2 = self.get_team_id_by_tricode(match.teams[1])
             
-            f_teams.write(f"{self.teams[team1].name}\n")
-            f_teams.write(f"{self.teams[team2].name}\n")
+            f_teams.write(f"{team1.name}\n")
+            f_teams.write(f"{team2.name}\n")
             f_teams.close()
             f_scores = open(f"streamlabels\match-{index}-scores.txt", "w")
             f_scores.write(f"{match.scores[0]}\n")
@@ -112,13 +117,30 @@ class Tournament(BaseModel):
     def delete_match(self, match_id):
         del(self.matches[match_id])
 
+    def edit_match(self, match_id, match):
+        self.matches[match_id].teams = match.teams
+        self.matches[match_id].best_of = match.best_of
+
     def get_team_id_by_tricode(self, tricode):
         for key, team in self.teams.items():
             if team.tricode == tricode:
                 return key
         return None
 
+    def get_teams_from_matchid(self, id):
+        team1 = self.teams[self.matches[id].teams[0]]
+        team2 = self.teams[self.matches[id].teams[1]]
+        return [team1, team2]
+
+    def clear_everything(self):
+        self.teams = {}
+        self.matches = []
+        self.game_history = []
+        self.current_match = 0
+        self.mapping = {}
+
     teams: Dict = {}
     matches: List[Match] = []
     current_match: int = 0
     game_history: List[Game] = []
+    mapping: Dict = {}

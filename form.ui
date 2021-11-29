@@ -248,7 +248,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QListWidget" name="schedule_listwidget">
+      <widget class="QListWidget" name="schedule_list_widget">
        <property name="geometry">
         <rect>
          <x>280</x>
@@ -258,7 +258,7 @@
         </rect>
        </property>
       </widget>
-      <widget class="QListWidget" name="standings_listwidget">
+      <widget class="QListWidget" name="standings_list_widget">
        <property name="geometry">
         <rect>
          <x>595</x>

@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, uic
+from PyQt5.QtCore import Qt
 from tourneydefs import Tournament, Match, Team
 import sys
 
@@ -34,10 +35,18 @@ def setup():
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
 
+def new():
+    broadcast.clear_everything()
+    populate_teams()
+    populate_matches()
+    refresh_team_win_labels()
+    set_button_states()
+
 def undo():
     broadcast.game_history.pop()
     broadcast.update_match_scores()
     broadcast.write_to_stream()
+    update_schedule()
     refresh_team_win_labels()
     set_button_states()
 
@@ -48,6 +57,14 @@ def set_button_states():
         window.undo_button.setEnabled(True)
     else:
         window.undo_button.setEnabled(False)
+
+    # disable win buttons if there are no matches
+    if len(broadcast.matches):
+        set_team_win_buttons_enabled(True)
+    else:
+        set_team_win_buttons_enabled(False)
+        window.team1_win_button.setText("No Matches Configured")
+        window.team2_win_button.setText("No Matches Configured")
 
     # disable win buttons if tournament is over
     if broadcast.current_match < len(broadcast.matches):
@@ -76,6 +93,7 @@ def team_won(team):
     broadcast.game_complete(broadcast.current_match, team)
     broadcast.write_to_stream()
     set_button_states()
+    update_schedule()
     if match_in_progress != broadcast.current_match:
         refresh_team_win_labels()
 
@@ -85,8 +103,10 @@ def set_team_win_buttons_enabled(new_state = True):
 
 def refresh_team_win_labels():
     if broadcast.current_match < len(broadcast.matches):
-        window.team1_win_button.setText(broadcast.matches[broadcast.current_match].teams[0])
-        window.team2_win_button.setText(broadcast.matches[broadcast.current_match].teams[1])
+        team1 = broadcast.teams[broadcast.matches[broadcast.current_match].teams[0]]
+        team2 = broadcast.teams[broadcast.matches[broadcast.current_match].teams[1]]
+        window.team1_win_button.setText(team1.name)
+        window.team2_win_button.setText(team2.name)
 
 def add_team():
     name = window.add_team_name_field.text()
@@ -126,8 +146,6 @@ def edit_team():
 def team_selected():
     if window.team_list_widget.selectedItems():
         selected_item = window.team_list_widget.selectedItems()[0]
-        label = selected_item.text()
-        # tricode = label.split(": ")
         id = selected_item.id
         window.edit_team_tricode_field.setText(broadcast.teams[id].tricode)
         window.edit_team_name_field.setText(broadcast.teams[id].name)
@@ -150,7 +168,9 @@ def delete_team():
         broadcast.delete_team(selected_item.id)
         populate_teams()
         populate_matches()
-        
+        set_button_states()
+        refresh_team_win_labels()
+
 def add_match():
     t1 = window.add_match_team1_dropdown.currentIndex()
     t2 = window.add_match_team2_dropdown.currentIndex()
@@ -158,18 +178,28 @@ def add_match():
 
     if t1 > -1 and t2 > -1 and bo > -1:
         new_match = Match()
-        new_match.teams.append(window.add_match_team1_dropdown.currentText())
-        new_match.teams.append(window.add_match_team2_dropdown.currentText())
+        t1_id = broadcast.get_team_id_by_tricode(window.add_match_team1_dropdown.currentText())
+        t2_id = broadcast.get_team_id_by_tricode(window.add_match_team2_dropdown.currentText())
+        new_match.teams.append(t1_id)
+        new_match.teams.append(t2_id)
         new_match.best_of = int(window.add_match_bestof_dropdown.currentText())
         broadcast.add_match(new_match)
+        if len(broadcast.matches) == 1:
+            set_button_states()
         populate_matches()
+        refresh_team_win_labels()
+        
 
 def edit_match():
     selected_item = window.match_list_widget.currentRow()
     if selected_item > -1:
-        broadcast.matches[selected_item].teams[0] = window.edit_match_team1_dropdown.currentText()
-        broadcast.matches[selected_item].teams[1] = window.edit_match_team2_dropdown.currentText()
-        broadcast.matches[selected_item].best_of = int(window.edit_match_bestof_dropdown.currentText())
+        match_data = Match()
+        team1_id = broadcast.get_team_id_by_tricode(window.edit_match_team1_dropdown.currentText())
+        team2_id = broadcast.get_team_id_by_tricode(window.edit_match_team2_dropdown.currentText())
+        match_data.teams.append(team1_id)
+        match_data.teams.append(team2_id)
+        match_data.best_of = int(window.edit_match_bestof_dropdown.currentText())
+        broadcast.edit_match(selected_item, match_data)
         populate_matches()
 
 def confirm_delete_match():
@@ -185,12 +215,19 @@ def delete_match():
         window.delete_match_button.setEnabled(False)
         window.match_list_widget.takeItem(match_id)
         broadcast.delete_match(match_id)
-        populate_matches()
+        
+        if len(broadcast.matches):
+            populate_matches()
+        else:
+            set_button_states()
+            
+        refresh_team_win_labels()
 
 def match_selected():
     selected_item = window.match_list_widget.currentRow()
-    window.edit_match_team1_dropdown.setCurrentText(broadcast.matches[selected_item].teams[0])
-    window.edit_match_team2_dropdown.setCurrentText(broadcast.matches[selected_item].teams[1])
+    teams = broadcast.get_teams_from_matchid(selected_item)
+    window.edit_match_team1_dropdown.setCurrentText(teams[0].tricode)
+    window.edit_match_team2_dropdown.setCurrentText(teams[1].tricode)
     window.edit_match_bestof_dropdown.setCurrentText(str(broadcast.matches[selected_item].best_of))
     print(f"match {selected_item} {broadcast.matches[selected_item].teams[0]}")
     
@@ -208,12 +245,31 @@ def populate_teams():
         window.add_match_team2_dropdown.addItem(team.tricode)
         window.edit_match_team1_dropdown.addItem(team.tricode)
         window.edit_match_team2_dropdown.addItem(team.tricode)
+    reset_dropdowns()
 
 def populate_matches():
     window.match_list_widget.clear()
+    window.schedule_list_widget.clear()
     for match in broadcast.matches:
-        item = QtWidgets.QListWidgetItem(f"{match.teams[0]} vs {match.teams[1]}, BO{match.best_of}")
+        team1 = broadcast.teams[match.teams[0]]
+        team2 = broadcast.teams[match.teams[1]]
+        scores = f"{match.scores[0]}-{match.scores[1]}"
+        item = QtWidgets.QListWidgetItem(f"{team1.name} vs {team2.name}, BO{match.best_of}")
+        item2 = QtWidgets.QListWidgetItem(f"{team1.name} vs {team2.name}, {scores}, BO{match.best_of}")
+        item2.setFlags(item2.flags() & ~Qt.ItemIsSelectable)
         window.match_list_widget.addItem(item)
+        window.schedule_list_widget.addItem(item2)
+    reset_dropdowns()
+
+def update_schedule():
+    for i, match in enumerate(broadcast.matches):
+        team1 = broadcast.teams[match.teams[0]]
+        team2 = broadcast.teams[match.teams[1]]
+        scores = f"{match.scores[0]}-{match.scores[1]}"
+        current_item = window.schedule_list_widget.item(i)
+        current_item.setText(f"{team1.name} vs {team2.name}, {scores}, BO{match.best_of}")
+
+def reset_dropdowns():
     window.add_match_team1_dropdown.setCurrentIndex(-1)
     window.add_match_team2_dropdown.setCurrentIndex(-1)
     window.add_match_bestof_dropdown.setCurrentIndex(-1)
