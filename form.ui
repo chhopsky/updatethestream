@@ -529,7 +529,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QPushButton" name="save_edit_button">
+     <widget class="QPushButton" name="edit_team_button">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -543,6 +543,9 @@
       </property>
      </widget>
      <widget class="QPushButton" name="delete_team_button">
+     <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>220</x>

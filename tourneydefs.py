@@ -1,8 +1,10 @@
 from pydantic import BaseModel, Field
 from typing import Text, List, Dict, Optional
+from uuid import uuid4
 import json
 
 class Team(BaseModel):
+    id: str = ""
     name: str = ""
     tricode: str = ""
     points: int = 0
@@ -30,7 +32,7 @@ class Tournament(BaseModel):
         for tricode, team in data["teams"].items():
             print(team)
             team = Team(**team)
-            self.add_edit_team(team)
+            self.add_team(team)
 
         for current_match in data["matches"]:
             match = Match(**current_match)
@@ -46,8 +48,15 @@ class Tournament(BaseModel):
         for index, match in enumerate(self.matches):
             print(match)
             f_teams = open(f"streamlabels\match-{index}-teams.txt", "w")
-            f_teams.write(f"{self.teams[match.teams[0]].name}\n")
-            f_teams.write(f"{self.teams[match.teams[1]].name}\n")
+            team1 = self.teams.get(match.teams[0])
+            if team1 is None:
+                team1 = self.get_team_id_by_tricode(match.teams[0])
+            team2 = self.teams.get(match.teams[1])
+            if team2 is None:
+                team2 = self.get_team_id_by_tricode(match.teams[1])
+            
+            f_teams.write(f"{self.teams[team1].name}\n")
+            f_teams.write(f"{self.teams[team2].name}\n")
             f_teams.close()
             f_scores = open(f"streamlabels\match-{index}-scores.txt", "w")
             f_scores.write(f"{match.scores[0]}\n")
@@ -80,15 +89,34 @@ class Tournament(BaseModel):
         finished_game = Game(match = match_id, winner=winner_index)
         self.game_history.append(finished_game)
 
-    def add_edit_team(self, team_to_add_edit, callback = None):
-        self.teams[team_to_add_edit.tricode] = team_to_add_edit
+    def add_team(self, team_to_add, callback = None):
+        if not team_to_add.id:
+            new_team_id = str(uuid4())
+            team_to_add.id = new_team_id
+        self.teams[team_to_add.id] = team_to_add
         print(self.teams)
+
+    def edit_team(self, update):
+        self.teams[update.id] = update
+
+    def delete_team(self, id):
+        # delete any matches they have
+        for i, match in reversed(list(enumerate(self.matches))):
+            if id in match.teams or self.teams[id].tricode in match.teams:
+                del(self.matches[i])
+        self.teams.pop(id)
     
     def add_match(self, match):
         self.matches.append(match)
 
     def delete_match(self, match_id):
         del(self.matches[match_id])
+
+    def get_team_id_by_tricode(self, tricode):
+        for key, team in self.teams.items():
+            if team.tricode == tricode:
+                return key
+        return None
 
     teams: Dict = {}
     matches: List[Match] = []

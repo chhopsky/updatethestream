@@ -1,17 +1,20 @@
 {
     "teams": 
     {
-        "TL" : {
+        "random" : {
+            "id": "random",
             "name": "Team Liquid",
             "tricode": "TL",
             "points" : 0
         },
-        "PGG": {
+        "string": {
+            "id": "string",
             "name": "PentanetGG",
             "tricode": "PGG",
             "points": 0
         },
-        "IM": {
+        "values": {
+            "id": "values",
             "name": "IMAY",
             "tricode": "IM",
             "points": 0

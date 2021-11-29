@@ -11,10 +11,13 @@ class Ui(QtWidgets.QMainWindow):
 def setup():
     window.team1_win_button.clicked.connect(on_team1win_click)
     window.team2_win_button.clicked.connect(on_team2win_click)
-    window.add_team_button.clicked.connect(add_team)
     window.refresh_ui_button.clicked.connect(force_refresh_ui)
     window.refresh_stream_button.clicked.connect(force_refresh_stream)
+    window.add_team_button.clicked.connect(add_team)
+    window.edit_team_button.clicked.connect(edit_team)
     window.team_list_widget.itemSelectionChanged.connect(team_selected)
+    window.delete_team_button.clicked.connect(delete_team)
+    window.delete_team_confirm_checkbox.clicked.connect(confirm_delete_team)
     window.match_list_widget.itemSelectionChanged.connect(match_selected)
     window.add_match_button.clicked.connect(add_match)
     window.edit_match_button.clicked.connect(edit_match)
@@ -86,42 +89,68 @@ def refresh_team_win_labels():
         window.team2_win_button.setText(broadcast.matches[broadcast.current_match].teams[1])
 
 def add_team():
-    new_team = Team()
-    new_team.name = window.add_team_name_field.text()
-    new_team.tricode = window.add_team_tricode_field.text()
-    try:
-        new_team.points = int(window.add_team_points_field.text())
-    except ValueError:
-        new_team.points = 0
-    broadcast.add_edit_team(new_team)
-    window.add_team_name_field.setText("")
-    window.add_team_tricode_field.setText("")
-    window.add_team_points_field.setText("")
-    populate_teams()
+    name = window.add_team_name_field.text()
+    tricode = window.add_team_tricode_field.text()
+    points = window.add_team_points_field.text()
+    if name and tricode:
+        new_team = Team()
+        new_team.name = name
+        new_team.tricode = tricode
+        try:
+            new_team.points = int(points)
+        except ValueError:
+            new_team.points = 0
+        broadcast.add_team(new_team)
+        window.add_team_name_field.setText("")
+        window.add_team_tricode_field.setText("")
+        window.add_team_points_field.setText("")
+        populate_teams()
 
 def edit_team():
-    new_team = Team()
-    new_team.name = window.add_team_name_field.text()
-    new_team.tricode = window.add_team_tricode_field.text()
-    try:
-        new_team.points = int(window.add_team_points_field.text())
-    except ValueError:
-        new_team.points = 0
-    broadcast.add_edit_team(new_team)
-    window.add_team_name_field.setText("")
-    window.add_team_tricode_field.setText("")
-    window.add_team_points_field.setText("")
-    populate_teams()
+    if window.team_list_widget.selectedItems():
+        selected_item = window.team_list_widget.selectedItems()[0]
+        update = Team()
+        update.id = selected_item.id
+        update.name = window.edit_team_tricode_field.text()
+        update.tricode = window.edit_team_name_field.text()
+        try:
+            update.points = int(window.edit_team_points_field.text())
+        except ValueError:
+            update.points = 0
+        broadcast.edit_team(update)
+        window.edit_team_name_field.setText("")
+        window.edit_team_tricode_field.setText("")
+        window.edit_team_points_field.setText("")
+        populate_teams()
 
 def team_selected():
     if window.team_list_widget.selectedItems():
         selected_item = window.team_list_widget.selectedItems()[0]
         label = selected_item.text()
-        tricode = label.split(": ")
-        window.edit_team_tricode_field.setText(broadcast.teams[tricode[0]].tricode)
-        window.edit_team_name_field.setText(broadcast.teams[tricode[0]].name)
-        window.edit_team_points_field.setText(str(broadcast.teams[tricode[0]].points))
+        # tricode = label.split(": ")
+        id = selected_item.id
+        window.edit_team_tricode_field.setText(broadcast.teams[id].tricode)
+        window.edit_team_name_field.setText(broadcast.teams[id].name)
+        window.edit_team_points_field.setText(str(broadcast.teams[id].points))
 
+def confirm_delete_team():
+    if window.delete_team_confirm_checkbox.isChecked():
+        window.delete_team_button.setEnabled(True)
+    else:
+        window.delete_team_button.setEnabled(False)
+
+def delete_team():
+    if window.team_list_widget.selectedItems():
+        team_index = window.team_list_widget.currentRow()
+        selected_item = window.team_list_widget.selectedItems()[0]
+    if window.delete_team_confirm_checkbox.isChecked():
+        window.delete_team_confirm_checkbox.setCheckState(False)
+        window.delete_team_button.setEnabled(False)
+        window.team_list_widget.takeItem(team_index)
+        broadcast.delete_team(selected_item.id)
+        populate_teams()
+        populate_matches()
+        
 def add_match():
     t1 = window.add_match_team1_dropdown.currentIndex()
     t2 = window.add_match_team2_dropdown.currentIndex()
@@ -173,6 +202,7 @@ def populate_teams():
     window.edit_match_team2_dropdown.clear()
     for tricode, team in broadcast.teams.items():
         item = QtWidgets.QListWidgetItem(f"{team.tricode}: {team.name}")
+        item.id = team.id
         window.team_list_widget.addItem(item)
         window.add_match_team1_dropdown.addItem(team.tricode)
         window.add_match_team2_dropdown.addItem(team.tricode)
