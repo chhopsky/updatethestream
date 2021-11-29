@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 from tourneydefs import Tournament, Match, Team
 import sys
 
@@ -8,6 +9,11 @@ class Ui(QtWidgets.QMainWindow):
         super(Ui, self).__init__() # Call the inherited classes __init__ method
         uic.loadUi('form.ui', self) # Load the .ui file
         self.show() # Show the GUI
+        self.normalfont = QFont()
+        self.boldfont = QFont()
+        self.boldfont.setBold(True)
+        self.strikefont = QFont()
+        self.strikefont.setStrikeOut(True)
 
 def setup():
     window.team1_win_button.clicked.connect(on_team1win_click)
@@ -28,12 +34,14 @@ def setup():
     window.undo_button.setEnabled(False)
     populate_teams()
     populate_matches()
+    update_schedule()
     refresh_team_win_labels()
     set_button_states()
     window.add_match_team1_dropdown.setCurrentIndex(-1)
     window.add_match_team2_dropdown.setCurrentIndex(-1)
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
+
 
 def new():
     broadcast.clear_everything()
@@ -268,6 +276,21 @@ def update_schedule():
         scores = f"{match.scores[0]}-{match.scores[1]}"
         current_item = window.schedule_list_widget.item(i)
         current_item.setText(f"{team1.name} vs {team2.name}, {scores}, BO{match.best_of}")
+        if i == broadcast.current_match:
+            current_item.setFont(window.boldfont)
+        elif match.finished:
+            current_item.setFont(window.strikefont)
+        else:
+            current_item.setFont(window.normalfont)
+    if broadcast.current_match < len(broadcast.matches):
+        window.best_of_count_label.setText(str(broadcast.matches[broadcast.current_match].best_of))
+        window.team1_score_label.setText(str(broadcast.matches[broadcast.current_match].scores[0]))
+        window.team2_score_label.setText(str(broadcast.matches[broadcast.current_match].scores[1]))
+    if broadcast.current_match < len(broadcast.matches) - 1 and len(broadcast.matches):
+        teams = broadcast.get_teams_from_matchid(broadcast.current_match + 1)
+        window.up_next_match.setText(f"{teams[0].tricode} vs {teams[1].tricode}")
+    else:
+        window.up_next_match.setText("nothing, go home")
 
 def reset_dropdowns():
     window.add_match_team1_dropdown.setCurrentIndex(-1)

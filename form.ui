@@ -93,7 +93,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>2</string>
+           <string>0</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -109,7 +109,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>1</string>
+           <string>0</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -680,11 +680,6 @@
          </item>
          <item>
           <property name="text">
-           <string>2</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
            <string>3</string>
           </property>
          </item>
@@ -780,11 +775,6 @@
          <item>
           <property name="text">
            <string>1</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>2</string>
           </property>
          </item>
          <item>
