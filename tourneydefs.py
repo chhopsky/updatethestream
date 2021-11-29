@@ -52,21 +52,33 @@ class Tournament(BaseModel):
         # do text write here
         for index, match in enumerate(self.matches):
             print(match)
-            f_teams = open(f"streamlabels\match-{index}-teams.txt", "w")
-            team1 = self.teams.get(match.teams[0])
-            # if team1 is None:
-            #     team1 = self.get_team_id_by_tricode(match.teams[0])
-            team2 = self.teams.get(match.teams[1])
-            # if team2 is None:
-            #     team2 = self.get_team_id_by_tricode(match.teams[1])
-            
-            f_teams.write(f"{team1.name}\n")
-            f_teams.write(f"{team2.name}\n")
-            f_teams.close()
-            f_scores = open(f"streamlabels\match-{index}-scores.txt", "w")
-            f_scores.write(f"{match.scores[0]}\n")
-            f_scores.write(f"{match.scores[1]}\n")
-            f_scores.close()
+            with open(f"streamlabels\match-{index}-teams.txt", "w") as f_teams:
+                team1 = self.teams.get(match.teams[0])
+                team2 = self.teams.get(match.teams[1])
+                f_teams.write(f"{team1.name}\n")
+                f_teams.write(f"{team2.name}\n")
+
+            with open(f"streamlabels\match-{index}-scores.txt", "w") as f_scores:
+                f_scores.write(f"{match.scores[0]}\n")
+                f_scores.write(f"{match.scores[1]}\n")
+        
+        current_teams = self.get_teams_from_matchid(self.current_match)
+        with open(f"streamlabels\current-match-teams.txt", "w") as f_current:
+            f_current.write(f"{current_teams[0].name} vs {current_teams[1].name}\n")
+            f_current.close()
+
+        with open(f"streamlabels\current-match-team1-tricode.txt", "w") as f_current:
+            f_current.write(f"{current_teams[0].tricode}\n")
+
+        with open(f"streamlabels\current-match-team2-tricode.txt", "w") as f_current:
+            f_current.write(f"{current_teams[1].tricode}\n")
+        
+        with open(f"streamlabels\current-match-team1-name.txt", "w") as f_current:
+            f_current.write(f"{current_teams[0].name}\n")
+
+        with open(f"streamlabels\current-match-team2-name.txt", "w") as f_current:
+            f_current.write(f"{current_teams[1].name}\n")
+
         return
     
     def update_match_scores(self):
