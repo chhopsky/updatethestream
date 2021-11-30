@@ -31,21 +31,67 @@ class Tournament(BaseModel):
 
         self.mapping = {}
 
-        for tricode, team in data["teams"].items():
-            print(team)
+        for team in data["teams"]:
             team = Team(**team)
-            self.add_team(team)
-            self.mapping[team.tricode] = team.id
+            id = self.add_team(team)
+            self.mapping[team.tricode] = id
 
         for current_match in data["matches"]:
             match = Match(**current_match)
             match.teams[0] = self.mapping.get(match.teams[0], match.teams[0])
             match.teams[1] = self.mapping.get(match.teams[1], match.teams[1])
             self.matches.append(match)
+
+        game_history = data.get("game_history")
+        if game_history is not None:
+            for game in game_history:
+                game = Game(**game)
+                self.game_history.append(game)
+        current_match = data.get("current_match")
+        if current_match is not None:
+            self.current_match = current_match
+
         return
 
-    def save_to(self, filename):
+    def save_to(self, filename, savestate=False):
         # do write here
+        output_dict = {}
+        output_dict["teams"] = []
+        for key, value in self.teams.items():
+            output = { 
+                "name": value.name, 
+                "tricode": value.tricode, 
+                "points": value.points
+                }
+            output_dict["teams"].append(output)
+
+        output_dict["matches"] = []
+        for match in self.matches:
+            match_dict = {
+                "teams": [self.teams[match.teams[0]].tricode, self.teams[match.teams[1]].tricode],
+                "best_of": match.best_of
+            }
+            
+            if savestate:
+                match_dict["scores"] = match.scores
+                match_dict["finished"] = match.finished
+                match_dict["in_progress"] = match.in_progress
+                match_dict["winner"] = match.winner
+            output_dict["matches"].append(match_dict)
+
+        if savestate:
+            output_dict["current_match"] = self.current_match
+            output_dict["game_history"] = []
+            for game in self.game_history:
+                game_dict = {
+                    "match": game.match,
+                    "winner": game.winner,
+                    "scores": game.scores
+                }
+                output_dict["game_history"].append(game_dict)
+        
+        with open(filename, "w") as f:
+            json.dump(output_dict, f)
         return
 
     def write_to_stream(self):
@@ -62,22 +108,24 @@ class Tournament(BaseModel):
                 f_scores.write(f"{match.scores[0]}\n")
                 f_scores.write(f"{match.scores[1]}\n")
         
-        current_teams = self.get_teams_from_matchid(self.current_match)
-        with open(f"streamlabels\current-match-teams.txt", "w") as f_current:
-            f_current.write(f"{current_teams[0].name} vs {current_teams[1].name}\n")
-            f_current.close()
-
-        with open(f"streamlabels\current-match-team1-tricode.txt", "w") as f_current:
-            f_current.write(f"{current_teams[0].tricode}\n")
-
-        with open(f"streamlabels\current-match-team2-tricode.txt", "w") as f_current:
-            f_current.write(f"{current_teams[1].tricode}\n")
         
-        with open(f"streamlabels\current-match-team1-name.txt", "w") as f_current:
-            f_current.write(f"{current_teams[0].name}\n")
+        current_teams = self.get_teams_from_matchid(self.current_match)
+        if current_teams is not None:
+            with open(f"streamlabels\current-match-teams.txt", "w") as f_current:
+                f_current.write(f"{current_teams[0].name} vs {current_teams[1].name}\n")
+                f_current.close()
 
-        with open(f"streamlabels\current-match-team2-name.txt", "w") as f_current:
-            f_current.write(f"{current_teams[1].name}\n")
+            with open(f"streamlabels\current-match-team1-tricode.txt", "w") as f_current:
+                f_current.write(f"{current_teams[0].tricode}\n")
+
+            with open(f"streamlabels\current-match-team2-tricode.txt", "w") as f_current:
+                f_current.write(f"{current_teams[1].tricode}\n")
+            
+            with open(f"streamlabels\current-match-team1-name.txt", "w") as f_current:
+                f_current.write(f"{current_teams[0].name}\n")
+
+            with open(f"streamlabels\current-match-team2-name.txt", "w") as f_current:
+                f_current.write(f"{current_teams[1].name}\n")
 
         return
     
@@ -111,7 +159,7 @@ class Tournament(BaseModel):
             new_team_id = str(uuid4())
             team_to_add.id = new_team_id
         self.teams[team_to_add.id] = team_to_add
-        print(self.teams)
+        return team_to_add.id
 
     def edit_team(self, update):
         self.teams[update.id] = update
@@ -140,9 +188,12 @@ class Tournament(BaseModel):
         return None
 
     def get_teams_from_matchid(self, id):
-        team1 = self.teams[self.matches[id].teams[0]]
-        team2 = self.teams[self.matches[id].teams[1]]
-        return [team1, team2]
+        try:
+            team1 = self.teams[self.matches[id].teams[0]]
+            team2 = self.teams[self.matches[id].teams[1]]
+            return [team1, team2]
+        except IndexError:
+            return None
 
     def clear_everything(self):
         self.teams = {}

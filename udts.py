@@ -16,6 +16,10 @@ class Ui(QtWidgets.QMainWindow):
         self.strikefont.setStrikeOut(True)
 
 def setup():
+    window.actionNew.triggered.connect(new)
+    window.actionSave.triggered.connect(save)
+    window.actionSaveState.triggered.connect(save_state)
+    window.actionExit.triggered.connect(exit_app)
     window.team1_win_button.clicked.connect(on_team1win_click)
     window.team2_win_button.clicked.connect(on_team2win_click)
     window.refresh_ui_button.clicked.connect(force_refresh_ui)
@@ -42,6 +46,14 @@ def setup():
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
 
+def exit_app():
+    sys.exit()
+
+def save_state():
+    broadcast.save_to("tournament-saved.json", savestate=True)
+
+def save():
+    broadcast.save_to("tournament-saved.json")
 
 def new():
     broadcast.clear_everything()
