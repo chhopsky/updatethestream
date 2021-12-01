@@ -26,30 +26,33 @@ class Game(BaseModel):
 
 class Tournament(BaseModel):
     def load_from(self, filename="tournament-config.json"):
-        with open(filename) as f:
-            data = json.load(f)
+        try:
+            with open(filename) as f:
+                data = json.load(f)
 
-        self.mapping = {}
+                self.mapping = {}
 
-        for team in data["teams"]:
-            team = Team(**team)
-            id = self.add_team(team)
-            self.mapping[team.tricode] = id
+                for team in data["teams"]:
+                    team = Team(**team)
+                    id = self.add_team(team)
+                    self.mapping[team.tricode] = id
 
-        for current_match in data["matches"]:
-            match = Match(**current_match)
-            match.teams[0] = self.mapping.get(match.teams[0], match.teams[0])
-            match.teams[1] = self.mapping.get(match.teams[1], match.teams[1])
-            self.matches.append(match)
+                for current_match in data["matches"]:
+                    match = Match(**current_match)
+                    match.teams[0] = self.mapping.get(match.teams[0], match.teams[0])
+                    match.teams[1] = self.mapping.get(match.teams[1], match.teams[1])
+                    self.matches.append(match)
 
-        game_history = data.get("game_history")
-        if game_history is not None:
-            for game in game_history:
-                game = Game(**game)
-                self.game_history.append(game)
-        current_match = data.get("current_match")
-        if current_match is not None:
-            self.current_match = current_match
+                game_history = data.get("game_history")
+                if game_history is not None:
+                    for game in game_history:
+                        game = Game(**game)
+                        self.game_history.append(game)
+                current_match = data.get("current_match")
+                if current_match is not None:
+                    self.current_match = current_match
+        except (json.JSONDecodeError, FileNotFoundError):
+            return 
 
         return
 

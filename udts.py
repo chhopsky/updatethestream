@@ -3,9 +3,10 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from tourneydefs import Tournament, Match, Team
 import sys
+import json
 
 class Ui(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, loaded_config):
         super(Ui, self).__init__() # Call the inherited classes __init__ method
         uic.loadUi('form.ui', self) # Load the .ui file
         self.show() # Show the GUI
@@ -14,10 +15,15 @@ class Ui(QtWidgets.QMainWindow):
         self.boldfont.setBold(True)
         self.strikefont = QFont()
         self.strikefont.setStrikeOut(True)
+        self.config = loaded_config
+        
 
 def setup():
     window.actionNew.triggered.connect(new)
-    window.actionSave.triggered.connect(save)
+    window.actionOpen.triggered.connect(open_file)
+    window.actionSave.triggered.connect(save_file)
+    window.actionSaveAs.triggered.connect(save_as)
+    window.actionSaveAsState.triggered.connect(save_as_state)
     window.actionSaveState.triggered.connect(save_state)
     window.actionExit.triggered.connect(exit_app)
     window.team1_win_button.clicked.connect(on_team1win_click)
@@ -46,21 +52,57 @@ def setup():
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
 
-def exit_app():
-    sys.exit()
-
-def save_state():
-    broadcast.save_to("tournament-saved.json", savestate=True)
-
-def save():
-    broadcast.save_to("tournament-saved.json")
-
 def new():
     broadcast.clear_everything()
     populate_teams()
     populate_matches()
     refresh_team_win_labels()
     set_button_states()
+
+def open_file():
+    options = QtWidgets.QFileDialog.Options()
+    options |= QtWidgets.QFileDialog.DontUseNativeDialog
+    filename, _ = QtWidgets.QFileDialog.getOpenFileName(window,"Select a tournament file", "","Tournament JSON (*.json);;All Files (*)", options=options)
+    if filename:
+        broadcast.load_from(filename)
+        window.config["openfile"] = filename
+        save_config(window.config)
+        force_refresh_ui()
+
+def save_file():
+    filename = config.get("openfile")
+    if filename:
+        broadcast.save_to(filename)
+    else:
+        broadcast.save_to()
+
+def save_state():
+    filename = config.get("openfile")
+    if filename:
+        broadcast.save_to(filename, savestate=True)
+    else:
+        broadcast.save_to(savestate=True)
+
+def save_as():
+    options = QtWidgets.QFileDialog.Options()
+    options |= QtWidgets.QFileDialog.DontUseNativeDialog
+    filename, _ = QtWidgets.QFileDialog.getSaveFileName(window,"Save Tournament As..", "","Tournament JSON (*.json);;All Files (*)", options=options)
+    if filename:
+        broadcast.save_to(filename)
+        window.config["openfile"] = filename
+        save_config(window.config)
+
+def save_as_state():
+    options = QtWidgets.QFileDialog.Options()
+    options |= QtWidgets.QFileDialog.DontUseNativeDialog
+    filename, _ = QtWidgets.QFileDialog.getSaveFileName(window,"Save Tournament As..", "","Tournament JSON (*.json);;All Files (*)", options=options)
+    if filename:
+        broadcast.save_to(filename, savestate=True)
+        window.config["openfile"] = filename
+        save_config(window.config)
+
+def exit_app():
+    sys.exit()
 
 def undo():
     broadcast.game_history.pop()
@@ -312,11 +354,22 @@ def reset_dropdowns():
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
     window.edit_match_bestof_dropdown.setCurrentIndex(-1)
 
+def save_config(config_to_save):
+    with open("config.cfg", "w") as f:
+        f.write(json.dumps(config_to_save))
+
+try:
+    with open("config.cfg") as f:
+        config = json.load(f)
+except (json.JSONDecodeError, FileNotFoundError):
+    config = { "openfile": "tournament-config.json" }
+    save_config(config)
+
 broadcast = Tournament()
 broadcast.load_from()
 broadcast.write_to_stream()
 current_match = 0
 app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplication
-window = Ui() # Create an instance of our class
+window = Ui(loaded_config = config) # Create an instance of our class
 setup()
 app.exec_() # Start the application
