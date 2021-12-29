@@ -24,7 +24,7 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="live_tab">
      <attribute name="title">
@@ -302,9 +302,9 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
      <widget class="QWidget" name="verticalLayoutWidget_5">
       <property name="geometry">
        <rect>
-        <x>460</x>
+        <x>529</x>
         <y>10</y>
-        <width>160</width>
+        <width>121</width>
         <height>80</height>
        </rect>
       </property>
@@ -324,7 +324,7 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
      <widget class="QWidget" name="verticalLayoutWidget_6">
       <property name="geometry">
        <rect>
-        <x>240</x>
+        <x>180</x>
         <y>10</y>
         <width>160</width>
         <height>80</height>
@@ -390,6 +390,42 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
       <property name="text">
        <string>esports for everyone</string>
       </property>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_7">
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>20</y>
+        <width>131</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="swap_vbox">
+       <item>
+        <widget class="QPushButton" name="swap_button">
+         <property name="toolTip">
+          <string>Switch which sides teams are on.</string>
+         </property>
+         <property name="text">
+          <string>Swap Red/Blue</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="blue_label">
+         <property name="text">
+          <string>Blue:</string>
+         </property>
+        </widget>
+       </item>
+        <item>
+        <widget class="QLabel" name="red_label">
+         <property name="text">
+          <string>Red:</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
     <widget class="QWidget" name="teams_tab">
@@ -939,4 +975,5 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
  </widget>
  <resources/>
  <connections/>
-</ui>"""
+</ui>
+"""

@@ -1,3 +1,4 @@
+from PyQt5.uic.uiparser import DEBUG
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt, QUrl
@@ -21,6 +22,8 @@ class Ui(QtWidgets.QMainWindow):
         self.strikefont = QFont()
         self.strikefont.setStrikeOut(True)
         self.config = loaded_config
+        self.swapstate = 0
+        self.setWindowIcon(pygui.QIcon('static/chhtv.ico'))
         
 
 def setup():
@@ -48,6 +51,7 @@ def setup():
     window.delete_match_confirm_checkbox.clicked.connect(confirm_delete_match)
     window.match_move_up_button.clicked.connect(match_move_up)
     window.match_move_down_button.clicked.connect(match_move_down)
+    window.swap_button.clicked.connect(swap_red_blue)
     window.undo_button.clicked.connect(undo)
     window.undo_button.setEnabled(False)
     window.match_move_up_button.setEnabled(False)
@@ -202,14 +206,15 @@ def on_team2win_click():
 
 
 def team_won(team):
-    print(f"team {team} won")
+    logging.debug(f"team {team} won")
     match_in_progress = broadcast.current_match
     broadcast.game_complete(broadcast.current_match, team)
-    broadcast.write_to_stream()
     set_button_states()
     update_schedule()
     if match_in_progress != broadcast.current_match:
+        window.swapstate = 0
         refresh_team_win_labels()
+    broadcast.write_to_stream()
 
 
 def set_team_win_buttons_enabled(new_state = True):
@@ -223,6 +228,22 @@ def refresh_team_win_labels():
         team2 = broadcast.teams[broadcast.matches[broadcast.current_match].teams[1]]
         window.team1_win_button.setText(team1.name)
         window.team2_win_button.setText(team2.name)
+        if window.swapstate:
+            window.blue_label.setText(f"Blue: {team2.name}")
+            window.red_label.setText(f"Red: {team1.name}")
+        else:
+            window.blue_label.setText(f"Blue: {team1.name}")
+            window.red_label.setText(f"Red: {team2.name}")
+
+
+def swap_red_blue():
+    if window.swapstate == 0:
+        window.swapstate = 1
+        broadcast.write_to_stream(swap = True)
+    else:
+        window.swapstate = 0
+        broadcast.write_to_stream(swap = False)
+    refresh_team_win_labels()
 
 
 def add_team():
@@ -369,7 +390,7 @@ def match_selected():
         window.match_move_down_button.setEnabled(False)
 
 
-    print(f"match {selected_item} {broadcast.matches[selected_item].teams[0]}")
+    logging.debug(f"match {selected_item} {broadcast.matches[selected_item].teams[0]}")
 
 
 def populate_teams():
@@ -448,7 +469,8 @@ except (json.JSONDecodeError, FileNotFoundError):
     config = { "openfile": "tournament-config.json" }
     save_config(config)
 
-
+log = logging.Logger
+logging.Logger.setLevel(log, level = "DEBUG")
 broadcast = Tournament()
 broadcast.load_from()
 broadcast.write_to_stream()

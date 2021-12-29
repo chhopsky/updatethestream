@@ -1,7 +1,10 @@
 from pydantic import BaseModel, Field
 from typing import Text, List, Dict, Optional
 from uuid import uuid4
+import os
 import json
+import logging
+import errno
 
 class Team(BaseModel):
     id: str = ""
@@ -98,10 +101,19 @@ class Tournament(BaseModel):
             json.dump(output_dict, f)
         return
 
-    def write_to_stream(self):
+    def write_to_stream(self, swap=False):
         # do text write here
+
+        filename = "streamlabels/start.txt"
+        if not os.path.exists(os.path.dirname(filename)):
+            try:
+                os.makedirs(os.path.dirname(filename))
+            except OSError as exc: # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+
         for index, match in enumerate(self.matches):
-            print(match)
+            logging.debug(match)
             with open(f"streamlabels\match-{index}-teams.txt", "w") as f_teams:
                 team1 = self.teams.get(match.teams[0])
                 team2 = self.teams.get(match.teams[1])
@@ -115,21 +127,30 @@ class Tournament(BaseModel):
         
         current_teams = self.get_teams_from_matchid(self.current_match)
         if current_teams is not None:
+            t0 = 0
+            t1 = 1
+            if swap:
+                t0 = 1
+                t1 = 0
             with open(f"streamlabels\current-match-teams.txt", "w") as f_current:
-                f_current.write(f"{current_teams[0].name} vs {current_teams[1].name}\n")
+                f_current.write(f"{current_teams[t0].name} vs {current_teams[t1].name}\n")
+                f_current.close()
+            
+            with open(f"streamlabels\current-match-tricodes.txt", "w") as f_current:
+                f_current.write(f"{current_teams[t0].tricode} vs {current_teams[t1].tricode}\n")
                 f_current.close()
 
             with open(f"streamlabels\current-match-team1-tricode.txt", "w") as f_current:
-                f_current.write(f"{current_teams[0].tricode}\n")
+                f_current.write(f"{current_teams[t0].tricode}\n")
 
             with open(f"streamlabels\current-match-team2-tricode.txt", "w") as f_current:
-                f_current.write(f"{current_teams[1].tricode}\n")
+                f_current.write(f"{current_teams[t1].tricode}\n")
             
             with open(f"streamlabels\current-match-team1-name.txt", "w") as f_current:
-                f_current.write(f"{current_teams[0].name}\n")
+                f_current.write(f"{current_teams[t0].name}\n")
 
             with open(f"streamlabels\current-match-team2-name.txt", "w") as f_current:
-                f_current.write(f"{current_teams[1].name}\n")
+                f_current.write(f"{current_teams[t1].name}\n")
 
         return
     
