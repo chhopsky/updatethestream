@@ -281,6 +281,7 @@ def edit_team():
         window.edit_team_tricode_field.setText("")
         window.edit_team_points_field.setText("")
         populate_teams()
+        update_schedule()
 
 
 def team_selected():
