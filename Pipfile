@@ -9,6 +9,7 @@ verify_ssl = true
 pyqt5 = "*"
 pydantic = "*"
 typing = "*"
+pyinstaller = "*"
 
 [requires]
 python_version = "3.8"

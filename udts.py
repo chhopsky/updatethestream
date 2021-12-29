@@ -1,14 +1,19 @@
-from PyQt5 import QtWidgets, uic
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
 from tourneydefs import Tournament, Match, Team
+from PyQt5 import QtWidgets, uic
+from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtGui import QFont
+from form import ui_string
+import PyQt5.QtGui as pygui
 import sys
+import io
 import json
+import logging
 
 class Ui(QtWidgets.QMainWindow):
     def __init__(self, loaded_config):
         super(Ui, self).__init__() # Call the inherited classes __init__ method
-        uic.loadUi('form.ui', self) # Load the .ui file
+        f = io.StringIO(ui_string)
+        uic.loadUi(f, self) # Load the .ui file
         self.show() # Show the GUI
         self.normalfont = QFont()
         self.boldfont = QFont()
@@ -26,6 +31,7 @@ def setup():
     window.actionSaveAsState.triggered.connect(save_as_state)
     window.actionSaveState.triggered.connect(save_state)
     window.actionExit.triggered.connect(exit_app)
+    window.actionHelp.triggered.connect(open_github)
     window.team1_win_button.clicked.connect(on_team1win_click)
     window.team2_win_button.clicked.connect(on_team2win_click)
     window.refresh_ui_button.clicked.connect(force_refresh_ui)
@@ -40,8 +46,12 @@ def setup():
     window.edit_match_button.clicked.connect(edit_match)
     window.delete_match_button.clicked.connect(delete_match)
     window.delete_match_confirm_checkbox.clicked.connect(confirm_delete_match)
+    window.match_move_up_button.clicked.connect(match_move_up)
+    window.match_move_down_button.clicked.connect(match_move_down)
     window.undo_button.clicked.connect(undo)
     window.undo_button.setEnabled(False)
+    window.match_move_up_button.setEnabled(False)
+    window.match_move_down_button.setEnabled(False)
     populate_teams()
     populate_matches()
     update_schedule()
@@ -52,12 +62,21 @@ def setup():
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
 
+
+def open_github():
+    url = QUrl('https://github.com/chhopsky/updatethestream')
+    if not pygui.QDesktopServices.openUrl(url):
+        pygui.QMessageBox.warning(window, 'Open Url', 'Could not open url')
+
+
 def new():
     broadcast.clear_everything()
     populate_teams()
     populate_matches()
+    update_schedule()
     refresh_team_win_labels()
     set_button_states()
+
 
 def open_file():
     options = QtWidgets.QFileDialog.Options()
@@ -69,6 +88,7 @@ def open_file():
         save_config(window.config)
         force_refresh_ui()
 
+
 def save_file():
     filename = config.get("openfile")
     if filename:
@@ -76,12 +96,14 @@ def save_file():
     else:
         broadcast.save_to()
 
+
 def save_state():
     filename = config.get("openfile")
     if filename:
         broadcast.save_to(filename, savestate=True)
     else:
         broadcast.save_to(savestate=True)
+
 
 def save_as():
     options = QtWidgets.QFileDialog.Options()
@@ -92,6 +114,7 @@ def save_as():
         window.config["openfile"] = filename
         save_config(window.config)
 
+
 def save_as_state():
     options = QtWidgets.QFileDialog.Options()
     options |= QtWidgets.QFileDialog.DontUseNativeDialog
@@ -101,8 +124,10 @@ def save_as_state():
         window.config["openfile"] = filename
         save_config(window.config)
 
+
 def exit_app():
     sys.exit()
+
 
 def undo():
     broadcast.game_history.pop()
@@ -111,6 +136,27 @@ def undo():
     update_schedule()
     refresh_team_win_labels()
     set_button_states()
+
+
+def match_move_up():
+    match_reorder("up")
+
+
+def match_move_down():
+    match_reorder("down")
+
+
+def match_reorder(direction):
+    match_id = window.match_list_widget.currentRow()
+    move_map = {"up": -1, "down": 1}
+    temp_match = broadcast.matches[match_id]
+    broadcast.matches[match_id] = broadcast.matches[match_id + move_map[direction]]
+    broadcast.matches[match_id + move_map[direction]] = temp_match
+    populate_matches()
+    update_schedule()
+    set_button_states()
+    refresh_team_win_labels()
+
 
 def set_button_states():
     # rules for when to enable or disable buttons
@@ -134,20 +180,26 @@ def set_button_states():
     else:
         set_team_win_buttons_enabled(False)
 
+
 def force_refresh_stream():
     broadcast.write_to_stream()
+
 
 def force_refresh_ui():
     populate_teams()
     populate_matches()
+    update_schedule()
     refresh_team_win_labels()
     set_button_states()
+
     
 def on_team1win_click():
     team_won(0)
 
+
 def on_team2win_click():
     team_won(1)
+
 
 def team_won(team):
     print(f"team {team} won")
@@ -159,9 +211,11 @@ def team_won(team):
     if match_in_progress != broadcast.current_match:
         refresh_team_win_labels()
 
+
 def set_team_win_buttons_enabled(new_state = True):
     window.team1_win_button.setEnabled(new_state)
     window.team2_win_button.setEnabled(new_state)
+
 
 def refresh_team_win_labels():
     if broadcast.current_match < len(broadcast.matches):
@@ -169,6 +223,7 @@ def refresh_team_win_labels():
         team2 = broadcast.teams[broadcast.matches[broadcast.current_match].teams[1]]
         window.team1_win_button.setText(team1.name)
         window.team2_win_button.setText(team2.name)
+
 
 def add_team():
     name = window.add_team_name_field.text()
@@ -188,6 +243,7 @@ def add_team():
         window.add_team_points_field.setText("")
         populate_teams()
 
+
 def edit_team():
     if window.team_list_widget.selectedItems():
         selected_item = window.team_list_widget.selectedItems()[0]
@@ -205,6 +261,7 @@ def edit_team():
         window.edit_team_points_field.setText("")
         populate_teams()
 
+
 def team_selected():
     if window.team_list_widget.selectedItems():
         selected_item = window.team_list_widget.selectedItems()[0]
@@ -213,11 +270,13 @@ def team_selected():
         window.edit_team_name_field.setText(broadcast.teams[id].name)
         window.edit_team_points_field.setText(str(broadcast.teams[id].points))
 
+
 def confirm_delete_team():
     if window.delete_team_confirm_checkbox.isChecked():
         window.delete_team_button.setEnabled(True)
     else:
         window.delete_team_button.setEnabled(False)
+
 
 def delete_team():
     if window.team_list_widget.selectedItems():
@@ -232,6 +291,7 @@ def delete_team():
         populate_matches()
         set_button_states()
         refresh_team_win_labels()
+
 
 def add_match():
     t1 = window.add_match_team1_dropdown.currentIndex()
@@ -252,6 +312,7 @@ def add_match():
         refresh_team_win_labels()
         
 
+
 def edit_match():
     selected_item = window.match_list_widget.currentRow()
     if selected_item > -1:
@@ -264,11 +325,13 @@ def edit_match():
         broadcast.edit_match(selected_item, match_data)
         populate_matches()
 
+
 def confirm_delete_match():
     if window.delete_match_confirm_checkbox.isChecked():
         window.delete_match_button.setEnabled(True)
     else:
         window.delete_match_button.setEnabled(False)
+
 
 def delete_match():
     match_id = window.match_list_widget.currentRow()
@@ -285,14 +348,30 @@ def delete_match():
             
         refresh_team_win_labels()
 
+
 def match_selected():
     selected_item = window.match_list_widget.currentRow()
     teams = broadcast.get_teams_from_matchid(selected_item)
     window.edit_match_team1_dropdown.setCurrentText(teams[0].tricode)
     window.edit_match_team2_dropdown.setCurrentText(teams[1].tricode)
     window.edit_match_bestof_dropdown.setCurrentText(str(broadcast.matches[selected_item].best_of))
+    if selected_item == 0:
+        window.match_move_up_button.setEnabled(False)
+        window.match_move_down_button.setEnabled(True)
+    if selected_item > 0 and selected_item < len(broadcast.matches):
+        window.match_move_up_button.setEnabled(True)
+        window.match_move_down_button.setEnabled(True)
+    if selected_item == len(broadcast.matches) - 1:
+        window.match_move_up_button.setEnabled(True)
+        window.match_move_down_button.setEnabled(False)
+    if selected_item == -1:
+        window.match_move_up_button.setEnabled(False)
+        window.match_move_down_button.setEnabled(False)
+
+
     print(f"match {selected_item} {broadcast.matches[selected_item].teams[0]}")
-    
+
+
 def populate_teams():
     window.team_list_widget.clear()
     window.add_match_team1_dropdown.clear()
@@ -309,6 +388,7 @@ def populate_teams():
         window.edit_match_team2_dropdown.addItem(team.tricode)
     reset_dropdowns()
 
+
 def populate_matches():
     window.match_list_widget.clear()
     window.schedule_list_widget.clear()
@@ -322,6 +402,7 @@ def populate_matches():
         window.match_list_widget.addItem(item)
         window.schedule_list_widget.addItem(item2)
     reset_dropdowns()
+
 
 def update_schedule():
     for i, match in enumerate(broadcast.matches):
@@ -346,6 +427,7 @@ def update_schedule():
     else:
         window.up_next_match.setText("nothing, go home")
 
+
 def reset_dropdowns():
     window.add_match_team1_dropdown.setCurrentIndex(-1)
     window.add_match_team2_dropdown.setCurrentIndex(-1)
@@ -353,6 +435,7 @@ def reset_dropdowns():
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
     window.edit_match_bestof_dropdown.setCurrentIndex(-1)
+
 
 def save_config(config_to_save):
     with open("config.cfg", "w") as f:
@@ -364,6 +447,7 @@ try:
 except (json.JSONDecodeError, FileNotFoundError):
     config = { "openfile": "tournament-config.json" }
     save_config(config)
+
 
 broadcast = Tournament()
 broadcast.load_from()

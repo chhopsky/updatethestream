@@ -31,6 +31,7 @@ class Tournament(BaseModel):
                 data = json.load(f)
 
                 self.mapping = {}
+                self.clear_everything()
 
                 for team in data["teams"]:
                     team = Team(**team)
