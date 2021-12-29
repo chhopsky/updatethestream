@@ -366,7 +366,7 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
        <string/>
       </property>
       <property name="pixmap">
-       <pixmap>chhtvlogo.png</pixmap>
+       <pixmap>static/chhtvlogo.png</pixmap>
       </property>
       <property name="scaledContents">
        <bool>true</bool>
