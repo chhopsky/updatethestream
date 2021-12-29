@@ -270,8 +270,8 @@ def edit_team():
         selected_item = window.team_list_widget.selectedItems()[0]
         update = Team()
         update.id = selected_item.id
-        update.name = window.edit_team_tricode_field.text()
-        update.tricode = window.edit_team_name_field.text()
+        update.name = window.edit_team_name_field.text()
+        update.tricode = window.edit_team_tricode_field.text()
         try:
             update.points = int(window.edit_team_points_field.text())
         except ValueError:
