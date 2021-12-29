@@ -9,3 +9,25 @@ Absolute MVP, no blah blah
 Known bugs:
 - You can edit parts of the schedule that have already occurred. Bad things happen if you delete teams or matches that are already recorded. I will not be fixing this, don't be stupid about it.
 - Under unknown conditions, a match ending may not revert the red/blue team swap.
+
+WIP:
+- Scores and standings are not yet implemented
+- Scores per match are also not yet implemented
+- The ability to lock in a tournament and thus lock you out of editing teams/matches is also not yet implemented
+
+How to use:
+The program uses the teams and matches you configure to write out text files containing schedule, scores and standings. In OBS, or whatever broadcast program you use, add the text files from the "streamlabels" folder as text sources, and configure them however you want in your broadcast graphics.
+
+Step by step:
+Add teams to the teams tab.
+Add matches to the matches tab.
+On the main screen, click "Force refresh stream" to populate the broadcast.
+When a team wins, hit the button indicating that they won.
+Hit Swap Red/Blue if you want to swap red and blue side labels for "current match" text files
+"Undo last result" steps backwards through the results you recorded, and moves you back in time through the broadcast.
+
+Notes:
+"Force refresh stream" will rewrite the text files, in case anything doesn't update for some reason.
+"Force UI Update" will redraw and reload the UI in case the editing rules get in a bad state.
+
+Go nuts, GLHF, let me know how you want it to work, or tell me what broke.
