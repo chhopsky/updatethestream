@@ -24,8 +24,8 @@ Notes:
 "Force UI Update" will redraw and reload the UI in case the editing rules get in a bad state.  
 
 ## Known bugs
-- You can edit parts of the schedule that have already occurred. Bad things happen if you delete teams or matches that are already recorded. I will not be fixing this, don't be stupid about it.
-- Under unknown conditions, a match ending may not revert the red/blue team swap.
+- Bad things happen if you delete teams or matches that are already recorded in match history. Don't be stupid about it.
+- Under certain conditions, a match ending may not revert the red/blue team swap. Saw it once, cannot repro.
 
 ## WIP
 - Scores and standings are not yet implemented
