@@ -17,6 +17,8 @@ Step by step:
 5. Hit Swap Red/Blue if you want to swap red and blue side labels for "current match" text files  
 6. "Undo last result" steps backwards through the results you recorded, and moves you back in time through the broadcast.  
 
+<img src="https://chhopsky.github.io/UDTS-screenshot.png">
+
 Notes:
 "Force refresh stream" will rewrite the text files, in case anything doesn't update for some reason.  
 "Force UI Update" will redraw and reload the UI in case the editing rules get in a bad state.  
