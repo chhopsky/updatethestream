@@ -1,8 +1,13 @@
 # Update The Stream
 A basic tournament schedule/standings stream tracker for broadcasting short-form multi-match esports tournaments.
 
+<img src="https://chhopsky.github.io/UDTS-demo.png">
+
 # How to use:
 The program uses the teams and matches you configure to write out text files containing schedule, scores and standings. In OBS, or whatever broadcast program you use, add the text files from the "streamlabels" folder as text sources, and configure them however you want in your broadcast graphics.
+
+# Demonstration:
+Video demo: https://youtu.be/77kKceSTzgI
 
 Step by step:  
 1. Add teams to the teams tab.  
