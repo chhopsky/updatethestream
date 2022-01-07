@@ -133,11 +133,11 @@ class Tournament(BaseModel):
                 t0 = 1
                 t1 = 0
             with open(f"streamlabels\current-match-teams.txt", "w") as f_current:
-                f_current.write(f"{current_teams[t0].name} vs {current_teams[t1].name}\n")
+                f_current.write(f"{current_teams[0].name} vs {current_teams[1].name}\n")
                 f_current.close()
             
             with open(f"streamlabels\current-match-tricodes.txt", "w") as f_current:
-                f_current.write(f"{current_teams[t0].tricode} vs {current_teams[t1].tricode}\n")
+                f_current.write(f"{current_teams[0].tricode} vs {current_teams[1].tricode}\n")
                 f_current.close()
 
             with open(f"streamlabels\current-match-team1-tricode.txt", "w") as f_current:
@@ -151,6 +151,12 @@ class Tournament(BaseModel):
 
             with open(f"streamlabels\current-match-team2-name.txt", "w") as f_current:
                 f_current.write(f"{current_teams[t1].name}\n")
+
+            with open(f"streamlabels\current-match-team1-score.txt", "w") as f_current:
+                f_current.write(f"{self.matches[self.current_match].scores[t0]}\n")
+
+            with open(f"streamlabels\current-match-team2-score.txt", "w") as f_current:
+                f_current.write(f"{self.matches[self.current_match].scores[t1]}\n")
 
         return
     
