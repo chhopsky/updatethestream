@@ -1,9 +1,13 @@
+from json.decoder import JSONDecodeError
 from PyQt5.uic.uiparser import DEBUG
+from pydantic.errors import JsonError
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QFont
 from form import ui_string
+from bs4 import BeautifulSoup
+from urllib import request
 import PyQt5.QtGui as pygui
 import sys
 import io
@@ -29,6 +33,7 @@ class Ui(QtWidgets.QMainWindow):
 def setup():
     window.actionNew.triggered.connect(new)
     window.actionOpen.triggered.connect(open_file)
+    window.actionOpenFromChallonge.triggered.connect(open_challonge)
     window.actionSave.triggered.connect(save_file)
     window.actionSaveAs.triggered.connect(save_as)
     window.actionSaveAsState.triggered.connect(save_as_state)
@@ -56,6 +61,7 @@ def setup():
     window.undo_button.setEnabled(False)
     window.match_move_up_button.setEnabled(False)
     window.match_move_down_button.setEnabled(False)
+    window.update_from_challonge.clicked.connect(update_from_challonge)
     populate_teams()
     populate_matches()
     update_schedule()
@@ -89,9 +95,48 @@ def open_file():
     if filename:
         broadcast.load_from(filename)
         window.config["openfile"] = filename
+        window.config["use_challonge"] = False
+        window.config["challonge_id"] = False
         save_config(window.config)
         force_refresh_ui()
 
+
+def poll_challonge(tournament_id):
+    page = request.urlopen(f"https://challonge.com/{tournament_id}")
+    html = page.read()
+    soup = BeautifulSoup(html, 'html.parser')
+    scripts = soup.find_all('script')
+    javascript = f"{scripts[8]}"
+    return json.loads(javascript.split(';')[2].split(" = ")[1])
+
+
+def open_challonge():
+    text, ok = QtWidgets.QInputDialog.getText(window, "Name of the Team", "Paste Challonge.com tournament code")
+    if text and ok:
+        try:
+            tournament_info = poll_challonge(text)
+            if len(tournament_info["matches_by_round"]["1"]) < 1:
+                raise Exception
+            else:
+                found_tournament = True
+        except Exception as e:
+            logging.error("Could not load JSON!")
+            logging.error(e)
+            msg = QtWidgets.QMessageBox()
+            msg.setWindowTitle("Load error from Challonge")
+            msg.setText("The challonge tournament could not be loaded. Please check your code.")
+            msg.setIcon(QtWidgets.QMessageBox.Critical)
+            x = msg.exec_()
+        if found_tournament:
+            broadcast.load_from_challonge(tournament_info)
+            window.config["use_challonge"] = True
+            window.config["challonge_id"] = text
+            force_refresh_ui()
+
+def update_from_challonge():
+    tournament_info = poll_challonge(window.config["challonge_id"])
+    broadcast.update_match_history_from_challonge(tournament_info)
+    force_refresh_ui()
 
 def save_file():
     filename = config.get("openfile")
@@ -190,6 +235,7 @@ def force_refresh_stream():
 
 
 def force_refresh_ui():
+    window.update_from_challonge.setEnabled(config["use_challonge"])
     populate_teams()
     populate_matches()
     update_schedule()
@@ -467,7 +513,10 @@ try:
     with open("config.cfg") as f:
         config = json.load(f)
 except (json.JSONDecodeError, FileNotFoundError):
-    config = { "openfile": "tournament-config.json" }
+    config = { "openfile": "tournament-config.json",
+        "use_challonge": False,
+        "challonge_id": False
+     }
     save_config(config)
 
 log = logging.Logger

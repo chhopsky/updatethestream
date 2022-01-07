@@ -1,3 +1,4 @@
+import uuid
 from pydantic import BaseModel, Field
 from typing import Text, List, Dict, Optional
 from uuid import uuid4
@@ -15,6 +16,7 @@ class Team(BaseModel):
     logo_small: str = ""
 
 class Match(BaseModel):
+    id: str = uuid4()
     teams: List[str] = []
     scores: List[int] = [0, 0]
     best_of: int = 1
@@ -59,6 +61,120 @@ class Tournament(BaseModel):
             return 
 
         return
+    
+    def update_match_history_from_challonge(self, tournamentinfo):
+        self.game_history = []
+        match_id = 0
+        for round_index, round_match_list in tournamentinfo["matches_by_round"].items():
+            for match in round_match_list:
+                if match["state"] == "complete":
+                    self.matches[match_id].scores = [0, 0]
+                    if match["winner_id"] == match["player1"]["id"]:
+                        # reset best_of and scores
+                        self.matches[match_id].best_of = (match["scores"][0] * 2) - 1
+                        # process index 1 first
+                        match_count = match["scores"][1]
+                        while match_count > 0:
+                            self.game_complete(match_id, 1)
+                            match_count -= 1
+                        match_count = match["scores"][0]
+                        while match_count > 0:
+                            self.game_complete(match_id, 0)
+                            match_count -= 1
+                    else:
+                        self.matches[match_id].best_of = (match["scores"][1] * 2) - 1
+                        match_count = match["scores"][0]
+                        while match_count > 0:
+                            self.game_complete(match_id, 0)
+                            match_count -= 1
+                        match_count = match["scores"][1]
+                        while match_count > 0:
+                            self.game_complete(match_id, 1)
+                            match_count -= 1
+                        # process index 0 first
+                match_id += 1
+
+        for round_index, round_match_list in tournamentinfo["matches_by_round"].items():
+            for match in round_match_list:
+                if match["state"] == "pending":
+                    for match_id, our_match in enumerate(self.matches):
+                        if our_match.id == match["id"]:
+                            if match.get("player1"):
+                                self.matches[match_id][0] == match["player1"]["id"]
+                            if match.get("player2"):
+                                self.matches[match_id][1] == match["player1"]["id"]
+
+
+    def load_from_challonge(self, tournamentinfo):
+        self.mapping = {}
+        self.clear_everything()
+        print("loading teams")
+
+        round_bestof_mapping = {}
+        for round_index, round in enumerate(tournamentinfo["rounds"]):
+            round_bestof_mapping[round["number"]] = round["best_of"]
+
+        for round_index, round_match_list in tournamentinfo["matches_by_round"].items():
+            for match in round_match_list:
+                teams = []
+                if match.get("player1") and match.get("player2"):
+                    teams.append(match["player1"])
+                    teams.append(match["player2"])
+                for team in teams:
+                    if team["id"] not in self.teams.keys():
+                        print(f"found new team with id {team['id']}")
+                        new_team = Team()
+                        new_team.name = team["display_name"]
+                        new_team.id = team["id"]
+                        new_team.tricode = team["display_name"][0:3].upper()
+                        self.mapping[new_team.tricode] = new_team.id
+                        self.add_team(new_team)
+
+        # load in completed matches
+        for round_index, round_match_list in tournamentinfo["matches_by_round"].items():
+            for match in round_match_list:
+                if match["state"] == "complete":
+                    new_match = Match()
+                    new_match.id = match["id"]
+                    new_match.teams.append(self.teams[match["player1"]["id"]].id)
+                    new_match.teams.append(self.teams[match["player2"]["id"]].id)
+                    new_match.best_of = round_bestof_mapping[match["round"]]
+                    self.matches.append(new_match)
+
+        # create match history for them
+        self.update_match_history_from_challonge(tournamentinfo)
+
+        # add the upcoming matches where teams are locked in
+        for round_index, round_match_list in tournamentinfo["matches_by_round"].items():
+            for match in round_match_list:
+                if match["state"] == "open":
+                    new_match = Match()
+                    new_match.id = match["id"]
+                    new_match.teams.append(self.teams[match["player1"]["id"]].id)
+                    new_match.teams.append(self.teams[match["player2"]["id"]].id)
+                    new_match.best_of = round_bestof_mapping[match["round"]]
+                    self.matches.append(new_match)
+
+        # add the upcoming matches where teams are not locked in
+        for round_index, round_match_list in tournamentinfo["matches_by_round"].items():
+            for match in round_match_list:
+                if match["state"] == "pending":
+                    new_match = Match()
+                    new_match.id = match["id"]
+                    if match.get("player1"):
+                        new_match.teams.append(self.teams[match["player1"]["id"]].id)
+                    else:
+                        new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")])
+                    if match.get("player2"):
+                        new_match.teams.append(self.teams[match["player2"]["id"]].id)
+                    else:
+                        new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")])
+                    new_match.best_of = round_bestof_mapping[match["round"]]
+                    self.matches.append(new_match)
+
+        print(self.teams)
+        print(self.matches)
+    
 
     def save_to(self, filename, savestate=False):
         # do write here
@@ -228,11 +344,13 @@ class Tournament(BaseModel):
 
     def clear_everything(self):
         self.teams = {}
+        self.add_team(self.placeholder_team)
         self.matches = []
         self.game_history = []
         self.current_match = 0
         self.mapping = {}
 
+    placeholder_team = Team(tricode="TBD", name = "TBD")
     teams: Dict = {}
     matches: List[Match] = []
     current_match: int = 0

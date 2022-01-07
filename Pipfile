@@ -10,6 +10,8 @@ pyqt5 = "*"
 pydantic = "*"
 typing = "*"
 pyinstaller = "*"
+bs4 = "*"
+validators = "*"
 
 [requires]
 python_version = "3.8"

@@ -41,15 +41,15 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
       </property>
       <layout class="QVBoxLayout" name="startstop_vbox">
        <item>
-        <widget class="QPushButton" name="start_button">
+        <widget class="QPushButton" name="update_from_challonge">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>False</bool>
          </property>
          <property name="toolTip">
-          <string>Starts the tournament with all current configuration. Writes out OBS files to disk.</string>
+          <string>Reload current tournament state from Challonge</string>
          </property>
          <property name="text">
-          <string>Start (Not Implemented)</string>
+          <string>Update From Challonge</string>
          </property>
         </widget>
        </item>
@@ -900,6 +900,7 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
     </property>
     <addaction name="actionNew"/>
     <addaction name="actionOpen"/>
+    <addaction name="actionOpenFromChallonge"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
     <addaction name="actionSaveState"/>
@@ -923,6 +924,14 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionOpenFromChallonge">
+   <property name="text">
+    <string>Open From Challonge.com</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
    </property>
   </action>
   <action name="actionNew">
