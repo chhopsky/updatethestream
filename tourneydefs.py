@@ -368,7 +368,8 @@ class Tournament(BaseModel):
             self.matches[match_id].in_progress = False
             self.matches[match_id].finished = True
             self.matches[match_id].winner = winner_index
-            self.teams[self.matches[match_id].teams[winner_index]].points += 1
+            # TODO UDTS-25: split points and starting points
+            # self.teams[self.matches[match_id].teams[winner_index]].points += 1
             self.current_match += 1
 
     def game_complete(self, scheduleid, winner_index):
@@ -380,9 +381,19 @@ class Tournament(BaseModel):
 
     def get_standings(self):
         standings = []
-        for id, team in self.teams.items():
+        standing_data = {}
+        for team in self.teams.values():
+            standing_data[team.id] = 0
+            standing_data[team.id] += int(team.points)
+
+        for match in self.matches.values():
+            if match.winner != 2:
+                winner = match.teams[match.winner]
+                standing_data[winner] += 1
+
+        for team_id, points in standing_data.items():
             if team.id != "666":
-                standings.append((team.id, team.points))
+                standings.append((team_id, points))
         actual_standings = sorted(standings, key=lambda y:y[1], reverse=True)
         return actual_standings
 
@@ -476,7 +487,7 @@ class Tournament(BaseModel):
 
     placeholder_team = Team(tricode="TBD", name = "TBD", id="666")
     teams: Dict = {}
-    matches: List[Match] = []
+    matches: Dict = {}
     schedule: List[str] = []
     current_match: int = 0
     game_history: List[Game] = []
