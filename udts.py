@@ -27,6 +27,8 @@ class Ui(QtWidgets.QMainWindow):
         self.boldfont.setBold(True)
         self.strikefont = QFont()
         self.strikefont.setStrikeOut(True)
+        self.italicfont = QFont()
+        self.italicfont.setItalic(True)
         self.config = loaded_config
         self.swapstate = 0
         self.setWindowIcon(pygui.QIcon('static/chhtv.ico'))
@@ -485,16 +487,28 @@ def populate_teams():
     window.edit_match_team1_dropdown.clear()
     window.edit_match_team2_dropdown.clear()
     window.team_dropdown_map = []
+    add_tbd = False
     for id, team in broadcast.teams.items():
         if team.id != "666":
-            item = QtWidgets.QListWidgetItem(team.get_display_name())
-            item.id = team.id
-            window.team_list_widget.addItem(item)
-            window.add_match_team1_dropdown.addItem(team.get_tricode())
-            window.add_match_team2_dropdown.addItem(team.get_tricode())
-            window.edit_match_team1_dropdown.addItem(team.get_tricode())
-            window.edit_match_team2_dropdown.addItem(team.get_tricode())
+            add_team_to_ui(team)
+        else:
+            add_tbd = True
+    if add_tbd:
+        add_team_to_ui(broadcast.placeholder_team, show_in_list=False)
     reset_dropdowns()
+
+
+def add_team_to_ui(team, show_in_list=True):
+    item = QtWidgets.QListWidgetItem(team.get_display_name())
+    item.id = team.id
+    if not show_in_list:
+        item.setFont(window.italicfont)
+        item.setFlags(item.flags() & ~Qt.ItemIsSelectable)
+    window.team_list_widget.addItem(item)
+    window.add_match_team1_dropdown.addItem(team.get_tricode())
+    window.add_match_team2_dropdown.addItem(team.get_tricode())
+    window.edit_match_team1_dropdown.addItem(team.get_tricode())
+    window.edit_match_team2_dropdown.addItem(team.get_tricode())
 
 
 def populate_matches():
@@ -585,7 +599,7 @@ if os.path.isfile(config["openfile"]):
     result = broadcast.load_from(config["openfile"])
     loadfail = False
 
-print(broadcast.__dict__)
+logging.debug(broadcast.__dict__)
 broadcast.write_to_stream()
 current_match = 0
 app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplication

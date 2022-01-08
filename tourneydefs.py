@@ -151,7 +151,7 @@ class Tournament(BaseModel):
     def load_from_challonge(self, tournamentinfo):
         self.mapping = {}
         self.clear_everything()
-        print("loading teams")
+        logging.debug("loading teams")
         round_bestof_mapping = {}
         try:
             for round_index, round in enumerate(tournamentinfo["rounds"]):
@@ -165,7 +165,7 @@ class Tournament(BaseModel):
                         teams.append(match["player2"])
                     for team in teams:
                         if team["id"] not in self.teams.keys():
-                            print(f"found new team with id {team['id']}")
+                            logging.debug(f"found new team with id {team['id']}")
                             new_team = Team()
                             new_team.name = team["display_name"]
                             new_team.id = team["id"]
