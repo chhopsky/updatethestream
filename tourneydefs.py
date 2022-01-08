@@ -277,6 +277,42 @@ class Tournament(BaseModel):
                 with open(f"streamlabels\match-{index}-scores.txt", "w") as f_scores:
                     f_scores.write(f"{match.scores[0]}\n")
                     f_scores.write(f"{match.scores[1]}\n")
+
+            if len(self.schedule):
+                with open(f"streamlabels\schedule-teams.txt", "w") as f_schedule:
+                    for index, schedule_item in enumerate(self.schedule):
+                        match = self.matches[schedule_item]
+                        team1 = self.teams.get(match.teams[0])
+                        team2 = self.teams.get(match.teams[1])
+                        f_schedule.write(f"{team1.get_name()} vs {team2.get_name()}\n")
+                
+                with open(f"streamlabels\schedule-tricodes.txt", "w") as f_schedule:
+                    for index, schedule_item in enumerate(self.schedule):
+                        match = self.matches[schedule_item]
+                        team1 = self.teams.get(match.teams[0])
+                        team2 = self.teams.get(match.teams[1])
+                        f_schedule.write(f"{team1.get_tricode()} vs {team2.get_tricode()}\n")
+
+                with open(f"streamlabels\schedule-scores.txt", "w") as f_schedule:
+                    for index, schedule_item in enumerate(self.schedule):
+                        match = self.matches[schedule_item]
+                        f_schedule.write(f"{match.scores[0]} - {match.scores[1]}\n")
+
+                with open(f"streamlabels\schedule-full-name.txt", "w") as f_schedule:
+                    for index, schedule_item in enumerate(self.schedule):
+                        match = self.matches[schedule_item]
+                        team1 = self.teams.get(match.teams[0])
+                        team2 = self.teams.get(match.teams[1])
+                        f_schedule.write(f"{team1.get_name()} vs {team2.get_name()} ")
+                        f_schedule.write(f"({match.scores[0]} - {match.scores[1]})\n")
+
+                with open(f"streamlabels\schedule-full-tricode.txt", "w") as f_schedule:
+                    for index, schedule_item in enumerate(self.schedule):
+                        match = self.matches[schedule_item]
+                        team1 = self.teams.get(match.teams[0])
+                        team2 = self.teams.get(match.teams[1])
+                        f_schedule.write(f"{team1.get_tricode()} vs {team2.get_tricode()} ")
+                        f_schedule.write(f"({match.scores[0]} - {match.scores[1]})\n")
             
             current_match = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
             current_teams = self.get_teams_from_scheduleid(current_match)
@@ -289,11 +325,9 @@ class Tournament(BaseModel):
                     t1 = 0
                 with open(f"streamlabels\current-match-teams.txt", "w") as f_current:
                     f_current.write(f"{current_teams[0].get_name()} vs {current_teams[1].get_name()}\n")
-                    f_current.close()
                 
                 with open(f"streamlabels\current-match-tricodes.txt", "w") as f_current:
                     f_current.write(f"{current_teams[0].get_tricode()} vs {current_teams[1].get_tricode()}\n")
-                    f_current.close()
 
                 with open(f"streamlabels\current-match-team1-tricode.txt", "w") as f_current:
                     f_current.write(f"{current_teams[t0].get_tricode()}\n")
@@ -319,31 +353,26 @@ class Tournament(BaseModel):
                     for result in standings:
                         team = self.teams[result[0]]
                         f_current.write(f"{team.get_name()}: {result[1]}\n")
-                    f_current.close()
 
                 with open(f"streamlabels\standings-teams-names.txt", "w") as f_current:
                     for result in standings:
                         team = self.teams[result[0]]
                         f_current.write(f"{team.get_name()}\n")
-                    f_current.close()
 
                 with open(f"streamlabels\standings-teams-tricodes.txt", "w") as f_current:
                     for result in standings:
                         team = self.teams[result[0]]
                         f_current.write(f"{team.get_tricode()}\n")
-                    f_current.close()
 
                 with open(f"streamlabels\standings-teams-points.txt", "w") as f_current:
                     for result in standings:
                         team = self.teams[result[0]]
                         f_current.write(f"{result[1]}\n")
-                    f_current.close()
 
                 with open(f"streamlabels\standings-teams-leader.txt", "w") as f_current:
                     result = standings[0]
                     team = self.teams[result[0]]
                     f_current.write(f"{team.get_name()}")
-                    f_current.close()
 
         return
     
@@ -383,8 +412,9 @@ class Tournament(BaseModel):
         standings = []
         standing_data = {}
         for team in self.teams.values():
-            standing_data[team.id] = 0
-            standing_data[team.id] += int(team.points)
+            if team.id != "666":
+                standing_data[team.id] = 0
+                standing_data[team.id] += int(team.points)
 
         for match in self.matches.values():
             if match.winner != 2:
