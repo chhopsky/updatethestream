@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QFont
 from form import ui_string
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, GuessedAtParserWarning
 from urllib import request
 import udtsconfig
 import PyQt5.QtGui as pygui
@@ -67,6 +67,7 @@ def setup():
     populate_teams()
     populate_matches()
     update_schedule()
+    update_standings()
     refresh_team_win_labels()
     set_button_states()
     window.add_match_team1_dropdown.setCurrentIndex(-1)
@@ -86,6 +87,7 @@ def new():
     populate_teams()
     populate_matches()
     update_schedule()
+    update_standings()
     refresh_team_win_labels()
     set_button_states()
 
@@ -146,7 +148,7 @@ def show_error(error_code = "UNKNOWN", additional_info = None):
     
     messagetext = f"{error_code}: {message}"
     if additional_info:
-        messagetext += f"{messagetext}\n{additional_info}"
+        messagetext += f"\n\n{additional_info}"
 
     msg = QtWidgets.QMessageBox()
     msg.setWindowTitle(title)
@@ -206,6 +208,7 @@ def undo():
     broadcast.update_match_scores()
     broadcast.write_to_stream()
     update_schedule()
+    update_standings()
     refresh_team_win_labels()
     set_button_states()
 
@@ -264,6 +267,7 @@ def force_refresh_ui():
     populate_teams()
     populate_matches()
     update_schedule()
+    update_standings()
     refresh_team_win_labels()
     set_button_states()
 
@@ -282,6 +286,7 @@ def team_won(team):
     broadcast.game_complete(broadcast.current_match, team)
     set_button_states()
     update_schedule()
+    update_standings()
     if match_in_progress != broadcast.current_match:
         window.swapstate = 0
         refresh_team_win_labels()
@@ -350,8 +355,10 @@ def edit_team():
         window.edit_team_name_field.setText("")
         window.edit_team_tricode_field.setText("")
         window.edit_team_points_field.setText("")
+        window.edit_match_button.setEnabled(False)
         populate_teams()
         update_schedule()
+        update_standings()
 
 
 def team_selected():
@@ -361,6 +368,7 @@ def team_selected():
         window.edit_team_tricode_field.setText(broadcast.teams[id].tricode)
         window.edit_team_name_field.setText(broadcast.teams[id].name)
         window.edit_team_points_field.setText(str(broadcast.teams[id].points))
+        window.edit_team_button.setEnabled(True)
 
 
 def confirm_delete_team():
@@ -392,10 +400,12 @@ def add_match():
 
     if t1 > -1 and t2 > -1 and bo > -1:
         new_match = Match()
-        t1_id = broadcast.get_team_id_by_tricode(window.add_match_team1_dropdown.currentText())
-        t2_id = broadcast.get_team_id_by_tricode(window.add_match_team2_dropdown.currentText())
-        new_match.teams.append(t1_id)
-        new_match.teams.append(t2_id)
+        team1_index = window.add_match_team1_dropdown.currentIndex()
+        team2_index = window.add_match_team2_dropdown.currentIndex()
+        widget1 = window.team_list_widget.item(team1_index)
+        widget2 = window.team_list_widget.item(team2_index)
+        new_match.teams.append(widget1.id)
+        new_match.teams.append(widget2.id)
         new_match.best_of = int(window.add_match_bestof_dropdown.currentText())
         broadcast.add_match(new_match)
         if len(broadcast.matches) == 1:
@@ -407,14 +417,18 @@ def add_match():
 
 def edit_match():
     selected_item = window.match_list_widget.currentRow()
+    selected_item_widget = window.match_list_widget.selectedItems()[0]
     if selected_item > -1:
         match_data = Match()
-        team1_id = broadcast.get_team_id_by_tricode(window.edit_match_team1_dropdown.currentText())
-        team2_id = broadcast.get_team_id_by_tricode(window.edit_match_team2_dropdown.currentText())
-        match_data.teams.append(team1_id)
-        match_data.teams.append(team2_id)
+        team1_index = window.edit_match_team1_dropdown.currentIndex()
+        team2_index = window.edit_match_team2_dropdown.currentIndex()
+        widget1 = window.team_list_widget.item(team1_index)
+        widget2 = window.team_list_widget.item(team2_index)
+        match_data.teams.append(widget1.id)
+        match_data.teams.append(widget2.id)
         match_data.best_of = int(window.edit_match_bestof_dropdown.currentText())
-        broadcast.edit_match(selected_item, match_data)
+        broadcast.edit_match(selected_item_widget.id, match_data)
+        window.edit_match_button.setEnabled(False)
         populate_matches()
 
 
@@ -427,11 +441,12 @@ def confirm_delete_match():
 
 def delete_match():
     match_id = window.match_list_widget.currentRow()
+    selected_item = window.match_list_widget.selectedItems()[0]
     if match_id > -1 and window.delete_match_confirm_checkbox.isChecked():
         window.delete_match_confirm_checkbox.setCheckState(False)
         window.delete_match_button.setEnabled(False)
         window.match_list_widget.takeItem(match_id)
-        broadcast.delete_match(match_id)
+        broadcast.delete_match(selected_item.id)
         
         if len(broadcast.matches):
             populate_matches()
@@ -445,9 +460,10 @@ def match_selected():
     selected_item = window.match_list_widget.currentRow()
     teams = broadcast.get_teams_from_scheduleid(selected_item)
     match_id = broadcast.get_match_id_from_scheduleid(selected_item)
-    window.edit_match_team1_dropdown.setCurrentText(teams[0].tricode)
-    window.edit_match_team2_dropdown.setCurrentText(teams[1].tricode)
+    window.edit_match_team1_dropdown.setCurrentText(teams[0].get_tricode())
+    window.edit_match_team2_dropdown.setCurrentText(teams[1].get_tricode())
     window.edit_match_bestof_dropdown.setCurrentText(str(broadcast.matches[match_id].best_of))
+    window.edit_match_button.setEnabled(True)
     if selected_item == 0:
         window.match_move_up_button.setEnabled(False)
         window.match_move_down_button.setEnabled(True)
@@ -468,15 +484,16 @@ def populate_teams():
     window.add_match_team2_dropdown.clear()
     window.edit_match_team1_dropdown.clear()
     window.edit_match_team2_dropdown.clear()
-    for tricode, team in broadcast.teams.items():
+    window.team_dropdown_map = []
+    for id, team in broadcast.teams.items():
         if team.id != "666":
-            item = QtWidgets.QListWidgetItem(f"{team.tricode}: {team.name}")
+            item = QtWidgets.QListWidgetItem(team.get_display_name())
             item.id = team.id
             window.team_list_widget.addItem(item)
-            window.add_match_team1_dropdown.addItem(team.tricode)
-            window.add_match_team2_dropdown.addItem(team.tricode)
-            window.edit_match_team1_dropdown.addItem(team.tricode)
-            window.edit_match_team2_dropdown.addItem(team.tricode)
+            window.add_match_team1_dropdown.addItem(team.get_tricode())
+            window.add_match_team2_dropdown.addItem(team.get_tricode())
+            window.edit_match_team1_dropdown.addItem(team.get_tricode())
+            window.edit_match_team2_dropdown.addItem(team.get_tricode())
     reset_dropdowns()
 
 
@@ -488,8 +505,11 @@ def populate_matches():
         team1 = broadcast.teams[match.teams[0]]
         team2 = broadcast.teams[match.teams[1]]
         scores = f"{match.scores[0]}-{match.scores[1]}"
-        item = QtWidgets.QListWidgetItem(f"{team1.name} vs {team2.name}, BO{match.best_of}")
-        item2 = QtWidgets.QListWidgetItem(f"{team1.name} vs {team2.name}, {scores}, BO{match.best_of}")
+        item = QtWidgets.QListWidgetItem(f"{team1.get_name()} vs {team2.get_name()}, BO{match.best_of}")
+        item.id = match.id
+        item.team1id = team1.id
+        item.team2id = team2.id
+        item2 = QtWidgets.QListWidgetItem(f"{team1.get_name()} vs {team2.get_name()}, {scores}, BO{match.best_of}")
         item2.setFlags(item2.flags() & ~Qt.ItemIsSelectable)
         window.match_list_widget.addItem(item)
         window.schedule_list_widget.addItem(item2)
@@ -503,7 +523,7 @@ def update_schedule():
         team2 = broadcast.teams[match.teams[1]]
         scores = f"{match.scores[0]}-{match.scores[1]}"
         current_item = window.schedule_list_widget.item(i)
-        current_item.setText(f"{team1.name} vs {team2.name}, {scores}, BO{match.best_of}")
+        current_item.setText(f"{team1.get_name()} vs {team2.get_name()}, {scores}, BO{match.best_of}")
         if i == broadcast.current_match:
             current_item.setFont(window.boldfont)
         elif match.finished:
@@ -517,10 +537,20 @@ def update_schedule():
         window.team2_score_label.setText(str(match.scores[1]))
     if broadcast.current_match < len(broadcast.schedule) - 1 and len(broadcast.schedule):
         teams = broadcast.get_teams_from_scheduleid(broadcast.current_match + 1)
-        window.up_next_match.setText(f"{teams[0].tricode} vs {teams[1].tricode}")
+        window.up_next_match.setText(f"{teams[0].get_tricode()} vs {teams[1].get_tricode()}")
     else:
         window.up_next_match.setText("nothing, go home")
 
+
+def update_standings():
+    window.standings_list_widget.clear()
+    standings = broadcast.get_standings()
+    if standings is not None:
+        for result in standings:
+            team = broadcast.teams[result[0]]
+            item = QtWidgets.QListWidgetItem(f"{team.get_name()}: {result[1]}")
+            item.setFlags(item.flags() & ~Qt.ItemIsSelectable)
+            window.standings_list_widget.addItem(item)
 
 def reset_dropdowns():
     window.add_match_team1_dropdown.setCurrentIndex(-1)
@@ -548,8 +578,10 @@ except (json.JSONDecodeError, FileNotFoundError):
 log = logging.Logger
 logging.Logger.setLevel(log, level = "DEBUG")
 broadcast = Tournament()
-loadfail = True
+loadfail = False
+foundfile = False
 if os.path.isfile(config["openfile"]):
+    foundfile = True
     result = broadcast.load_from(config["openfile"])
     loadfail = False
 
@@ -560,5 +592,7 @@ app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplic
 window = Ui(loaded_config = config) # Create an instance of our class
 if loadfail:
     show_error("SAVE_FILE_ERROR", config["openfile"])
+if not foundfile:
+    show_error("SAVE_FILE_MISSING", config["openfile"])
 setup()
 app.exec_() # Start the application

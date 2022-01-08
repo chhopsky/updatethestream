@@ -265,8 +265,14 @@ class Tournament(BaseModel):
                 with open(f"streamlabels\match-{index}-teams.txt", "w") as f_teams:
                     team1 = self.teams.get(match.teams[0])
                     team2 = self.teams.get(match.teams[1])
-                    f_teams.write(f"{team1.name}\n")
-                    f_teams.write(f"{team2.name}\n")
+                    f_teams.write(f"{team1.get_name()}\n")
+                    f_teams.write(f"{team2.get_name()}\n")
+
+                with open(f"streamlabels\match-{index}-tricodes.txt", "w") as f_teams:
+                    team1 = self.teams.get(match.teams[0])
+                    team2 = self.teams.get(match.teams[1])
+                    f_teams.write(f"{team1.get_tricode()}\n")
+                    f_teams.write(f"{team2.get_tricode()}\n")
 
                 with open(f"streamlabels\match-{index}-scores.txt", "w") as f_scores:
                     f_scores.write(f"{match.scores[0]}\n")
@@ -282,24 +288,24 @@ class Tournament(BaseModel):
                     t0 = 1
                     t1 = 0
                 with open(f"streamlabels\current-match-teams.txt", "w") as f_current:
-                    f_current.write(f"{current_teams[0].name} vs {current_teams[1].name}\n")
+                    f_current.write(f"{current_teams[0].get_name()} vs {current_teams[1].get_name()}\n")
                     f_current.close()
                 
                 with open(f"streamlabels\current-match-tricodes.txt", "w") as f_current:
-                    f_current.write(f"{current_teams[0].tricode} vs {current_teams[1].tricode}\n")
+                    f_current.write(f"{current_teams[0].get_tricode()} vs {current_teams[1].get_tricode()}\n")
                     f_current.close()
 
                 with open(f"streamlabels\current-match-team1-tricode.txt", "w") as f_current:
-                    f_current.write(f"{current_teams[t0].tricode}\n")
+                    f_current.write(f"{current_teams[t0].get_tricode()}\n")
 
                 with open(f"streamlabels\current-match-team2-tricode.txt", "w") as f_current:
-                    f_current.write(f"{current_teams[t1].tricode}\n")
+                    f_current.write(f"{current_teams[t1].get_tricode()}\n")
                 
                 with open(f"streamlabels\current-match-team1-name.txt", "w") as f_current:
-                    f_current.write(f"{current_teams[t0].name}\n")
+                    f_current.write(f"{current_teams[t0].get_name()}\n")
 
                 with open(f"streamlabels\current-match-team2-name.txt", "w") as f_current:
-                    f_current.write(f"{current_teams[t1].name}\n")
+                    f_current.write(f"{current_teams[t1].get_name()}\n")
 
                 with open(f"streamlabels\current-match-team1-score.txt", "w") as f_current:
                     f_current.write(f"{match.scores[t0]}\n")
@@ -308,56 +314,36 @@ class Tournament(BaseModel):
                     f_current.write(f"{match.scores[t1]}\n")
             
             standings = self.get_standings()
-            if standings is not None:
+            if standings:
                 with open(f"streamlabels\standings-complete.txt", "w") as f_current:
                     for result in standings:
                         team = self.teams[result[0]]
-                        f_current.write(f"{team.get_name()}: {result[1]}")
+                        f_current.write(f"{team.get_name()}: {result[1]}\n")
                     f_current.close()
 
                 with open(f"streamlabels\standings-teams-names.txt", "w") as f_current:
                     for result in standings:
                         team = self.teams[result[0]]
-                        f_current.write(f"{team.get_name()}")
+                        f_current.write(f"{team.get_name()}\n")
                     f_current.close()
 
                 with open(f"streamlabels\standings-teams-tricodes.txt", "w") as f_current:
                     for result in standings:
                         team = self.teams[result[0]]
-                        f_current.write(f"{team.get_tricode()}")
+                        f_current.write(f"{team.get_tricode()}\n")
                     f_current.close()
 
                 with open(f"streamlabels\standings-teams-points.txt", "w") as f_current:
                     for result in standings:
                         team = self.teams[result[0]]
-                        f_current.write(f"{result[1]}")
+                        f_current.write(f"{result[1]}\n")
                     f_current.close()
 
                 with open(f"streamlabels\standings-teams-leader.txt", "w") as f_current:
                     result = standings[0]
                     team = self.teams[result[0]]
-                    f_current.write(f"{result[1]}")
+                    f_current.write(f"{team.get_name()}")
                     f_current.close()
-
-                with open(f"streamlabels\standings-teams-top2.txt", "w") as f_current:
-                    for result in standings[0:1]:
-                        team = self.teams[result[0]]
-                        f_current.write(f"{team.get_name()}: {result[1]}")
-                    f_current.close()
-
-                with open(f"streamlabels\standings-teams-top3.txt", "w") as f_current:
-                    for result in standings[0:2]:
-                        team = self.teams[result[0]]
-                        f_current.write(f"{team.get_name()}: {result[1]}")
-                    f_current.close()
-                
-                with open(f"streamlabels\standings-teams-top4.txt", "w") as f_current:
-                    for result in standings[0:3]:
-                        team = self.teams[result[0]]
-                        f_current.write(f"{team.get_name()}: {result[1]}")
-                    f_current.close()
-
-                
 
         return
     
