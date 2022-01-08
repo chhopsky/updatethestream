@@ -1,5 +1,5 @@
 # Update The Stream
-A basic tournament schedule/standings stream tracker for broadcasting short-form multi-match esports tournaments.
+A tournament scores/schedule/standings management tool for esports tournament broadcasts.
 
 <img src="https://chhopsky.github.io/UDTS-demo.png">
 
@@ -24,13 +24,10 @@ Notes:
 "Force UI Update" will redraw and reload the UI in case the editing rules get in a bad state.  
 
 ## Known bugs
-- Bad things happen if you delete teams or matches that are already recorded in match history. Don't be stupid about it.
-- Under certain conditions, a match ending may not revert the red/blue team swap. Saw it once, cannot repro.
+- None, please report some.
 
 ## WIP
-- Scores and standings are not yet implemented
-- Scores per match are also not yet implemented
-- The ability to lock in a tournament and thus lock you out of editing teams/matches is also not yet implemented
+- Points per game not yet implemented
 
 Go nuts, GLHF, let me know how you want it to work, or tell me what broke.
 
@@ -39,7 +36,7 @@ config.cfg: stores basic config information
 tournament-config.json: defines teams, matches  
 tourneydefs.py: core class interactions  
 udts.py: UI and control plane  
-Absolute MVP
+form.py: pythonization of the UI XML for auto-packaging purposes
 
 ### Disclaimer
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
