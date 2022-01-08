@@ -1,1 +1,0 @@
-{"teams": [{"name": "Team Solo Mid", "tricode": "TSM", "points": 0}, {"name": "Counter-Logic Gaming", "tricode": "CLG", "points": 0}, {"name": "Pentanet.GG", "tricode": "PGG", "points": 0}], "matches": [{"teams": ["TSM", "CLG"], "best_of": 3}, {"teams": ["TSM", "PGG"], "best_of": 3}, {"teams": ["CLG", "PGG"], "best_of": 3}]}
