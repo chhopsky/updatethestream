@@ -8,11 +8,13 @@ from PyQt5.QtGui import QFont
 from form import ui_string
 from bs4 import BeautifulSoup
 from urllib import request
+import udtsconfig
 import PyQt5.QtGui as pygui
 import sys
 import io
 import json
 import logging
+import os.path
 
 class Ui(QtWidgets.QMainWindow):
     def __init__(self, loaded_config):
@@ -113,6 +115,7 @@ def poll_challonge(tournament_id):
 def open_challonge():
     text, ok = QtWidgets.QInputDialog.getText(window, "Name of the Team", "Paste Challonge.com tournament code")
     if text and ok:
+        found_tournament = False
         try:
             tournament_info = poll_challonge(text)
             if len(tournament_info["matches_by_round"]["1"]) < 1:
@@ -122,16 +125,36 @@ def open_challonge():
         except Exception as e:
             logging.error("Could not load JSON!")
             logging.error(e)
-            msg = QtWidgets.QMessageBox()
-            msg.setWindowTitle("Load error from Challonge")
-            msg.setText("The challonge tournament could not be loaded. Please check your code.")
-            msg.setIcon(QtWidgets.QMessageBox.Critical)
-            x = msg.exec_()
+            show_error("CHALLONGE_LOAD_FAIL")
         if found_tournament:
-            broadcast.load_from_challonge(tournament_info)
-            window.config["use_challonge"] = True
-            window.config["challonge_id"] = text
-            force_refresh_ui()
+            result = broadcast.load_from_challonge(tournament_info)
+            if result:                
+                window.config["use_challonge"] = True
+                window.config["challonge_id"] = text
+                force_refresh_ui()
+            else:
+                show_error("CHALLONGE_PARSE_FAIL")
+
+
+def show_error(error_code = "UNKNOWN", additional_info = None):
+    if error_code not in udtsconfig.ERRORS.keys():
+        additional_info = f"The code was {error_code}."
+        error_code = "BAD_UNKNOWN"
+
+    title = udtsconfig.ERRORS[error_code]["title"]
+    message = udtsconfig.ERRORS[error_code]["message"]
+    
+    messagetext = f"{error_code}: {message}"
+    if additional_info:
+        messagetext += f"{messagetext}\n{additional_info}"
+
+    msg = QtWidgets.QMessageBox()
+    msg.setWindowTitle(title)
+    msg.setText(messagetext)
+    msg.setIcon(QtWidgets.QMessageBox.Critical)
+    x = msg.exec_()
+
+
 
 def update_from_challonge():
     tournament_info = poll_challonge(window.config["challonge_id"])
@@ -196,11 +219,9 @@ def match_move_down():
 
 
 def match_reorder(direction):
-    match_id = window.match_list_widget.currentRow()
+    scheduleid = window.match_list_widget.currentRow()
     move_map = {"up": -1, "down": 1}
-    temp_match = broadcast.matches[match_id]
-    broadcast.matches[match_id] = broadcast.matches[match_id + move_map[direction]]
-    broadcast.matches[match_id + move_map[direction]] = temp_match
+    broadcast.swap_matches(scheduleid, scheduleid + move_map[direction])
     populate_matches()
     update_schedule()
     set_button_states()
@@ -212,11 +233,13 @@ def set_button_states():
     # undo button is disabled if at the first game
     if len(broadcast.game_history):
         window.undo_button.setEnabled(True)
+        window.swap_button.setEnabled(True)
     else:
         window.undo_button.setEnabled(False)
+        window.swap_button.setEnabled(False)
 
     # disable win buttons if there are no matches
-    if len(broadcast.matches):
+    if len(broadcast.schedule):
         set_team_win_buttons_enabled(True)
     else:
         set_team_win_buttons_enabled(False)
@@ -224,10 +247,12 @@ def set_button_states():
         window.team2_win_button.setText("No Matches Configured")
 
     # disable win buttons if tournament is over
-    if broadcast.current_match < len(broadcast.matches):
+    if broadcast.current_match < len(broadcast.schedule):
         set_team_win_buttons_enabled(True)
+        window.swap_button.setEnabled(True)
     else:
         set_team_win_buttons_enabled(False)
+        window.swap_button.setEnabled(False)
 
 
 def force_refresh_stream():
@@ -269,9 +294,8 @@ def set_team_win_buttons_enabled(new_state = True):
 
 
 def refresh_team_win_labels():
-    if broadcast.current_match < len(broadcast.matches):
-        team1 = broadcast.teams[broadcast.matches[broadcast.current_match].teams[0]]
-        team2 = broadcast.teams[broadcast.matches[broadcast.current_match].teams[1]]
+    if broadcast.current_match < len(broadcast.schedule):
+        team1, team2 = broadcast.get_teams_from_scheduleid(broadcast.current_match)
         window.team1_win_button.setText(team1.name)
         window.team2_win_button.setText(team2.name)
         if window.swapstate:
@@ -296,7 +320,7 @@ def add_team():
     name = window.add_team_name_field.text()
     tricode = window.add_team_tricode_field.text()
     points = window.add_team_points_field.text()
-    if name and tricode:
+    if name or tricode:
         new_team = Team()
         new_team.name = name
         new_team.tricode = tricode
@@ -419,10 +443,11 @@ def delete_match():
 
 def match_selected():
     selected_item = window.match_list_widget.currentRow()
-    teams = broadcast.get_teams_from_matchid(selected_item)
+    teams = broadcast.get_teams_from_scheduleid(selected_item)
+    match_id = broadcast.get_match_id_from_scheduleid(selected_item)
     window.edit_match_team1_dropdown.setCurrentText(teams[0].tricode)
     window.edit_match_team2_dropdown.setCurrentText(teams[1].tricode)
-    window.edit_match_bestof_dropdown.setCurrentText(str(broadcast.matches[selected_item].best_of))
+    window.edit_match_bestof_dropdown.setCurrentText(str(broadcast.matches[match_id].best_of))
     if selected_item == 0:
         window.match_move_up_button.setEnabled(False)
         window.match_move_down_button.setEnabled(True)
@@ -437,9 +462,6 @@ def match_selected():
         window.match_move_down_button.setEnabled(False)
 
 
-    logging.debug(f"match {selected_item} {broadcast.matches[selected_item].teams[0]}")
-
-
 def populate_teams():
     window.team_list_widget.clear()
     window.add_match_team1_dropdown.clear()
@@ -447,20 +469,22 @@ def populate_teams():
     window.edit_match_team1_dropdown.clear()
     window.edit_match_team2_dropdown.clear()
     for tricode, team in broadcast.teams.items():
-        item = QtWidgets.QListWidgetItem(f"{team.tricode}: {team.name}")
-        item.id = team.id
-        window.team_list_widget.addItem(item)
-        window.add_match_team1_dropdown.addItem(team.tricode)
-        window.add_match_team2_dropdown.addItem(team.tricode)
-        window.edit_match_team1_dropdown.addItem(team.tricode)
-        window.edit_match_team2_dropdown.addItem(team.tricode)
+        if team.id != "666":
+            item = QtWidgets.QListWidgetItem(f"{team.tricode}: {team.name}")
+            item.id = team.id
+            window.team_list_widget.addItem(item)
+            window.add_match_team1_dropdown.addItem(team.tricode)
+            window.add_match_team2_dropdown.addItem(team.tricode)
+            window.edit_match_team1_dropdown.addItem(team.tricode)
+            window.edit_match_team2_dropdown.addItem(team.tricode)
     reset_dropdowns()
 
 
 def populate_matches():
     window.match_list_widget.clear()
     window.schedule_list_widget.clear()
-    for match in broadcast.matches:
+    for scheduleitem in broadcast.schedule:
+        match = broadcast.matches[scheduleitem]
         team1 = broadcast.teams[match.teams[0]]
         team2 = broadcast.teams[match.teams[1]]
         scores = f"{match.scores[0]}-{match.scores[1]}"
@@ -473,7 +497,8 @@ def populate_matches():
 
 
 def update_schedule():
-    for i, match in enumerate(broadcast.matches):
+    for i, scheduleitem in enumerate(broadcast.schedule):
+        match = broadcast.matches[scheduleitem]
         team1 = broadcast.teams[match.teams[0]]
         team2 = broadcast.teams[match.teams[1]]
         scores = f"{match.scores[0]}-{match.scores[1]}"
@@ -485,12 +510,13 @@ def update_schedule():
             current_item.setFont(window.strikefont)
         else:
             current_item.setFont(window.normalfont)
-    if broadcast.current_match < len(broadcast.matches):
-        window.best_of_count_label.setText(str(broadcast.matches[broadcast.current_match].best_of))
-        window.team1_score_label.setText(str(broadcast.matches[broadcast.current_match].scores[0]))
-        window.team2_score_label.setText(str(broadcast.matches[broadcast.current_match].scores[1]))
-    if broadcast.current_match < len(broadcast.matches) - 1 and len(broadcast.matches):
-        teams = broadcast.get_teams_from_matchid(broadcast.current_match + 1)
+    if broadcast.current_match < len(broadcast.schedule):
+        match = broadcast.get_match_from_scheduleid(broadcast.current_match)
+        window.best_of_count_label.setText(str(match.best_of))
+        window.team1_score_label.setText(str(match.scores[0]))
+        window.team2_score_label.setText(str(match.scores[1]))
+    if broadcast.current_match < len(broadcast.schedule) - 1 and len(broadcast.schedule):
+        teams = broadcast.get_teams_from_scheduleid(broadcast.current_match + 1)
         window.up_next_match.setText(f"{teams[0].tricode} vs {teams[1].tricode}")
     else:
         window.up_next_match.setText("nothing, go home")
@@ -522,10 +548,17 @@ except (json.JSONDecodeError, FileNotFoundError):
 log = logging.Logger
 logging.Logger.setLevel(log, level = "DEBUG")
 broadcast = Tournament()
-broadcast.load_from()
+loadfail = True
+if os.path.isfile(config["openfile"]):
+    result = broadcast.load_from(config["openfile"])
+    loadfail = False
+
+print(broadcast.__dict__)
 broadcast.write_to_stream()
 current_match = 0
 app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplication
 window = Ui(loaded_config = config) # Create an instance of our class
+if loadfail:
+    show_error("SAVE_FILE_ERROR", config["openfile"])
 setup()
 app.exec_() # Start the application

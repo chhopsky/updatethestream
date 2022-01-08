@@ -150,7 +150,7 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
         <item>
          <widget class="QPushButton" name="team1_win_button">
           <property name="text">
-           <string>TSM Win</string>
+           <string>Team 1 Win</string>
           </property>
          </widget>
         </item>
@@ -163,7 +163,7 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
            </sizepolicy>
           </property>
           <property name="text">
-           <string>CLG Win</string>
+           <string>Team 2 Win</string>
           </property>
          </widget>
         </item>
@@ -572,6 +572,9 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
       </layout>
      </widget>
      <widget class="QPushButton" name="edit_team_button">
+    <property name="enabled">
+          <bool>False</bool>
+         </property>
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -755,6 +758,9 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
       </property>
      </widget>
      <widget class="QPushButton" name="edit_match_button">
+        <property name="enabled">
+          <bool>False</bool>
+         </property>
       <property name="geometry">
        <rect>
         <x>10</x>
