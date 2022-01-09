@@ -487,6 +487,15 @@ class Tournament(BaseModel):
         except IndexError:
             return None
 
+    def get_teams_from_match_id(self, match_id):
+        try:    
+            team1 = self.teams[self.matches[match_id].teams[0]]
+            team2 = self.teams[self.matches[match_id].teams[1]]
+            return [team1, team2]
+        except IndexError:
+            return None
+
+
     def get_scheduleid_from_match_id(self, match_id):
         return self.schedule.index(match_id)
 

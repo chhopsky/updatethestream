@@ -29,6 +29,8 @@ class Ui(QtWidgets.QMainWindow):
         self.strikefont.setStrikeOut(True)
         self.italicfont = QFont()
         self.italicfont.setItalic(True)
+        self.selected_team = None
+        self.selected_match = None
         self.config = loaded_config
         self.swapstate = 0
         self.setWindowIcon(pygui.QIcon('static/chhtv.ico'))
@@ -344,9 +346,8 @@ def add_team():
 
 def edit_team():
     if window.team_list_widget.selectedItems():
-        selected_item = window.team_list_widget.selectedItems()[0]
         update = Team()
-        update.id = selected_item.id
+        update.id = window.selected_team
         update.name = window.edit_team_name_field.text()
         update.tricode = window.edit_team_tricode_field.text()
         try:
@@ -367,6 +368,7 @@ def team_selected():
     if window.team_list_widget.selectedItems():
         selected_item = window.team_list_widget.selectedItems()[0]
         id = selected_item.id
+        window.selected_team = id
         window.edit_team_tricode_field.setText(broadcast.teams[id].tricode)
         window.edit_team_name_field.setText(broadcast.teams[id].name)
         window.edit_team_points_field.setText(str(broadcast.teams[id].points))
@@ -384,15 +386,15 @@ def delete_team():
     if window.team_list_widget.selectedItems():
         team_index = window.team_list_widget.currentRow()
         selected_item = window.team_list_widget.selectedItems()[0]
-    if window.delete_team_confirm_checkbox.isChecked():
-        window.delete_team_confirm_checkbox.setCheckState(False)
-        window.delete_team_button.setEnabled(False)
-        window.team_list_widget.takeItem(team_index)
-        broadcast.delete_team(selected_item.id)
-        populate_teams()
-        populate_matches()
-        set_button_states()
-        refresh_team_win_labels()
+        if window.delete_team_confirm_checkbox.isChecked():
+            window.delete_team_confirm_checkbox.setCheckState(False)
+            window.delete_team_button.setEnabled(False)
+            window.team_list_widget.takeItem(team_index)
+            broadcast.delete_team(selected_item.id)
+            populate_teams()
+            populate_matches()
+            set_button_states()
+            refresh_team_win_labels()
 
 
 def add_match():
@@ -418,9 +420,9 @@ def add_match():
 
 
 def edit_match():
-    selected_item = window.match_list_widget.currentRow()
-    selected_item_widget = window.match_list_widget.selectedItems()[0]
-    if selected_item > -1:
+    selected_item_index = window.match_list_widget.currentRow()
+    match_id = window.selected_match
+    if selected_item_index > -1:
         match_data = Match()
         team1_index = window.edit_match_team1_dropdown.currentIndex()
         team2_index = window.edit_match_team2_dropdown.currentIndex()
@@ -429,7 +431,7 @@ def edit_match():
         match_data.teams.append(widget1.id)
         match_data.teams.append(widget2.id)
         match_data.best_of = int(window.edit_match_bestof_dropdown.currentText())
-        broadcast.edit_match(selected_item_widget.id, match_data)
+        broadcast.edit_match(match_id, match_data)
         window.edit_match_button.setEnabled(False)
         populate_matches()
 
@@ -442,13 +444,13 @@ def confirm_delete_match():
 
 
 def delete_match():
-    match_id = window.match_list_widget.currentRow()
-    selected_item = window.match_list_widget.selectedItems()[0]
-    if match_id > -1 and window.delete_match_confirm_checkbox.isChecked():
+    selected_item_index = window.match_list_widget.currentRow()
+    match_id = window.selected_match
+    if selected_item_index > -1 and window.delete_match_confirm_checkbox.isChecked():
         window.delete_match_confirm_checkbox.setCheckState(False)
         window.delete_match_button.setEnabled(False)
-        window.match_list_widget.takeItem(match_id)
-        broadcast.delete_match(selected_item.id)
+        window.match_list_widget.takeItem(selected_item_index)
+        broadcast.delete_match(match_id)
         
         if len(broadcast.matches):
             populate_matches()
@@ -459,23 +461,25 @@ def delete_match():
 
 
 def match_selected():
-    selected_item = window.match_list_widget.currentRow()
-    teams = broadcast.get_teams_from_scheduleid(selected_item)
-    match_id = broadcast.get_match_id_from_scheduleid(selected_item)
+    selected_item_index = window.match_list_widget.currentRow()
+    selected_item = window.match_list_widget.selectedItems()[0]
+    match_id = selected_item.id
+    window.selected_match = match_id
+    teams = broadcast.get_teams_from_match_id(match_id)
     window.edit_match_team1_dropdown.setCurrentText(teams[0].get_tricode())
     window.edit_match_team2_dropdown.setCurrentText(teams[1].get_tricode())
     window.edit_match_bestof_dropdown.setCurrentText(str(broadcast.matches[match_id].best_of))
     window.edit_match_button.setEnabled(True)
-    if selected_item == 0:
+    if selected_item_index == 0:
         window.match_move_up_button.setEnabled(False)
         window.match_move_down_button.setEnabled(True)
-    if selected_item > 0 and selected_item < len(broadcast.matches):
+    if selected_item_index > 0 and selected_item_index < len(broadcast.matches):
         window.match_move_up_button.setEnabled(True)
         window.match_move_down_button.setEnabled(True)
-    if selected_item == len(broadcast.matches) - 1:
+    if selected_item_index == len(broadcast.matches) - 1:
         window.match_move_up_button.setEnabled(True)
         window.match_move_down_button.setEnabled(False)
-    if selected_item == -1:
+    if selected_item_index == -1:
         window.match_move_up_button.setEnabled(False)
         window.match_move_down_button.setEnabled(False)
 
