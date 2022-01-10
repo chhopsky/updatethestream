@@ -8,6 +8,7 @@ from PyQt5.QtGui import QFont
 from form import ui_string
 from bs4 import BeautifulSoup, GuessedAtParserWarning
 from urllib import request
+from uuid import uuid4
 import udtsconfig
 import PyQt5.QtGui as pygui
 import sys
@@ -31,6 +32,8 @@ class Ui(QtWidgets.QMainWindow):
         self.italicfont.setItalic(True)
         self.selected_team = None
         self.selected_match = None
+        self.lock_matches = False
+        self.lock_teams = False
         self.config = loaded_config
         self.swapstate = 0
         self.setWindowIcon(pygui.QIcon('static/chhtv.ico'))
@@ -329,6 +332,8 @@ def add_team():
     name = window.add_team_name_field.text()
     tricode = window.add_team_tricode_field.text()
     points = window.add_team_points_field.text()
+    if points == '':
+        points = 0
     if name or tricode:
         new_team = Team()
         new_team.name = name
@@ -404,19 +409,18 @@ def add_match():
 
     if t1 > -1 and t2 > -1 and bo > -1:
         new_match = Match()
-        team1_index = window.add_match_team1_dropdown.currentIndex()
-        team2_index = window.add_match_team2_dropdown.currentIndex()
-        widget1 = window.team_list_widget.item(team1_index)
-        widget2 = window.team_list_widget.item(team2_index)
+        new_match.id = uuid4()
+        widget1 = window.team_list_widget.item(t1)
+        widget2 = window.team_list_widget.item(t2)
         new_match.teams.append(widget1.id)
         new_match.teams.append(widget2.id)
         new_match.best_of = int(window.add_match_bestof_dropdown.currentText())
         broadcast.add_match(new_match)
+        print(new_match)
         if len(broadcast.matches) == 1:
             set_button_states()
         populate_matches()
         refresh_team_win_labels()
-        
 
 
 def edit_match():
@@ -461,27 +465,28 @@ def delete_match():
 
 
 def match_selected():
-    selected_item_index = window.match_list_widget.currentRow()
-    selected_item = window.match_list_widget.selectedItems()[0]
-    match_id = selected_item.id
-    window.selected_match = match_id
-    teams = broadcast.get_teams_from_match_id(match_id)
-    window.edit_match_team1_dropdown.setCurrentText(teams[0].get_tricode())
-    window.edit_match_team2_dropdown.setCurrentText(teams[1].get_tricode())
-    window.edit_match_bestof_dropdown.setCurrentText(str(broadcast.matches[match_id].best_of))
-    window.edit_match_button.setEnabled(True)
-    if selected_item_index == 0:
-        window.match_move_up_button.setEnabled(False)
-        window.match_move_down_button.setEnabled(True)
-    if selected_item_index > 0 and selected_item_index < len(broadcast.matches):
-        window.match_move_up_button.setEnabled(True)
-        window.match_move_down_button.setEnabled(True)
-    if selected_item_index == len(broadcast.matches) - 1:
-        window.match_move_up_button.setEnabled(True)
-        window.match_move_down_button.setEnabled(False)
-    if selected_item_index == -1:
-        window.match_move_up_button.setEnabled(False)
-        window.match_move_down_button.setEnabled(False)
+    if window.match_list_widget.selectedItems():
+        selected_item_index = window.match_list_widget.currentRow()
+        selected_item = window.match_list_widget.selectedItems()[0]
+        match_id = selected_item.id
+        window.selected_match = match_id
+        teams = broadcast.get_teams_from_match_id(match_id)
+        window.edit_match_team1_dropdown.setCurrentText(teams[0].get_tricode())
+        window.edit_match_team2_dropdown.setCurrentText(teams[1].get_tricode())
+        window.edit_match_bestof_dropdown.setCurrentText(str(broadcast.matches[match_id].best_of))
+        window.edit_match_button.setEnabled(True)
+        if selected_item_index == 0:
+            window.match_move_up_button.setEnabled(False)
+            window.match_move_down_button.setEnabled(True)
+        if selected_item_index > 0 and selected_item_index < len(broadcast.matches):
+            window.match_move_up_button.setEnabled(True)
+            window.match_move_down_button.setEnabled(True)
+        if selected_item_index == len(broadcast.matches) - 1:
+            window.match_move_up_button.setEnabled(True)
+            window.match_move_down_button.setEnabled(False)
+        if selected_item_index == -1:
+            window.match_move_up_button.setEnabled(False)
+            window.match_move_down_button.setEnabled(False)
 
 
 def populate_teams():

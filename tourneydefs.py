@@ -2,6 +2,7 @@ import uuid
 from pydantic import BaseModel, Field
 from typing import Text, List, Dict, Optional
 from uuid import uuid4
+import random
 import os
 import json
 import logging
@@ -20,7 +21,10 @@ class Team(BaseModel):
             return self.__dict__
         else:
             dict_to_return = self.__dict__
-            dict_to_return.pop("points")
+            try:
+                dict_to_return.pop("points")
+            except KeyError:
+                pass
             return dict_to_return
 
     def get_name(self):
@@ -453,19 +457,17 @@ class Tournament(BaseModel):
 
     ## MATCH READ/WRITE/EDIT
     def add_match(self, match, schedule=True):
-        if not match.id:
-            match.id = str(uuid.uui4())
         self.matches[match.id] = match
         if schedule:
-            self.schedule.append(str(match.id))
+            self.schedule.append(match.id)
 
     def delete_match(self, match_id):
-        self.matches.pop(match_id)
         scheduleid = self.get_scheduleid_from_match_id(match_id)
         del(self.schedule[scheduleid])
         for i, game in reversed(list(enumerate(self.game_history))):
             if game.match == match_id:
                 del(self.game_history[i])
+        self.matches.pop(match_id)
 
     def edit_match(self, match_id, match):
         self.matches[match_id].teams = match.teams
