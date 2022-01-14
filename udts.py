@@ -414,7 +414,7 @@ def add_match():
 
     if t1 > -1 and t2 > -1 and bo > -1:
         new_match = Match()
-        new_match.id = uuid4()
+        new_match.id = str(uuid4())
         widget1 = window.team_list_widget.item(t1)
         widget2 = window.team_list_widget.item(t2)
         new_match.teams.append(widget1.id)

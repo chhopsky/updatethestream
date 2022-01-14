@@ -179,8 +179,11 @@ class Tournament(BaseModel):
             for data in matches_by_round:
                 for match in data:
                     match_list.append(match)
-
         try:
+            for i, match in enumerate(match_list):
+                if not match.get("id"):
+                    match_list[i]["id"] = str(uuid4())
+
             for match in match_list:
                 teams = []
                 if match.get("player1") and match.get("player2"):
@@ -228,11 +231,11 @@ class Tournament(BaseModel):
                     if match.get("player1"):
                         new_match.teams.append(self.teams[match["player1"]["id"]].id)
                     else:
-                        new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")])
+                        new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")].id)
                     if match.get("player2"):
                         new_match.teams.append(self.teams[match["player2"]["id"]].id)
                     else:
-                        new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")])
+                        new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")].id)
                     self.matches[new_match.id] = new_match
                     self.schedule.append(new_match.id)
         except:
@@ -278,133 +281,138 @@ class Tournament(BaseModel):
                 if exc.errno != errno.EEXIST:
                     raise
 
+        
         if len(self.schedule):
-            for index, schedule_item in enumerate(self.schedule):
-                match = self.matches[schedule_item]
-                with open(f"streamlabels\match-{index}-teams.txt", "w") as f_teams:
-                    team1 = self.teams.get(match.teams[0])
-                    team2 = self.teams.get(match.teams[1])
-                    f_teams.write(f"{team1.get_name()}\n")
-                    f_teams.write(f"{team2.get_name()}\n")
-
-                with open(f"streamlabels\match-{index}-teams-horizontal.txt", "w") as f_teams:
-                    team1 = self.teams.get(match.teams[0])
-                    team2 = self.teams.get(match.teams[1])
-                    f_teams.write(f"{team1.get_name()} vs {team2.get_name()}\n")
-
-                with open(f"streamlabels\match-{index}-tricodes.txt", "w") as f_teams:
-                    team1 = self.teams.get(match.teams[0])
-                    team2 = self.teams.get(match.teams[1])
-                    f_teams.write(f"{team1.get_tricode()}\n")
-                    f_teams.write(f"{team2.get_tricode()}\n")
-
-                with open(f"streamlabels\match-{index}-tricodes-horizontal.txt", "w") as f_teams:
-                    team1 = self.teams.get(match.teams[0])
-                    team2 = self.teams.get(match.teams[1])
-                    f_teams.write(f"{team1.get_tricode()} vs {team2.get_tricode()}\n")
-
-                with open(f"streamlabels\match-{index}-scores.txt", "w") as f_scores:
-                    f_scores.write(f"{match.scores[0]}\n")
-                    f_scores.write(f"{match.scores[1]}\n")
-
-                with open(f"streamlabels\match-{index}-scores-horizontal.txt", "w") as f_scores:
-                    f_scores.write(f"{match.scores[0]} - {match.scores[1]}\n")
-
-            with open(f"streamlabels\schedule-teams.txt", "w") as f_schedule:
+            try:
                 for index, schedule_item in enumerate(self.schedule):
                     match = self.matches[schedule_item]
-                    team1 = self.teams.get(match.teams[0])
-                    team2 = self.teams.get(match.teams[1])
-                    f_schedule.write(f"{team1.get_name()} vs {team2.get_name()}\n")
-            
-            with open(f"streamlabels\schedule-tricodes.txt", "w") as f_schedule:
-                for index, schedule_item in enumerate(self.schedule):
-                    match = self.matches[schedule_item]
-                    team1 = self.teams.get(match.teams[0])
-                    team2 = self.teams.get(match.teams[1])
-                    f_schedule.write(f"{team1.get_tricode()} vs {team2.get_tricode()}\n")
+                    with open(f"streamlabels\match-{index}-teams.txt", "w") as f_teams:
+                        team1 = self.teams.get(match.teams[0])
+                        team2 = self.teams.get(match.teams[1])
+                        f_teams.write(f"{team1.get_name()}\n")
+                        f_teams.write(f"{team2.get_name()}\n")
 
-            with open(f"streamlabels\schedule-scores.txt", "w") as f_schedule:
-                for index, schedule_item in enumerate(self.schedule):
-                    match = self.matches[schedule_item]
-                    f_schedule.write(f"{match.scores[0]} - {match.scores[1]}\n")
+                    with open(f"streamlabels\match-{index}-teams-horizontal.txt", "w") as f_teams:
+                        team1 = self.teams.get(match.teams[0])
+                        team2 = self.teams.get(match.teams[1])
+                        f_teams.write(f"{team1.get_name()} vs {team2.get_name()}\n")
 
-            with open(f"streamlabels\schedule-full-name.txt", "w") as f_schedule:
-                for index, schedule_item in enumerate(self.schedule):
-                    match = self.matches[schedule_item]
-                    team1 = self.teams.get(match.teams[0])
-                    team2 = self.teams.get(match.teams[1])
-                    f_schedule.write(f"{team1.get_name()} vs {team2.get_name()} ")
-                    f_schedule.write(f"({match.scores[0]} - {match.scores[1]})\n")
+                    with open(f"streamlabels\match-{index}-tricodes.txt", "w") as f_teams:
+                        team1 = self.teams.get(match.teams[0])
+                        team2 = self.teams.get(match.teams[1])
+                        f_teams.write(f"{team1.get_tricode()}\n")
+                        f_teams.write(f"{team2.get_tricode()}\n")
 
-            with open(f"streamlabels\schedule-full-tricode.txt", "w") as f_schedule:
-                for index, schedule_item in enumerate(self.schedule):
-                    match = self.matches[schedule_item]
-                    team1 = self.teams.get(match.teams[0])
-                    team2 = self.teams.get(match.teams[1])
-                    f_schedule.write(f"{team1.get_tricode()} vs {team2.get_tricode()} ")
-                    f_schedule.write(f"({match.scores[0]} - {match.scores[1]})\n")
-            
-            current_match = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
-            current_teams = self.get_teams_from_scheduleid(current_match)
-            match = self.get_match_from_scheduleid(current_match)
-            if current_teams is not None:
-                t0 = 0
-                t1 = 1
-                if swap:
-                    t0 = 1
-                    t1 = 0
-                with open(f"streamlabels\current-match-teams.txt", "w") as f_current:
-                    f_current.write(f"{current_teams[0].get_name()} vs {current_teams[1].get_name()}\n")
+                    with open(f"streamlabels\match-{index}-tricodes-horizontal.txt", "w") as f_teams:
+                        team1 = self.teams.get(match.teams[0])
+                        team2 = self.teams.get(match.teams[1])
+                        f_teams.write(f"{team1.get_tricode()} vs {team2.get_tricode()}\n")
+
+                    with open(f"streamlabels\match-{index}-scores.txt", "w") as f_scores:
+                        f_scores.write(f"{match.scores[0]}\n")
+                        f_scores.write(f"{match.scores[1]}\n")
+
+                    with open(f"streamlabels\match-{index}-scores-horizontal.txt", "w") as f_scores:
+                        f_scores.write(f"{match.scores[0]} - {match.scores[1]}\n")
+
+                with open(f"streamlabels\schedule-teams.txt", "w") as f_schedule:
+                    for index, schedule_item in enumerate(self.schedule):
+                        match = self.matches[schedule_item]
+                        team1 = self.teams.get(match.teams[0])
+                        team2 = self.teams.get(match.teams[1])
+                        f_schedule.write(f"{team1.get_name()} vs {team2.get_name()}\n")
                 
-                with open(f"streamlabels\current-match-tricodes.txt", "w") as f_current:
-                    f_current.write(f"{current_teams[0].get_tricode()} vs {current_teams[1].get_tricode()}\n")
+                with open(f"streamlabels\schedule-tricodes.txt", "w") as f_schedule:
+                    for index, schedule_item in enumerate(self.schedule):
+                        match = self.matches[schedule_item]
+                        team1 = self.teams.get(match.teams[0])
+                        team2 = self.teams.get(match.teams[1])
+                        f_schedule.write(f"{team1.get_tricode()} vs {team2.get_tricode()}\n")
 
-                with open(f"streamlabels\current-match-team1-tricode.txt", "w") as f_current:
-                    f_current.write(f"{current_teams[t0].get_tricode()}\n")
+                with open(f"streamlabels\schedule-scores.txt", "w") as f_schedule:
+                    for index, schedule_item in enumerate(self.schedule):
+                        match = self.matches[schedule_item]
+                        f_schedule.write(f"{match.scores[0]} - {match.scores[1]}\n")
 
-                with open(f"streamlabels\current-match-team2-tricode.txt", "w") as f_current:
-                    f_current.write(f"{current_teams[t1].get_tricode()}\n")
+                with open(f"streamlabels\schedule-full-name.txt", "w") as f_schedule:
+                    for index, schedule_item in enumerate(self.schedule):
+                        match = self.matches[schedule_item]
+                        team1 = self.teams.get(match.teams[0])
+                        team2 = self.teams.get(match.teams[1])
+                        f_schedule.write(f"{team1.get_name()} vs {team2.get_name()} ")
+                        f_schedule.write(f"({match.scores[0]} - {match.scores[1]})\n")
+
+                with open(f"streamlabels\schedule-full-tricode.txt", "w") as f_schedule:
+                    for index, schedule_item in enumerate(self.schedule):
+                        match = self.matches[schedule_item]
+                        team1 = self.teams.get(match.teams[0])
+                        team2 = self.teams.get(match.teams[1])
+                        f_schedule.write(f"{team1.get_tricode()} vs {team2.get_tricode()} ")
+                        f_schedule.write(f"({match.scores[0]} - {match.scores[1]})\n")
+                    
+                current_match = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
+                current_teams = self.get_teams_from_scheduleid(current_match)
+                match = self.get_match_from_scheduleid(current_match)
+                if current_teams is not None:
+                    t0 = 0
+                    t1 = 1
+                    if swap:
+                        t0 = 1
+                        t1 = 0
+                    with open(f"streamlabels\current-match-teams.txt", "w") as f_current:
+                        f_current.write(f"{current_teams[0].get_name()} vs {current_teams[1].get_name()}\n")
+                    
+                    with open(f"streamlabels\current-match-tricodes.txt", "w") as f_current:
+                        f_current.write(f"{current_teams[0].get_tricode()} vs {current_teams[1].get_tricode()}\n")
+
+                    with open(f"streamlabels\current-match-team1-tricode.txt", "w") as f_current:
+                        f_current.write(f"{current_teams[t0].get_tricode()}\n")
+
+                    with open(f"streamlabels\current-match-team2-tricode.txt", "w") as f_current:
+                        f_current.write(f"{current_teams[t1].get_tricode()}\n")
+                    
+                    with open(f"streamlabels\current-match-team1-name.txt", "w") as f_current:
+                        f_current.write(f"{current_teams[t0].get_name()}\n")
+
+                    with open(f"streamlabels\current-match-team2-name.txt", "w") as f_current:
+                        f_current.write(f"{current_teams[t1].get_name()}\n")
+
+                    with open(f"streamlabels\current-match-team1-score.txt", "w") as f_current:
+                        f_current.write(f"{match.scores[t0]}\n")
+
+                    with open(f"streamlabels\current-match-team2-score.txt", "w") as f_current:
+                        f_current.write(f"{match.scores[t1]}\n")
                 
-                with open(f"streamlabels\current-match-team1-name.txt", "w") as f_current:
-                    f_current.write(f"{current_teams[t0].get_name()}\n")
+                standings = self.get_standings()
+                if standings:
+                    with open(f"streamlabels\standings-complete.txt", "w") as f_current:
+                        for result in standings:
+                            team = self.teams[result[0]]
+                            f_current.write(f"{team.get_name()}: {result[1]}\n")
 
-                with open(f"streamlabels\current-match-team2-name.txt", "w") as f_current:
-                    f_current.write(f"{current_teams[t1].get_name()}\n")
+                    with open(f"streamlabels\standings-teams-names.txt", "w") as f_current:
+                        for result in standings:
+                            team = self.teams[result[0]]
+                            f_current.write(f"{team.get_name()}\n")
 
-                with open(f"streamlabels\current-match-team1-score.txt", "w") as f_current:
-                    f_current.write(f"{match.scores[t0]}\n")
+                    with open(f"streamlabels\standings-teams-tricodes.txt", "w") as f_current:
+                        for result in standings:
+                            team = self.teams[result[0]]
+                            f_current.write(f"{team.get_tricode()}\n")
 
-                with open(f"streamlabels\current-match-team2-score.txt", "w") as f_current:
-                    f_current.write(f"{match.scores[t1]}\n")
-            
-            standings = self.get_standings()
-            if standings:
-                with open(f"streamlabels\standings-complete.txt", "w") as f_current:
-                    for result in standings:
+                    with open(f"streamlabels\standings-teams-points.txt", "w") as f_current:
+                        for result in standings:
+                            team = self.teams[result[0]]
+                            f_current.write(f"{result[1]}\n")
+
+                    with open(f"streamlabels\standings-teams-leader.txt", "w") as f_current:
+                        result = standings[0]
                         team = self.teams[result[0]]
-                        f_current.write(f"{team.get_name()}: {result[1]}\n")
-
-                with open(f"streamlabels\standings-teams-names.txt", "w") as f_current:
-                    for result in standings:
-                        team = self.teams[result[0]]
-                        f_current.write(f"{team.get_name()}\n")
-
-                with open(f"streamlabels\standings-teams-tricodes.txt", "w") as f_current:
-                    for result in standings:
-                        team = self.teams[result[0]]
-                        f_current.write(f"{team.get_tricode()}\n")
-
-                with open(f"streamlabels\standings-teams-points.txt", "w") as f_current:
-                    for result in standings:
-                        team = self.teams[result[0]]
-                        f_current.write(f"{result[1]}\n")
-
-                with open(f"streamlabels\standings-teams-leader.txt", "w") as f_current:
-                    result = standings[0]
-                    team = self.teams[result[0]]
-                    f_current.write(f"{team.get_name()}")
-
+                        f_current.write(f"{team.get_name()}")
+            except:
+                # TODO: return an error to the UI and have it display
+                return False
+                
         return
     
     def update_match_scores(self):
