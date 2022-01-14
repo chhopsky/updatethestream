@@ -9,4 +9,3 @@ CubicFoxxx
 
 ## Playtesters
 Froskurinn  
-Nibiria  
