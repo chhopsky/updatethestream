@@ -7,6 +7,7 @@ Added additional outputs.
 
 ## Bug Fixes
 Fixed a bug where attempting to load a draft tournament preview would cause a crash.
+Fixed a bug where progressing a match added from the UI would cause a crash.
 
 ### v0.2.1-alpha: 08/01/2022
 ## Features
