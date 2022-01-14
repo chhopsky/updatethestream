@@ -4,6 +4,8 @@ A tournament scores/schedule/standings management tool for esports tournament br
 <img src="https://chhopsky.github.io/UDTS-demo.png">
 
 # How to use:
+Download the latest release: https://github.com/chhopsky/updatethestream/releases  
+
 The program uses the teams and matches you configure to write out text files containing schedule, scores and standings. In OBS, or whatever broadcast program you use, add the text files from the "streamlabels" folder as text sources, and configure them however you want in your broadcast graphics.
 
 # Demonstration:
