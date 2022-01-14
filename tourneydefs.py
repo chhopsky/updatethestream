@@ -77,6 +77,15 @@ class Game(BaseModel):
         return self.__dict__
 
 class Tournament(BaseModel):
+    placeholder_team = Team(tricode="TBD", name = "TBD", id="666")
+    teams: Dict = {}
+    matches: Dict = {}
+    schedule: List[str] = []
+    current_match: int = 0
+    game_history: List[Game] = []
+    mapping: Dict = {}
+    version : str = "0.3"
+
     def load_from(self, filename="tournament-config.json"):
         try:
             with open(filename) as f:
@@ -109,47 +118,45 @@ class Tournament(BaseModel):
             return False
         return True
     
-    def update_match_history_from_challonge(self, tournamentinfo):
+    def update_match_history_from_challonge(self, round_match_list):
         self.game_history = []
-        for round_index, round_match_list in tournamentinfo["matches_by_round"].items():
-            for match in round_match_list:
-                if match["state"] == "complete":
-                    match_id = str(match["id"])
-                    scheduleid = self.get_scheduleid_from_match_id(match_id)
-                    self.matches[match_id].scores = [0, 0]
-                    if match["winner_id"] == match["player1"]["id"]:
-                        # reset best_of and scores
-                        self.matches[match_id].best_of = (match["scores"][0] * 2) - 1
-                        # process index 1 first
-                        match_count = match["scores"][1]
-                        while match_count > 0:
-                            self.game_complete(scheduleid, 1)
-                            match_count -= 1
-                        match_count = match["scores"][0]
-                        while match_count > 0:
-                            self.game_complete(scheduleid, 0)
-                            match_count -= 1
-                    else:
-                        self.matches[match_id].best_of = (match["scores"][1] * 2) - 1
-                        match_count = match["scores"][0]
-                        while match_count > 0:
-                            self.game_complete(scheduleid, 0)
-                            match_count -= 1
-                        match_count = match["scores"][1]
-                        while match_count > 0:
-                            self.game_complete(scheduleid, 1)
-                            match_count -= 1
-                        # process index 0 first
+        for match in round_match_list:
+            if match["state"] == "complete":
+                match_id = str(match["id"])
+                scheduleid = self.get_scheduleid_from_match_id(match_id)
+                self.matches[match_id].scores = [0, 0]
+                if match["winner_id"] == match["player1"]["id"]:
+                    # reset best_of and scores
+                    self.matches[match_id].best_of = (match["scores"][0] * 2) - 1
+                    # process index 1 first
+                    match_count = match["scores"][1]
+                    while match_count > 0:
+                        self.game_complete(scheduleid, 1)
+                        match_count -= 1
+                    match_count = match["scores"][0]
+                    while match_count > 0:
+                        self.game_complete(scheduleid, 0)
+                        match_count -= 1
+                else:
+                    self.matches[match_id].best_of = (match["scores"][1] * 2) - 1
+                    match_count = match["scores"][0]
+                    while match_count > 0:
+                        self.game_complete(scheduleid, 0)
+                        match_count -= 1
+                    match_count = match["scores"][1]
+                    while match_count > 0:
+                        self.game_complete(scheduleid, 1)
+                        match_count -= 1
+                    # process index 0 first
 
-        for round_index, round_match_list in tournamentinfo["matches_by_round"].items():
-            for match in round_match_list:
-                if match["state"] == "pending":
-                    for match_id, our_match in enumerate(self.matches):
-                        if our_match.id == match["id"]:
-                            if match.get("player1"):
-                                self.matches[match_id][0] == match["player1"]["id"]
-                            if match.get("player2"):
-                                self.matches[match_id][1] == match["player1"]["id"]
+        for match in round_match_list:
+            if match["state"] == "pending":
+                for match_id, our_match in enumerate(self.matches):
+                    if our_match.id == match["id"]:
+                        if match.get("player1"):
+                            self.matches[match_id][0] == match["player1"]["id"]
+                        if match.get("player2"):
+                            self.matches[match_id][1] == match["player1"]["id"]
 
 
     def load_from_challonge(self, tournamentinfo):
@@ -157,73 +164,81 @@ class Tournament(BaseModel):
         self.clear_everything()
         logging.debug("loading teams")
         round_bestof_mapping = {}
-        try:
-            for round_index, round in enumerate(tournamentinfo["rounds"]):
-                round_bestof_mapping[round["number"]] = round["best_of"]
+        matches_by_round = []
+        match_list = []
+        if len(tournamentinfo.get("groups")):
+            for group in tournamentinfo.get("groups"):
+                matches_by_round.append(group)
+            for data in matches_by_round:
+                for match_round in data["matches_by_round"].values():
+                    for match in match_round:
+                        match_list.append(match)
+        else:
+            for round in tournamentinfo["matches_by_round"].values():
+                matches_by_round.append(round)
+            for data in matches_by_round:
+                for match in data:
+                    match_list.append(match)
 
-            for round_index, round_match_list in tournamentinfo["matches_by_round"].items():
-                for match in round_match_list:
-                    teams = []
-                    if match.get("player1") and match.get("player2"):
-                        teams.append(match["player1"])
-                        teams.append(match["player2"])
-                    for team in teams:
-                        if team["id"] not in self.teams.keys():
-                            logging.debug(f"found new team with id {team['id']}")
-                            new_team = Team()
-                            new_team.name = team["display_name"]
-                            new_team.id = team["id"]
-                            new_team.tricode = team["display_name"][0:3].upper()
-                            self.mapping[new_team.tricode] = new_team.id
-                            self.add_team(new_team)
+        try:
+            for match in match_list:
+                teams = []
+                if match.get("player1") and match.get("player2"):
+                    teams.append(match["player1"])
+                    teams.append(match["player2"])
+                for team in teams:
+                    if team["id"] not in self.teams.keys():
+                        logging.debug(f"found new team with id {team['id']}")
+                        new_team = Team()
+                        new_team.name = team["display_name"]
+                        new_team.id = team["id"]
+                        new_team.tricode = team["display_name"][0:3].upper()
+                        self.mapping[new_team.tricode] = new_team.id
+                        self.add_team(new_team)
 
             # load in completed matches
-            for round_index, round_match_list in tournamentinfo["matches_by_round"].items():
-                for match in round_match_list:
-                    if match["state"] == "complete":
-                        new_match = Match()
-                        new_match.id = str(match["id"])
-                        new_match.teams.append(self.teams[match["player1"]["id"]].id)
-                        new_match.teams.append(self.teams[match["player2"]["id"]].id)
-                        new_match.best_of = round_bestof_mapping[match["round"]]
-                        self.matches[new_match.id] = new_match
-                        self.schedule.append(new_match.id)
+            for match in match_list:
+                if match["state"] == "complete":
+                    new_match = Match()
+                    new_match.id = str(match["id"])
+                    new_match.teams.append(self.teams[match["player1"]["id"]].id)
+                    new_match.teams.append(self.teams[match["player2"]["id"]].id)
+                    self.matches[new_match.id] = new_match
+                    self.schedule.append(new_match.id)
 
             # create match history for them
             # TODO: update this for match/schedule split
-            self.update_match_history_from_challonge(tournamentinfo)
+            self.update_match_history_from_challonge(match_list)
 
             # add the upcoming matches where teams are locked in
-            for round_index, round_match_list in tournamentinfo["matches_by_round"].items():
-                for match in round_match_list:
-                    if match["state"] == "open":
-                        new_match = Match()
-                        new_match.id = str(match["id"])
-                        new_match.teams.append(self.teams[match["player1"]["id"]].id)
-                        new_match.teams.append(self.teams[match["player2"]["id"]].id)
-                        new_match.best_of = round_bestof_mapping[match["round"]]
-                        self.matches[new_match.id] = new_match
-                        self.schedule.append(new_match.id)
+            for match in match_list:
+                if match["state"] == "open":
+                    new_match = Match()
+                    new_match.id = str(match["id"])
+                    new_match.teams.append(self.teams[match["player1"]["id"]].id)
+                    new_match.teams.append(self.teams[match["player2"]["id"]].id)
+                    self.matches[new_match.id] = new_match
+                    self.schedule.append(new_match.id)
 
             # add the upcoming matches where teams are not locked in
-            for round_index, round_match_list in tournamentinfo["matches_by_round"].items():
-                for match in round_match_list:
-                    if match["state"] == "pending":
-                        new_match = Match()
-                        new_match.id = str(match["id"])
-                        if match.get("player1"):
-                            new_match.teams.append(self.teams[match["player1"]["id"]].id)
-                        else:
-                            new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")])
-                        if match.get("player2"):
-                            new_match.teams.append(self.teams[match["player2"]["id"]].id)
-                        else:
-                            new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")])
-                        self.matches[new_match.id] = new_match
-                        self.schedule.append(new_match.id)
+            for match in match_list:
+                if match["state"] == "pending":
+                    new_match = Match()
+                    new_match.id = str(match["id"])
+                    if match.get("player1"):
+                        new_match.teams.append(self.teams[match["player1"]["id"]].id)
+                    else:
+                        new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")])
+                    if match.get("player2"):
+                        new_match.teams.append(self.teams[match["player2"]["id"]].id)
+                    else:
+                        new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")])
+                    self.matches[new_match.id] = new_match
+                    self.schedule.append(new_match.id)
         except:
             return False
 
+        self.write_to_stream()
         return True
     
 
@@ -272,51 +287,63 @@ class Tournament(BaseModel):
                     f_teams.write(f"{team1.get_name()}\n")
                     f_teams.write(f"{team2.get_name()}\n")
 
+                with open(f"streamlabels\match-{index}-teams-horizontal.txt", "w") as f_teams:
+                    team1 = self.teams.get(match.teams[0])
+                    team2 = self.teams.get(match.teams[1])
+                    f_teams.write(f"{team1.get_name()} vs {team2.get_name()}\n")
+
                 with open(f"streamlabels\match-{index}-tricodes.txt", "w") as f_teams:
                     team1 = self.teams.get(match.teams[0])
                     team2 = self.teams.get(match.teams[1])
                     f_teams.write(f"{team1.get_tricode()}\n")
                     f_teams.write(f"{team2.get_tricode()}\n")
 
+                with open(f"streamlabels\match-{index}-tricodes-horizontal.txt", "w") as f_teams:
+                    team1 = self.teams.get(match.teams[0])
+                    team2 = self.teams.get(match.teams[1])
+                    f_teams.write(f"{team1.get_tricode()} vs {team2.get_tricode()}\n")
+
                 with open(f"streamlabels\match-{index}-scores.txt", "w") as f_scores:
                     f_scores.write(f"{match.scores[0]}\n")
                     f_scores.write(f"{match.scores[1]}\n")
 
-            if len(self.schedule):
-                with open(f"streamlabels\schedule-teams.txt", "w") as f_schedule:
-                    for index, schedule_item in enumerate(self.schedule):
-                        match = self.matches[schedule_item]
-                        team1 = self.teams.get(match.teams[0])
-                        team2 = self.teams.get(match.teams[1])
-                        f_schedule.write(f"{team1.get_name()} vs {team2.get_name()}\n")
-                
-                with open(f"streamlabels\schedule-tricodes.txt", "w") as f_schedule:
-                    for index, schedule_item in enumerate(self.schedule):
-                        match = self.matches[schedule_item]
-                        team1 = self.teams.get(match.teams[0])
-                        team2 = self.teams.get(match.teams[1])
-                        f_schedule.write(f"{team1.get_tricode()} vs {team2.get_tricode()}\n")
+                with open(f"streamlabels\match-{index}-scores-horizontal.txt", "w") as f_scores:
+                    f_scores.write(f"{match.scores[0]} - {match.scores[1]}\n")
 
-                with open(f"streamlabels\schedule-scores.txt", "w") as f_schedule:
-                    for index, schedule_item in enumerate(self.schedule):
-                        match = self.matches[schedule_item]
-                        f_schedule.write(f"{match.scores[0]} - {match.scores[1]}\n")
+            with open(f"streamlabels\schedule-teams.txt", "w") as f_schedule:
+                for index, schedule_item in enumerate(self.schedule):
+                    match = self.matches[schedule_item]
+                    team1 = self.teams.get(match.teams[0])
+                    team2 = self.teams.get(match.teams[1])
+                    f_schedule.write(f"{team1.get_name()} vs {team2.get_name()}\n")
+            
+            with open(f"streamlabels\schedule-tricodes.txt", "w") as f_schedule:
+                for index, schedule_item in enumerate(self.schedule):
+                    match = self.matches[schedule_item]
+                    team1 = self.teams.get(match.teams[0])
+                    team2 = self.teams.get(match.teams[1])
+                    f_schedule.write(f"{team1.get_tricode()} vs {team2.get_tricode()}\n")
 
-                with open(f"streamlabels\schedule-full-name.txt", "w") as f_schedule:
-                    for index, schedule_item in enumerate(self.schedule):
-                        match = self.matches[schedule_item]
-                        team1 = self.teams.get(match.teams[0])
-                        team2 = self.teams.get(match.teams[1])
-                        f_schedule.write(f"{team1.get_name()} vs {team2.get_name()} ")
-                        f_schedule.write(f"({match.scores[0]} - {match.scores[1]})\n")
+            with open(f"streamlabels\schedule-scores.txt", "w") as f_schedule:
+                for index, schedule_item in enumerate(self.schedule):
+                    match = self.matches[schedule_item]
+                    f_schedule.write(f"{match.scores[0]} - {match.scores[1]}\n")
 
-                with open(f"streamlabels\schedule-full-tricode.txt", "w") as f_schedule:
-                    for index, schedule_item in enumerate(self.schedule):
-                        match = self.matches[schedule_item]
-                        team1 = self.teams.get(match.teams[0])
-                        team2 = self.teams.get(match.teams[1])
-                        f_schedule.write(f"{team1.get_tricode()} vs {team2.get_tricode()} ")
-                        f_schedule.write(f"({match.scores[0]} - {match.scores[1]})\n")
+            with open(f"streamlabels\schedule-full-name.txt", "w") as f_schedule:
+                for index, schedule_item in enumerate(self.schedule):
+                    match = self.matches[schedule_item]
+                    team1 = self.teams.get(match.teams[0])
+                    team2 = self.teams.get(match.teams[1])
+                    f_schedule.write(f"{team1.get_name()} vs {team2.get_name()} ")
+                    f_schedule.write(f"({match.scores[0]} - {match.scores[1]})\n")
+
+            with open(f"streamlabels\schedule-full-tricode.txt", "w") as f_schedule:
+                for index, schedule_item in enumerate(self.schedule):
+                    match = self.matches[schedule_item]
+                    team1 = self.teams.get(match.teams[0])
+                    team2 = self.teams.get(match.teams[1])
+                    f_schedule.write(f"{team1.get_tricode()} vs {team2.get_tricode()} ")
+                    f_schedule.write(f"({match.scores[0]} - {match.scores[1]})\n")
             
             current_match = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
             current_teams = self.get_teams_from_scheduleid(current_match)
@@ -526,10 +553,3 @@ class Tournament(BaseModel):
         self.current_match = 0
         self.mapping = {}
 
-    placeholder_team = Team(tricode="TBD", name = "TBD", id="666")
-    teams: Dict = {}
-    matches: Dict = {}
-    schedule: List[str] = []
-    current_match: int = 0
-    game_history: List[Game] = []
-    mapping: Dict = {}

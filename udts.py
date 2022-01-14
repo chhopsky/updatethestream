@@ -118,8 +118,13 @@ def poll_challonge(tournament_id):
     soup = BeautifulSoup(html, 'html.parser')
     scripts = soup.find_all('script')
     javascript = f"{scripts[8]}"
-    return json.loads(javascript.split(';')[2].split(" = ")[1])
-
+    js_split1 = javascript.split('window._initialStoreState')
+    for chunk in js_split1:
+        if "['TournamentStore'] =" in chunk:
+            chunk1 = chunk.lstrip("['TournamentStore'] = ")
+            chunk2 = chunk1.rstrip("; ")
+            return json.loads(chunk2)
+    return False
 
 def open_challonge():
     text, ok = QtWidgets.QInputDialog.getText(window, "Name of the Team", "Paste Challonge.com tournament code")
@@ -416,7 +421,6 @@ def add_match():
         new_match.teams.append(widget2.id)
         new_match.best_of = int(window.add_match_bestof_dropdown.currentText())
         broadcast.add_match(new_match)
-        print(new_match)
         if len(broadcast.matches) == 1:
             set_button_states()
         populate_matches()
@@ -588,19 +592,24 @@ def save_config(config_to_save):
     with open("config.cfg", "w") as f:
         f.write(json.dumps(config_to_save))
 
+version = "0.3"
 try:
     with open("config.cfg") as f:
         config = json.load(f)
+        config["version"] = "0.3"
+        # if config.get("version") == version:
+        #     TODO: config version mismatch
 except (json.JSONDecodeError, FileNotFoundError):
     config = { "openfile": "tournament-config.json",
         "use_challonge": False,
-        "challonge_id": False
+        "challonge_id": False,
+        "version": version
      }
     save_config(config)
 
 log = logging.Logger
 logging.Logger.setLevel(log, level = "DEBUG")
-broadcast = Tournament()
+broadcast = Tournament(version = version)
 loadfail = False
 foundfile = False
 if os.path.isfile(config["openfile"]):
