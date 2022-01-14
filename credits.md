@@ -2,9 +2,14 @@
 
 ## Programming
 chhopsky  
-Someone  
 
 ## QA
+CubicFoxxx
+
+## Moderation
+Someone  
+
+## Feature Suggestions
 CubicFoxxx
 
 ## Playtesters
