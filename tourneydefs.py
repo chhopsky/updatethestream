@@ -20,11 +20,10 @@ class Team(BaseModel):
         if state:
             return self.__dict__
         else:
-            dict_to_return = self.__dict__
-            try:
-                dict_to_return.pop("points")
-            except KeyError:
-                pass
+            dict_to_return = {}
+            for key, value in self.__dict__.items():
+                if key != "points":
+                    dict_to_return[key] = value
             return dict_to_return
 
     def get_name(self):
@@ -61,11 +60,11 @@ class Match(BaseModel):
         if state:
             return self.__dict__
         else:
-            dict_to_return = self.__dict__
-            dict_to_return.pop("scores")
-            dict_to_return.pop("finished")
-            dict_to_return.pop("in_progress")
-            dict_to_return.pop("winner")
+            list_to_not_return = ["scores", "finished", "in_progress", "winner"]
+            dict_to_return = {}
+            for key, value in self.__dict__.items():
+                if key not in list_to_not_return:
+                    dict_to_return[key] = value
             return dict_to_return
 
 class Game(BaseModel):
