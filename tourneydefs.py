@@ -2,6 +2,7 @@ import uuid
 from pydantic import BaseModel, Field
 from typing import Text, List, Dict, Optional
 from uuid import uuid4
+from errors import MatchScheduleDesync
 import random
 import os
 import json
@@ -494,6 +495,8 @@ class Tournament(BaseModel):
         self.matches[match.id] = match
         if schedule:
             self.schedule.append(match.id)
+        if len(schedule) != len(match):
+            raise MatchScheduleDesync
 
     def delete_match(self, match_id):
         scheduleid = self.get_scheduleid_from_match_id(match_id)
@@ -559,4 +562,3 @@ class Tournament(BaseModel):
         self.game_history = []
         self.current_match = 0
         self.mapping = {}
-
