@@ -1,4 +1,4 @@
 ### Roadmap
 
 ## Unscheduled
-Add support for current match team icons.  
+Add support for current match team icons.

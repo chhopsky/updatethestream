@@ -86,6 +86,7 @@ class Tournament(BaseModel):
     mapping: Dict = {}
     version : str = "0.3"
 
+
     def load_from(self, filename="tournament-config.json"):
         try:
             with open(filename) as f:
@@ -117,7 +118,8 @@ class Tournament(BaseModel):
         except:
             return False
         return True
-    
+
+
     def update_match_history_from_challonge(self, round_match_list):
         self.game_history = []
         for match in round_match_list:
@@ -270,6 +272,7 @@ class Tournament(BaseModel):
         with open(filename, "w") as f:
             json.dump(output_dict, f)
         return
+
 
     def write_to_stream(self, swap=False):
         # do text write here
@@ -448,6 +451,7 @@ class Tournament(BaseModel):
             # self.teams[match.teams[winner_index]].points += 1
             self.current_match += 1
 
+
     def game_complete(self, scheduleid, winner_index):
         self.process_game(scheduleid, winner_index)
         match_id = self.get_match_id_from_scheduleid(scheduleid)
@@ -479,6 +483,7 @@ class Tournament(BaseModel):
                 standings.append((team_id, points))
         actual_standings = sorted(standings, key=lambda y:y[1], reverse=True)
         return actual_standings
+
 
     ## TEAM READ/WRITE/EDIT
     def add_team(self, team_to_add, callback = None):
@@ -512,6 +517,7 @@ class Tournament(BaseModel):
         if len(self.schedule) != len(self.matches):
             raise MatchScheduleDesync(self.matches, self.schedule)
 
+
     def delete_match(self, match_id):
         scheduleid = self.get_scheduleid_from_match_id(match_id)
         del(self.schedule[scheduleid])
@@ -520,15 +526,18 @@ class Tournament(BaseModel):
                 del(self.game_history[i])
         self.matches.pop(match_id)
 
+
     def edit_match(self, match_id, match):
         self.matches[match_id].teams = match.teams
         self.matches[match_id].best_of = match.best_of
+
 
     def get_team_id_by_tricode(self, tricode):
         for key, team in self.teams.items():
             if team.tricode == tricode:
                 return key
         return None
+
 
     ## HELPER FUNCTIONS
     def get_teams_from_scheduleid(self, id):
@@ -539,6 +548,7 @@ class Tournament(BaseModel):
             return [team1, team2]
         except IndexError:
             return None
+
 
     def get_teams_from_match_id(self, match_id):
         try:    
@@ -552,21 +562,26 @@ class Tournament(BaseModel):
     def get_scheduleid_from_match_id(self, match_id):
         return self.schedule.index(match_id)
 
+
     def swap_matches(self, scheduleid1, scheduleid2):
         temp_value = self.schedule[scheduleid1]
         self.schedule[scheduleid1] = self.schedule[scheduleid2]
         self.schedule[scheduleid2] = temp_value
     
+
     def get_current_match(self):
         return self.get_match_from_scheduleid(self.current_match)
+
 
     def get_match_id_from_scheduleid(self, scheduleid):
         match_id = self.schedule[scheduleid]
         return self.matches[match_id].id
 
+
     def get_match_from_scheduleid(self, scheduleid):
         match_id = self.schedule[scheduleid]
         return self.matches[match_id]
+
 
     def clear_everything(self):
         self.teams = {}

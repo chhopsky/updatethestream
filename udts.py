@@ -16,6 +16,7 @@ import json
 import logging
 import os.path
 
+
 class Ui(QtWidgets.QMainWindow):
     def __init__(self, loaded_config):
         super(Ui, self).__init__() # Call the inherited classes __init__ method
@@ -35,7 +36,6 @@ class Ui(QtWidgets.QMainWindow):
         self.config = loaded_config
         self.swapstate = 0
         self.setWindowIcon(pygui.QIcon('static/chhtv.ico'))
-        
         
 
 def setup():
@@ -167,10 +167,12 @@ def show_error(error_code = "UNKNOWN", additional_info = None):
     msg.setIcon(QtWidgets.QMessageBox.Critical)
     x = msg.exec_()
 
+
 def update_from_challonge():
     tournament_info = poll_challonge(window.config["challonge_id"])
     broadcast.update_match_history_from_challonge(tournament_info)
     force_refresh_ui()
+
 
 def save_file():
     filename = config.get("openfile")
@@ -588,6 +590,7 @@ def reset_dropdowns():
 def save_config(config_to_save):
     with open("config.cfg", "w") as f:
         f.write(json.dumps(config_to_save))
+
 
 version = "0.3"
 try:

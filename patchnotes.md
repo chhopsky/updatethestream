@@ -2,7 +2,7 @@
 
 ### v0.3-alpha: No Target
 ## Features
-Added support for loading and updating from challonge.com round robin tournaments.
+Added support for loading and updating from challonge.com round robin & community tournaments.
 Added additional outputs.
 
 ## Bug Fixes
