@@ -462,10 +462,13 @@ class Tournament(BaseModel):
         for match in self.matches.values():
             if match.winner not in [2, 3]:
                 winner = match.teams[match.winner]
-                standing_data[winner] += 1
+                if match.best_of == 2:
+                    standing_data[winner] += 2
+                else:
+                    standing_data[winner] += 1
             elif match.winner == 3:  # Tie
-                standing_data[match.teams[0]] += 0.5
-                standing_data[match.teams[1]] += 0.5
+                standing_data[match.teams[0]] += 1
+                standing_data[match.teams[1]] += 1
 
         for team_id, points in standing_data.items():
             if team.id != "666":
