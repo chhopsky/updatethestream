@@ -284,6 +284,7 @@ class Tournament(BaseModel):
         
         if len(self.schedule):
             try:
+                # This section is for things that are written out for every scheduled match
                 for index, schedule_item in enumerate(self.schedule):
                     match = self.matches[schedule_item]
                     with open(f"streamlabels\match-{index}-teams.txt", "w") as f_teams:
@@ -315,6 +316,7 @@ class Tournament(BaseModel):
                     with open(f"streamlabels\match-{index}-scores-horizontal.txt", "w") as f_scores:
                         f_scores.write(f"{match.scores[0]} - {match.scores[1]}\n")
 
+                # This section is for things that are written out once for the entire schedule
                 with open(f"streamlabels\schedule-teams.txt", "w") as f_schedule:
                     for index, schedule_item in enumerate(self.schedule):
                         match = self.matches[schedule_item]
@@ -349,7 +351,8 @@ class Tournament(BaseModel):
                         team2 = self.teams.get(match.teams[1])
                         f_schedule.write(f"{team1.get_tricode()} vs {team2.get_tricode()} ")
                         f_schedule.write(f"({match.scores[0]} - {match.scores[1]})\n")
-                    
+
+                # This section is for things that are written out about the current match    
                 current_match = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
                 current_teams = self.get_teams_from_scheduleid(current_match)
                 match = self.get_match_from_scheduleid(current_match)
@@ -383,6 +386,7 @@ class Tournament(BaseModel):
                     with open(f"streamlabels\current-match-team2-score.txt", "w") as f_current:
                         f_current.write(f"{match.scores[t1]}\n")
                 
+                # This section is for the standings / match history win/loss
                 standings = self.get_standings()
                 if standings:
                     with open(f"streamlabels\standings-complete.txt", "w") as f_current:
