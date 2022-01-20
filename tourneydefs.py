@@ -495,7 +495,7 @@ class Tournament(BaseModel):
         self.matches[match.id] = match
         if schedule:
             self.schedule.append(match.id)
-        if len(schedule) != len(match):
+        if len(schedule) != len(self.matches):
             raise MatchScheduleDesync
 
     def delete_match(self, match_id):
