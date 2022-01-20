@@ -725,6 +725,11 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
          </item>
          <item>
           <property name="text">
+           <string>2</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
            <string>3</string>
           </property>
          </item>
@@ -823,6 +828,11 @@ ui_string = """<?xml version="1.0" encoding="UTF-8"?>
          <item>
           <property name="text">
            <string>1</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>2</string>
           </property>
          </item>
          <item>

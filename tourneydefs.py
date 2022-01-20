@@ -429,15 +429,19 @@ class Tournament(BaseModel):
 
     def process_game(self, scheduleid, winner_index):
         match_id = self.get_match_id_from_scheduleid(scheduleid)
-        cutoff = self.matches[match_id].best_of / 2
-        self.matches[match_id].scores[winner_index] += 1
-        self.matches[match_id].in_progress = True
-        if self.matches[match_id].scores[0] > cutoff or self.matches[match_id].scores[1] > cutoff:
-            self.matches[match_id].in_progress = False
-            self.matches[match_id].finished = True
-            self.matches[match_id].winner = winner_index
+        match = self.matches[match_id]
+        cutoff = match.best_of / 2
+        match.scores[winner_index] += 1
+        match.in_progress = True
+        if match.scores[0] > cutoff or match.scores[1] > cutoff or sum(match.scores) == match.best_of:
+            match.in_progress = False
+            match.finished = True
+            if match.scores[0] == match.scores[1]:
+                match.winner = 3  # Tie
+            else:
+                match.winner = winner_index
             # TODO UDTS-25: split points and starting points
-            # self.teams[self.matches[match_id].teams[winner_index]].points += 1
+            # self.teams[match.teams[winner_index]].points += 1
             self.current_match += 1
 
     def game_complete(self, scheduleid, winner_index):
@@ -456,9 +460,12 @@ class Tournament(BaseModel):
                 standing_data[team.id] += int(team.points)
 
         for match in self.matches.values():
-            if match.winner != 2:
+            if match.winner not in [2, 3]:
                 winner = match.teams[match.winner]
                 standing_data[winner] += 1
+            elif match.winner == 3:  # Tie
+                standing_data[match.teams[0]] += 0.5
+                standing_data[match.teams[1]] += 0.5
 
         for team_id, points in standing_data.items():
             if team.id != "666":
