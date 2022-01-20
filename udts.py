@@ -67,9 +67,8 @@ def setup():
     window.swap_button.clicked.connect(swap_red_blue)
     window.undo_button.clicked.connect(undo)
     window.undo_button.setEnabled(False)
-    window.match_move_up_button.setEnabled(False)
-    window.match_move_down_button.setEnabled(False)
     window.update_from_challonge.clicked.connect(update_from_challonge)
+    disable_move_buttons()
     populate_teams()
     populate_matches()
     update_schedule()
@@ -224,6 +223,11 @@ def undo():
     set_button_states()
 
 
+def disable_move_buttons():
+    window.match_move_up_button.setEnabled(False)
+    window.match_move_down_button.setEnabled(False)
+
+
 def match_move_up():
     match_reorder("up")
 
@@ -236,6 +240,7 @@ def match_reorder(direction):
     scheduleid = window.match_list_widget.currentRow()
     move_map = {"up": -1, "down": 1}
     broadcast.swap_matches(scheduleid, scheduleid + move_map[direction])
+    disable_move_buttons()
     populate_matches()
     update_schedule()
     set_button_states()
