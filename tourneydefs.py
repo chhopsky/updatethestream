@@ -102,7 +102,7 @@ class Tournament(BaseModel):
 
                 for current_match in data["matches"]:
                     match = Match(**current_match)
-                    self.add_match(match, schedule=False)
+                    self.add_match(match)
 
                 self.schedule = data.get("schedule", [])
 
@@ -495,8 +495,8 @@ class Tournament(BaseModel):
         self.matches[match.id] = match
         if schedule:
             self.schedule.append(match.id)
-        if len(schedule) != len(self.matches):
-            raise MatchScheduleDesync
+        if len(self.schedule) != len(self.matches):
+            raise MatchScheduleDesync(self.matches, self.schedule)
 
     def delete_match(self, match_id):
         scheduleid = self.get_scheduleid_from_match_id(match_id)

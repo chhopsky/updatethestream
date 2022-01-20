@@ -3,6 +3,7 @@ class MatchScheduleDesync(Exception):
     def __init__(self, matches, schedule, message="Adding match created a desync between match storage and schedule."):
         self.matches = matches
         self.schedule = schedule
+        self.message = message
         super().__init__(self.message)
 
     def __str__(self):
