@@ -20,8 +20,7 @@ import os.path
 class Ui(QtWidgets.QMainWindow):
     def __init__(self, loaded_config):
         super(Ui, self).__init__() # Call the inherited classes __init__ method
-        f = io.StringIO(ui_string)
-        uic.loadUi(f, self) # Load the .ui file
+        uic.loadUi('static/form.ui', self) # Load the .ui file
         self.show() # Show the GUI
         self.normalfont = QFont()
         self.boldfont = QFont()
@@ -37,6 +36,7 @@ class Ui(QtWidgets.QMainWindow):
         self.config = loaded_config
         self.swapstate = 0
         self.setWindowIcon(pygui.QIcon('static/chhtv.ico'))
+        
         
 
 def setup():
@@ -167,8 +167,6 @@ def show_error(error_code = "UNKNOWN", additional_info = None):
     msg.setText(messagetext)
     msg.setIcon(QtWidgets.QMessageBox.Critical)
     x = msg.exec_()
-
-
 
 def update_from_challonge():
     tournament_info = poll_challonge(window.config["challonge_id"])

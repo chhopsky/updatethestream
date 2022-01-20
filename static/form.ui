@@ -41,15 +41,15 @@
       </property>
       <layout class="QVBoxLayout" name="startstop_vbox">
        <item>
-        <widget class="QPushButton" name="start_button">
+        <widget class="QPushButton" name="update_from_challonge">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>False</bool>
          </property>
          <property name="toolTip">
-          <string>Starts the tournament with all current configuration. Writes out OBS files to disk.</string>
+          <string>Reload current tournament state from Challonge</string>
          </property>
          <property name="text">
-          <string>Start (Not Implemented)</string>
+          <string>Update From Challonge</string>
          </property>
         </widget>
        </item>
@@ -150,7 +150,7 @@
         <item>
          <widget class="QPushButton" name="team1_win_button">
           <property name="text">
-           <string>TSM Win</string>
+           <string>Team 1 Win</string>
           </property>
          </widget>
         </item>
@@ -163,7 +163,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>CLG Win</string>
+           <string>Team 2 Win</string>
           </property>
          </widget>
         </item>
@@ -366,7 +366,7 @@
        <string/>
       </property>
       <property name="pixmap">
-       <pixmap>../chhtvlogo.png</pixmap>
+       <pixmap>static/chhtvlogo.png</pixmap>
       </property>
       <property name="scaledContents">
        <bool>true</bool>
@@ -404,7 +404,7 @@
        <item>
         <widget class="QPushButton" name="swap_button">
          <property name="toolTip">
-          <string>In case of misclicking which team won, click this to roll back.</string>
+          <string>Switch which sides teams are on.</string>
          </property>
          <property name="text">
           <string>Swap Red/Blue</string>
@@ -418,7 +418,7 @@
          </property>
         </widget>
        </item>
-       <item>
+        <item>
         <widget class="QLabel" name="red_label">
          <property name="text">
           <string>Red:</string>
@@ -572,6 +572,9 @@
       </layout>
      </widget>
      <widget class="QPushButton" name="edit_team_button">
+    <property name="enabled">
+          <bool>False</bool>
+         </property>
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -760,6 +763,9 @@
       </property>
      </widget>
      <widget class="QPushButton" name="edit_match_button">
+        <property name="enabled">
+          <bool>False</bool>
+         </property>
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -910,6 +916,7 @@
     </property>
     <addaction name="actionNew"/>
     <addaction name="actionOpen"/>
+    <addaction name="actionOpenFromChallonge"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
     <addaction name="actionSaveState"/>
@@ -933,6 +940,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionOpenFromChallonge">
+   <property name="text">
+    <string>Open From Challonge.com</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
    </property>
   </action>
   <action name="actionNew">
