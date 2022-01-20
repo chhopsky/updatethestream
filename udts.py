@@ -5,7 +5,6 @@ from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QFont
-from form import ui_string
 from bs4 import BeautifulSoup, GuessedAtParserWarning
 from urllib import request
 from uuid import uuid4
