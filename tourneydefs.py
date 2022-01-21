@@ -127,7 +127,9 @@ class Tournament(BaseModel):
                 match_id = str(match["id"])
                 scheduleid = self.get_scheduleid_from_match_id(match_id)
                 self.matches[match_id].scores = [0, 0]
-                if match["winner_id"] == match["player1"]["id"]:
+                match["scores"] = match["scores_csv"].split("-")
+                match["scores"] = list(map(int, match["scores"]))
+                if match["winner_id"] == match["player1_id"]:
                     # reset best_of and scores
                     self.matches[match_id].best_of = (match["scores"][0] * 2) - 1
                     # process index 1 first
@@ -155,59 +157,51 @@ class Tournament(BaseModel):
             if match["state"] == "pending":
                 for match_id, our_match in enumerate(self.matches):
                     if our_match.id == match["id"]:
-                        if match.get("player1"):
-                            self.matches[match_id][0] == match["player1"]["id"]
-                        if match.get("player2"):
-                            self.matches[match_id][1] == match["player1"]["id"]
+                        if match.get("player1_id"):
+                            self.matches[match_id][0] == match["player1_id"]
+                        if match.get("player2_id"):
+                            self.matches[match_id][1] == match["player1_id"]
 
 
     def load_from_challonge(self, tournamentinfo):
         self.mapping = {}
         self.clear_everything()
         logging.debug("loading teams")
-        round_bestof_mapping = {}
-        matches_by_round = []
         match_list = []
-        if len(tournamentinfo.get("groups")):
-            for group in tournamentinfo.get("groups"):
-                matches_by_round.append(group)
-            for data in matches_by_round:
-                for match_round in data["matches_by_round"].values():
-                    for match in match_round:
-                        match_list.append(match)
-        else:
-            for round in tournamentinfo["matches_by_round"].values():
-                matches_by_round.append(round)
-            for data in matches_by_round:
-                for match in data:
-                    match_list.append(match)
+        team_list = []
+        for value in tournamentinfo.get("matches"):
+            match = value.get("match")
+            match["id"] = str(match["id"])
+            match["player1_id"] = str(match["player1_id"])
+            match["player2_id"] = str(match["player2_id"])
+            match_list.append(match)
+
+        for value in tournamentinfo.get("participants"):
+            participant = value.get("participant")
+            participant["id"] = str(participant["group_player_ids"][0])
+            team_list.append(participant)
+
         try:
             for i, match in enumerate(match_list):
                 if not match.get("id"):
                     match_list[i]["id"] = str(uuid4())
 
-            for match in match_list:
-                teams = []
-                if match.get("player1") and match.get("player2"):
-                    teams.append(match["player1"])
-                    teams.append(match["player2"])
-                for team in teams:
-                    if team["id"] not in self.teams.keys():
-                        logging.debug(f"found new team with id {team['id']}")
-                        new_team = Team()
-                        new_team.name = team["display_name"]
-                        new_team.id = team["id"]
-                        new_team.tricode = team["display_name"][0:3].upper()
-                        self.mapping[new_team.tricode] = new_team.id
-                        self.add_team(new_team)
+            for team in team_list:
+                logging.debug(f"found new team with id {team['id']}")
+                new_team = Team()
+                new_team.name = team["display_name"]
+                new_team.id = str(team["id"])
+                new_team.tricode = team["name"][0:3].upper()
+                self.mapping[new_team.tricode] = new_team.id
+                self.add_team(new_team)
 
             # load in completed matches
             for match in match_list:
                 if match["state"] == "complete":
                     new_match = Match()
                     new_match.id = str(match["id"])
-                    new_match.teams.append(self.teams[match["player1"]["id"]].id)
-                    new_match.teams.append(self.teams[match["player2"]["id"]].id)
+                    new_match.teams.append(match["player1_id"])
+                    new_match.teams.append(match["player2_id"])
                     self.matches[new_match.id] = new_match
                     self.schedule.append(new_match.id)
 
@@ -219,9 +213,9 @@ class Tournament(BaseModel):
             for match in match_list:
                 if match["state"] == "open":
                     new_match = Match()
-                    new_match.id = str(match["id"])
-                    new_match.teams.append(self.teams[match["player1"]["id"]].id)
-                    new_match.teams.append(self.teams[match["player2"]["id"]].id)
+                    new_match.id = match["id"]
+                    new_match.teams.append(match["player1_id"])
+                    new_match.teams.append(match["player2_id"])
                     self.matches[new_match.id] = new_match
                     self.schedule.append(new_match.id)
 
@@ -230,12 +224,12 @@ class Tournament(BaseModel):
                 if match["state"] == "pending":
                     new_match = Match()
                     new_match.id = str(match["id"])
-                    if match.get("player1"):
-                        new_match.teams.append(self.teams[match["player1"]["id"]].id)
+                    if match.get("player1_id"):
+                        new_match.teams.append(match["player1_id"])
                     else:
                         new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")].id)
-                    if match.get("player2"):
-                        new_match.teams.append(self.teams[match["player2"]["id"]].id)
+                    if match.get("player2_id"):
+                        new_match.teams.append(match["player2_id"])
                     else:
                         new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")].id)
                     self.matches[new_match.id] = new_match

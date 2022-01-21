@@ -111,26 +111,26 @@ def open_file():
 
 
 def poll_challonge(tournament_id):
-    page = request.urlopen(f"https://challonge.com/{tournament_id}")
-    html = page.read()
-    soup = BeautifulSoup(html, 'html.parser')
-    scripts = soup.find_all('script')
-    javascript = f"{scripts[8]}"
-    js_split1 = javascript.split('window._initialStoreState')
-    for chunk in js_split1:
-        if "['TournamentStore'] =" in chunk:
-            chunk1 = chunk.lstrip("['TournamentStore'] = ")
-            chunk2 = chunk1.rstrip("; ")
-            return json.loads(chunk2)
-    return False
+    API_KEY = config.get("challonge_api_key")
+    url = f"https://api.challonge.com/v1/tournaments/{tournament_id}/matches.json?api_key={API_KEY}"
+    page = request.urlopen(url)
+    response_matches = page.read()
+    url = f"https://api.challonge.com/v1/tournaments/{tournament_id}/participants.json?api_key={API_KEY}"
+    page = request.urlopen(url)
+    response_participants = page.read()
+    response = {
+        "matches": json.loads(response_matches.decode()),
+        "participants": json.loads(response_participants.decode())
+    }
+    return response
 
 def open_challonge():
     text, ok = QtWidgets.QInputDialog.getText(window, "Name of the Team", "Paste Challonge.com tournament code")
-    if text and ok:
+    if text and ok and config.get("challonge_api_key"):
         found_tournament = False
         try:
             tournament_info = poll_challonge(text)
-            if len(tournament_info["matches_by_round"]["1"]) < 1:
+            if not len(tournament_info["matches"]) > 1 or not len(tournament_info["matches"]) > 1:
                 raise Exception
             else:
                 found_tournament = True
@@ -608,6 +608,7 @@ except (json.JSONDecodeError, FileNotFoundError):
     config = { "openfile": "tournament-config.json",
         "use_challonge": False,
         "challonge_id": False,
+        "challonge_api_key": None,
         "version": version
      }
     save_config(config)
@@ -617,10 +618,15 @@ logging.Logger.setLevel(log, level = "DEBUG")
 broadcast = Tournament(version = version)
 loadfail = False
 foundfile = False
-if os.path.isfile(config["openfile"]):
+if os.path.isfile(config.get("openfile")):
     foundfile = True
     result = broadcast.load_from(config["openfile"])
     loadfail = False
+
+if os.path.isfile(config.get("challonge_api_key_location")) and not config.get("challonge_api_key"):
+    with open(config.get("challonge_api_key_location")) as file:
+        config["challonge_api_key"] = file.read()
+    save_config(config)
 
 logging.debug(broadcast.__dict__)
 broadcast.write_to_stream()
