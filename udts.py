@@ -70,6 +70,7 @@ def setup():
     window.match_move_up_button.setEnabled(False)
     window.match_move_down_button.setEnabled(False)
     window.update_from_challonge.clicked.connect(update_from_challonge)
+    window.edit_points_button.clicked.connect(edit_points)
     populate_teams()
     populate_matches()
     update_schedule()
@@ -208,6 +209,14 @@ def save_as_state():
         broadcast.save_to(filename, savestate=True)
         window.config["openfile"] = filename
         save_config(window.config)
+
+
+def edit_points():
+    pts_on_win = int(window.points_on_win_spinbox.text())
+    pts_on_tie = int(window.points_on_tie_spinbox.text())
+    pts_on_loss = int(window.points_on_loss_spinbox.text())
+    broadcast.edit_points([pts_on_win, pts_on_tie, pts_on_loss])
+    force_refresh_ui()
 
 
 def exit_app():
@@ -603,7 +612,8 @@ except (json.JSONDecodeError, FileNotFoundError):
     config = { "openfile": "tournament-config.json",
         "use_challonge": False,
         "challonge_id": False,
-        "version": version
+        "version": version,
+        "points_on_win_tie_loss": [1, 0, 0]
      }
     save_config(config)
 

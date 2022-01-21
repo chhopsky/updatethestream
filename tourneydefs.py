@@ -85,6 +85,9 @@ class Tournament(BaseModel):
     game_history: List[Game] = []
     mapping: Dict = {}
     version : str = "0.3"
+    pts_on_win: int = 0
+    pts_on_tie: int = 0
+    pts_on_loss: int = 0
 
 
     def load_from(self, filename="tournament-config.json"):
@@ -115,6 +118,12 @@ class Tournament(BaseModel):
                 current_match = data.get("current_match")
                 if current_match is not None:
                     self.current_match = current_match
+                
+                points_on_win_tie_loss = data["points_on_win_tie_loss"]
+                self.pts_on_win = points_on_win_tie_loss[0]
+                self.pts_on_tie = points_on_win_tie_loss[1]
+                self.pts_on_loss = points_on_win_tie_loss[2]
+
         except:
             return False
         return True
@@ -268,6 +277,8 @@ class Tournament(BaseModel):
             for game in self.game_history:
                 output_dict["game_history"].append(game.to_dict())
         
+        pts_on_win_tie_loss = [self.pts_on_win, self.pts_on_tie, self.pts_on_loss]
+        output_dict["points_on_win_tie_loss"] = pts_on_win_tie_loss
         
         with open(filename, "w") as f:
             json.dump(output_dict, f)
@@ -470,13 +481,12 @@ class Tournament(BaseModel):
         for match in self.matches.values():
             if match.winner not in [2, 3]:
                 winner = match.teams[match.winner]
-                if match.best_of == 2:
-                    standing_data[winner] += 2
-                else:
-                    standing_data[winner] += 1
+                loser = match.teams[0] if winner == match.teams[1] else match.teams[1]
+                standing_data[winner] += self.pts_on_win
+                standing_data[loser] += self.pts_on_loss
             elif match.winner == 3:  # Tie
-                standing_data[match.teams[0]] += 1
-                standing_data[match.teams[1]] += 1
+                standing_data[match.teams[0]] += self.pts_on_tie
+                standing_data[match.teams[1]] += self.pts_on_tie
 
         for team_id, points in standing_data.items():
             if team.id != "666":
@@ -538,6 +548,11 @@ class Tournament(BaseModel):
                 return key
         return None
 
+    ## POINTS EDIT
+    def edit_points(self, pts):
+        self.pts_on_win = pts[0]
+        self.pts_on_tie = pts[1]
+        self.pts_on_loss = pts[2]
 
     ## HELPER FUNCTIONS
     def get_teams_from_scheduleid(self, id):
