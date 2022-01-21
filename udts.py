@@ -81,6 +81,9 @@ def setup():
     window.add_match_team2_dropdown.setCurrentIndex(-1)
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
+    window.points_on_win_spinbox.setValue(broadcast.pts_config["win"])
+    window.points_on_tie_spinbox.setValue(broadcast.pts_config["tie"])
+    window.points_on_loss_spinbox.setValue(broadcast.pts_config["loss"])
 
 
 def open_github():
@@ -212,10 +215,12 @@ def save_as_state():
 
 
 def edit_points():
-    pts_on_win = int(window.points_on_win_spinbox.text())
-    pts_on_tie = int(window.points_on_tie_spinbox.text())
-    pts_on_loss = int(window.points_on_loss_spinbox.text())
-    broadcast.edit_points([pts_on_win, pts_on_tie, pts_on_loss])
+    new_pts_config = {
+        "win": int(window.points_on_win_spinbox.text()),
+        "tie": int(window.points_on_tie_spinbox.text()),
+        "loss": int(window.points_on_loss_spinbox.text())
+    }
+    broadcast.edit_points(new_pts_config)
     force_refresh_ui()
 
 
@@ -613,7 +618,6 @@ except (json.JSONDecodeError, FileNotFoundError):
         "use_challonge": False,
         "challonge_id": False,
         "version": version,
-        "points_on_win_tie_loss": [1, 0, 0]
      }
     save_config(config)
 
