@@ -85,7 +85,7 @@ class Tournament(BaseModel):
     game_history: List[Game] = []
     mapping: Dict = {}
     version : str = "0.3"
-    pts_config: Dict = {}
+    pts_config: Dict = {"win": 1, "tie": 0, "loss": 0}
     default_pts_config: Dict = {"win": 1, "tie": 0, "loss": 0}
 
 
@@ -478,10 +478,10 @@ class Tournament(BaseModel):
             if match.winner not in [2, 3]:
                 winner = match.teams[match.winner]
                 loser = match.teams[0] if winner == match.teams[1] else match.teams[1]
-                standing_data[winner] += self.get_points("win")
-                standing_data[loser] += self.get_points("loss")
+                standing_data[winner] += self.get_points_config("win")
+                standing_data[loser] += self.get_points_config("loss")
             elif match.winner == 3:  # Tie
-                pts_on_tie = self.get_points("tie")
+                pts_on_tie = self.get_points_config("tie")
                 standing_data[match.teams[0]] += pts_on_tie
                 standing_data[match.teams[1]] += pts_on_tie
 
@@ -546,8 +546,18 @@ class Tournament(BaseModel):
         return None
 
     ## POINTS GETTER/SETTER
-    def get_points(self, result):
-        return self.pts_config.get(result, self.default_pts_config[result])
+    def get_points_config(self, result):
+        if result in self.pts_config.keys():
+            return self.pts_config.get(result)
+        else:
+            return self.default_pts_config.get(result)
+
+
+    def get_points_config_all(self):
+        if len(self.pts_config) == 3:
+            return self.pts_config
+        else:
+            return self.default_pts_config
 
 
     def edit_points(self, new_pts_config):

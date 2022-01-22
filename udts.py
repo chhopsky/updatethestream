@@ -76,13 +76,18 @@ def setup():
     update_standings()
     refresh_team_win_labels()
     set_button_states()
+    set_config_ui()
     window.add_match_team1_dropdown.setCurrentIndex(-1)
     window.add_match_team2_dropdown.setCurrentIndex(-1)
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
-    window.points_on_win_spinbox.setValue(broadcast.pts_config["win"])
-    window.points_on_tie_spinbox.setValue(broadcast.pts_config["tie"])
-    window.points_on_loss_spinbox.setValue(broadcast.pts_config["loss"])
+
+
+def set_config_ui():
+    point_config = broadcast.get_points_config_all()
+    window.points_on_win_spinbox.setValue(point_config["win"])
+    window.points_on_tie_spinbox.setValue(point_config["tie"])
+    window.points_on_loss_spinbox.setValue(point_config["loss"])
 
 
 def open_github():
@@ -300,6 +305,7 @@ def force_refresh_ui():
     update_standings()
     refresh_team_win_labels()
     set_button_states()
+    set_config_ui()
 
     
 def on_team1win_click():
