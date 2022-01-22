@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="live_tab">
      <attribute name="title">
@@ -504,7 +504,7 @@
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QLabel" name="add_team_hero_label">
+        <widget class="QLabel" name="add_team_icon_label">
          <property name="text">
           <string>No Icon.</string>
          </property>
@@ -521,7 +521,7 @@
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="QLabel" name="add_team_icon_label">
+        <widget class="QLabel" name="add_team_hero_label">
          <property name="text">
           <string>No Hero Image.</string>
          </property>
@@ -604,28 +604,28 @@
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="edit_team_icon_button">
          <property name="text">
           <string>Select Team Logo Image</string>
          </property>
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QLabel" name="label_3">
+        <widget class="QLabel" name="edit_team_icon_label">
          <property name="text">
           <string>No Logo.</string>
          </property>
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="QPushButton" name="pushButton_2">
+        <widget class="QPushButton" name="edit_team_hero_button">
          <property name="text">
           <string>Select Team Hero Image</string>
          </property>
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="QLabel" name="label_4">
+        <widget class="QLabel" name="edit_team_hero_label">
          <property name="text">
           <string>No Hero Image.</string>
          </property>
