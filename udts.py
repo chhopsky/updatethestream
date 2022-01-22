@@ -68,6 +68,7 @@ def setup():
     window.undo_button.clicked.connect(undo)
     window.undo_button.setEnabled(False)
     window.update_from_challonge.clicked.connect(update_from_challonge)
+    window.edit_points_button.clicked.connect(edit_points)
     disable_move_buttons()
     populate_teams()
     populate_matches()
@@ -79,6 +80,9 @@ def setup():
     window.add_match_team2_dropdown.setCurrentIndex(-1)
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
+    window.points_on_win_spinbox.setValue(broadcast.pts_config["win"])
+    window.points_on_tie_spinbox.setValue(broadcast.pts_config["tie"])
+    window.points_on_loss_spinbox.setValue(broadcast.pts_config["loss"])
 
 
 def open_github():
@@ -207,6 +211,16 @@ def save_as_state():
         broadcast.save_to(filename, savestate=True)
         window.config["openfile"] = filename
         save_config(window.config)
+
+
+def edit_points():
+    new_pts_config = {
+        "win": int(window.points_on_win_spinbox.text()),
+        "tie": int(window.points_on_tie_spinbox.text()),
+        "loss": int(window.points_on_loss_spinbox.text())
+    }
+    broadcast.edit_points(new_pts_config)
+    force_refresh_ui()
 
 
 def exit_app():

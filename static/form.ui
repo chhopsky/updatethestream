@@ -899,6 +899,78 @@
       </layout>
      </widget>
     </widget>
+    <widget class="QWidget" name="options_tab">
+     <attribute name="title">
+      <string>Options</string>
+     </attribute>
+     <widget class="QPushButton" name="edit_points_button">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>75</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Edit Points</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="formLayoutWidget_5">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>10</y>
+        <width>170</width>
+        <height>75</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="edit_points_form_layout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="edit_points_on_win_label">
+         <property name="text">
+          <string>Win</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="edit_points_tie_label">
+         <property name="text">
+          <string>Tie</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="edit_points_loss_label">
+         <property name="text">
+          <string>Loss</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QSpinBox" name="points_on_win_spinbox">
+         <property name="value">
+          <string>1</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QSpinBox" name="points_on_tie_spinbox">
+         <property name="value">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QSpinBox" name="points_on_loss_spinbox">
+         <property name="value">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

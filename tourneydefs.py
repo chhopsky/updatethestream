@@ -85,6 +85,8 @@ class Tournament(BaseModel):
     game_history: List[Game] = []
     mapping: Dict = {}
     version : str = "0.3"
+    pts_config: Dict = {}
+    default_pts_config: Dict = {"win": 1, "tie": 0, "loss": 0}
 
 
     def load_from(self, filename="tournament-config.json"):
@@ -115,6 +117,9 @@ class Tournament(BaseModel):
                 current_match = data.get("current_match")
                 if current_match is not None:
                     self.current_match = current_match
+                
+                self.pts_config = data["pts_config"]
+
         except:
             return False
         return True
@@ -261,7 +266,8 @@ class Tournament(BaseModel):
             output_dict["game_history"] = []
             for game in self.game_history:
                 output_dict["game_history"].append(game.to_dict())
-        
+
+        output_dict["pts_config"] = self.pts_config
         
         with open(filename, "w") as f:
             json.dump(output_dict, f)
@@ -464,13 +470,13 @@ class Tournament(BaseModel):
         for match in self.matches.values():
             if match.winner not in [2, 3]:
                 winner = match.teams[match.winner]
-                if match.best_of == 2:
-                    standing_data[winner] += 2
-                else:
-                    standing_data[winner] += 1
+                loser = match.teams[0] if winner == match.teams[1] else match.teams[1]
+                standing_data[winner] += self.get_points("win")
+                standing_data[loser] += self.get_points("loss")
             elif match.winner == 3:  # Tie
-                standing_data[match.teams[0]] += 1
-                standing_data[match.teams[1]] += 1
+                pts_on_tie = self.get_points("tie")
+                standing_data[match.teams[0]] += pts_on_tie
+                standing_data[match.teams[1]] += pts_on_tie
 
         for team_id, points in standing_data.items():
             if team.id != "666":
@@ -532,6 +538,13 @@ class Tournament(BaseModel):
                 return key
         return None
 
+    ## POINTS GETTER/SETTER
+    def get_points(self, result):
+        return self.pts_config.get(result, self.default_pts_config[result])
+
+
+    def edit_points(self, new_pts_config):
+        self.pts_config = new_pts_config
 
     ## HELPER FUNCTIONS
     def get_teams_from_scheduleid(self, id):
