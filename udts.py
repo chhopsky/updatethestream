@@ -67,10 +67,9 @@ def setup():
     window.swap_button.clicked.connect(swap_red_blue)
     window.undo_button.clicked.connect(undo)
     window.undo_button.setEnabled(False)
-    window.match_move_up_button.setEnabled(False)
-    window.match_move_down_button.setEnabled(False)
     window.update_from_challonge.clicked.connect(update_from_challonge)
     window.edit_points_button.clicked.connect(edit_points)
+    disable_move_buttons()
     populate_teams()
     populate_matches()
     update_schedule()
@@ -116,26 +115,26 @@ def open_file():
 
 
 def poll_challonge(tournament_id):
-    page = request.urlopen(f"https://challonge.com/{tournament_id}")
-    html = page.read()
-    soup = BeautifulSoup(html, 'html.parser')
-    scripts = soup.find_all('script')
-    javascript = f"{scripts[8]}"
-    js_split1 = javascript.split('window._initialStoreState')
-    for chunk in js_split1:
-        if "['TournamentStore'] =" in chunk:
-            chunk1 = chunk.lstrip("['TournamentStore'] = ")
-            chunk2 = chunk1.rstrip("; ")
-            return json.loads(chunk2)
-    return False
+    API_KEY = config.get("challonge_api_key")
+    url = f"https://api.challonge.com/v1/tournaments/{tournament_id}/matches.json?api_key={API_KEY}"
+    page = request.urlopen(url)
+    response_matches = page.read()
+    url = f"https://api.challonge.com/v1/tournaments/{tournament_id}/participants.json?api_key={API_KEY}"
+    page = request.urlopen(url)
+    response_participants = page.read()
+    response = {
+        "matches": json.loads(response_matches.decode()),
+        "participants": json.loads(response_participants.decode())
+    }
+    return response
 
 def open_challonge():
     text, ok = QtWidgets.QInputDialog.getText(window, "Name of the Team", "Paste Challonge.com tournament code")
-    if text and ok:
+    if text and ok and config.get("challonge_api_key"):
         found_tournament = False
         try:
             tournament_info = poll_challonge(text)
-            if len(tournament_info["matches_by_round"]["1"]) < 1:
+            if not len(tournament_info["matches"]) > 1 or not len(tournament_info["matches"]) > 1:
                 raise Exception
             else:
                 found_tournament = True
@@ -238,6 +237,11 @@ def undo():
     set_button_states()
 
 
+def disable_move_buttons():
+    window.match_move_up_button.setEnabled(False)
+    window.match_move_down_button.setEnabled(False)
+
+
 def match_move_up():
     match_reorder("up")
 
@@ -250,6 +254,7 @@ def match_reorder(direction):
     scheduleid = window.match_list_widget.currentRow()
     move_map = {"up": -1, "down": 1}
     broadcast.swap_matches(scheduleid, scheduleid + move_map[direction])
+    disable_move_buttons()
     populate_matches()
     update_schedule()
     set_button_states()
@@ -617,7 +622,8 @@ except (json.JSONDecodeError, FileNotFoundError):
     config = { "openfile": "tournament-config.json",
         "use_challonge": False,
         "challonge_id": False,
-        "version": version,
+        "challonge_api_key": None,
+        "version": version
      }
     save_config(config)
 
@@ -626,10 +632,15 @@ logging.Logger.setLevel(log, level = "DEBUG")
 broadcast = Tournament(version = version)
 loadfail = False
 foundfile = False
-if os.path.isfile(config["openfile"]):
+if os.path.isfile(config.get("openfile")):
     foundfile = True
     result = broadcast.load_from(config["openfile"])
     loadfail = False
+
+if os.path.isfile(config.get("challonge_api_key_location")) and not config.get("challonge_api_key"):
+    with open(config.get("challonge_api_key_location")) as file:
+        config["challonge_api_key"] = file.read()
+    save_config(config)
 
 logging.debug(broadcast.__dict__)
 broadcast.write_to_stream()
