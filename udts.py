@@ -1,17 +1,13 @@
-from json.decoder import JSONDecodeError
 from PyQt5.uic.uiparser import DEBUG
-from pydantic.errors import JsonError
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QFont
-from bs4 import BeautifulSoup, GuessedAtParserWarning
 from urllib import request
 from uuid import uuid4
 import udtsconfig
 import PyQt5.QtGui as pygui
 import sys
-import io
 import json
 import logging
 import os.path

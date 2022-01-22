@@ -1,9 +1,7 @@
-import uuid
 from pydantic import BaseModel, Field
 from typing import Text, List, Dict, Optional
 from uuid import uuid4
 from errors import MatchScheduleDesync
-import random
 import os
 import json
 import logging
@@ -77,7 +75,7 @@ class Game(BaseModel):
         return self.__dict__
 
 class Tournament(BaseModel):
-    placeholder_team = Team(tricode="TBD", name = "TBD", id="666")
+    placeholder_team = Team(tricode="TBD", name = "TBD", id="666", logo_small="static/tbd-team-icon.png")
     teams: Dict = {}
     matches: Dict = {}
     schedule: List[str] = []
@@ -101,7 +99,7 @@ class Tournament(BaseModel):
                 if teams:
                     for team in teams:
                         team = Team(**team)
-                        if team.id != "666":
+                        if team != self.placeholder_team:
                             id = self.add_team(team)
                             self.mapping[team.tricode] = id
 
