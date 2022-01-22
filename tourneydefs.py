@@ -97,15 +97,19 @@ class Tournament(BaseModel):
                 self.mapping = {}
                 self.clear_everything()
 
-                for team in data["teams"]:
-                    team = Team(**team)
-                    if team.id != "666":
-                        id = self.add_team(team)
-                        self.mapping[team.tricode] = id
+                teams = data.get("teams")
+                if teams:
+                    for team in teams:
+                        team = Team(**team)
+                        if team.id != "666":
+                            id = self.add_team(team)
+                            self.mapping[team.tricode] = id
 
-                for current_match in data["matches"]:
-                    match = Match(**current_match)
-                    self.add_match(match)
+                matches = data.get("matches")
+                if matches:
+                    for current_match in data["matches"]:
+                        match = Match(**current_match)
+                        self.add_match(match)
 
                 self.schedule = data.get("schedule", [])
 
@@ -114,11 +118,14 @@ class Tournament(BaseModel):
                     for game in game_history:
                         game = Game(**game)
                         self.game_history.append(game)
+
                 current_match = data.get("current_match")
                 if current_match is not None:
                     self.current_match = current_match
                 
-                self.pts_config = data["pts_config"]
+                pts_config = data.get("pts_config")
+                if pts_config:
+                    self.pts_config = pts_config
 
         except:
             return False
