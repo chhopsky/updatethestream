@@ -913,7 +913,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Edit Points</string>
+       <string>Save Options</string>
       </property>
      </widget>
      <widget class="QWidget" name="formLayoutWidget_5">
