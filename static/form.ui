@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="live_tab">
      <attribute name="title">
@@ -43,7 +43,7 @@
        <item>
         <widget class="QPushButton" name="update_from_challonge">
          <property name="enabled">
-          <bool>False</bool>
+          <bool>false</bool>
          </property>
          <property name="toolTip">
           <string>Reload current tournament state from Challonge</string>
@@ -418,7 +418,7 @@
          </property>
         </widget>
        </item>
-        <item>
+       <item>
         <widget class="QLabel" name="red_label">
          <property name="text">
           <string>Red:</string>
@@ -435,10 +435,10 @@
      <widget class="QWidget" name="formLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>100</x>
+        <x>89</x>
         <y>10</y>
-        <width>190</width>
-        <height>74</height>
+        <width>211</width>
+        <height>170</height>
        </rect>
       </property>
       <layout class="QFormLayout" name="add_team_form">
@@ -493,6 +493,40 @@
          </property>
         </widget>
        </item>
+       <item row="3" column="1">
+        <widget class="QPushButton" name="add_team_icon_button">
+         <property name="toolTip">
+          <string extracomment="Select a team icon file."/>
+         </property>
+         <property name="text">
+          <string>Select Team Logo Image</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLabel" name="add_team_hero_label">
+         <property name="text">
+          <string>No Icon.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QPushButton" name="add_team_hero_button">
+         <property name="toolTip">
+          <string extracomment="Select a larger hero image for the team."/>
+         </property>
+         <property name="text">
+          <string>Select Team Hero Image</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLabel" name="add_team_icon_label">
+         <property name="text">
+          <string>No Hero Image.</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QPushButton" name="add_team_button">
@@ -511,10 +545,10 @@
      <widget class="QWidget" name="formLayoutWidget_2">
       <property name="geometry">
        <rect>
-        <x>100</x>
-        <y>100</y>
-        <width>190</width>
-        <height>75</height>
+        <x>89</x>
+        <y>230</y>
+        <width>211</width>
+        <height>171</height>
        </rect>
       </property>
       <layout class="QFormLayout" name="edit_team_form">
@@ -525,17 +559,17 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="edit_team_tricode_label">
-         <property name="text">
-          <string>Tricode</string>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="1">
         <widget class="QLineEdit" name="edit_team_name_field">
          <property name="placeholderText">
           <string>e.g. Team Solo Mid</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="edit_team_tricode_label">
+         <property name="text">
+          <string>Tricode</string>
          </property>
         </widget>
        </item>
@@ -569,16 +603,44 @@
          </property>
         </widget>
        </item>
+       <item row="3" column="1">
+        <widget class="QPushButton" name="pushButton">
+         <property name="text">
+          <string>Select Team Logo Image</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>No Logo.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QPushButton" name="pushButton_2">
+         <property name="text">
+          <string>Select Team Hero Image</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>No Hero Image.</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QPushButton" name="edit_team_button">
-    <property name="enabled">
-          <bool>False</bool>
-         </property>
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>100</y>
+        <y>230</y>
         <width>70</width>
         <height>25</height>
        </rect>
@@ -594,7 +656,7 @@
       <property name="geometry">
        <rect>
         <x>220</x>
-        <y>180</y>
+        <y>410</y>
         <width>70</width>
         <height>25</height>
        </rect>
@@ -607,7 +669,7 @@
       <property name="geometry">
        <rect>
         <x>100</x>
-        <y>180</y>
+        <y>410</y>
         <width>90</width>
         <height>20</height>
        </rect>
@@ -763,9 +825,9 @@
       </property>
      </widget>
      <widget class="QPushButton" name="edit_match_button">
-        <property name="enabled">
-          <bool>False</bool>
-         </property>
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -907,7 +969,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>10</y>
+        <y>40</y>
         <width>75</width>
         <height>25</height>
        </rect>
@@ -920,7 +982,7 @@
       <property name="geometry">
        <rect>
         <x>100</x>
-        <y>10</y>
+        <y>40</y>
         <width>170</width>
         <height>75</height>
        </rect>
@@ -950,25 +1012,71 @@
        <item row="0" column="1">
         <widget class="QSpinBox" name="points_on_win_spinbox">
          <property name="value">
-          <string>1</string>
+          <number>1</number>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
         <widget class="QSpinBox" name="points_on_tie_spinbox">
          <property name="value">
-          <string>0</string>
+          <number>0</number>
          </property>
         </widget>
        </item>
        <item row="2" column="1">
         <widget class="QSpinBox" name="points_on_loss_spinbox">
          <property name="value">
-          <string>0</string>
+          <number>0</number>
          </property>
         </widget>
        </item>
       </layout>
+     </widget>
+     <widget class="QWidget" name="formLayoutWidget_6">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>140</y>
+        <width>251</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="edit_tbd_team">
+       <item row="0" column="0">
+        <widget class="QLabel" name="edit_tbd_team_icon_label">
+         <property name="text">
+          <string>TBD Team Icon</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="edit_tbd_team_icon_select_button">
+         <property name="text">
+          <string>Select TBD Icon</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="edit_tbd_team_icon_current_icon">
+         <property name="text">
+          <string>Default Icon File</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QLabel" name="label_5">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>491</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Select configuration options for this tournament. Changes here will be saved in your tournament file.</string>
+      </property>
      </widget>
     </widget>
    </widget>

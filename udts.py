@@ -104,6 +104,7 @@ def new():
     update_standings()
     refresh_team_win_labels()
     set_button_states()
+    set_config_ui()
 
 
 def open_file():
