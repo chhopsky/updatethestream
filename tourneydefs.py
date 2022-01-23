@@ -139,9 +139,11 @@ class Tournament(BaseModel):
                 self.matches[match_id].scores = [0, 0]
                 match["scores"] = match["scores_csv"].split("-")
                 match["scores"] = list(map(int, match["scores"]))
+                if match["scores"][0] == match["scores"][1]:
+                    self.matches[match_id].best_of = sum(match["scores"])
+                else:
+                    self.matches[match_id].best_of = (max(match["scores"]) * 2) - 1
                 if match["winner_id"] == match["player1_id"]:
-                    # reset best_of and scores
-                    self.matches[match_id].best_of = (match["scores"][0] * 2) - 1
                     # process index 1 first
                     match_count = match["scores"][1]
                     while match_count > 0:
@@ -152,7 +154,6 @@ class Tournament(BaseModel):
                         self.game_complete(scheduleid, 0)
                         match_count -= 1
                 else:
-                    self.matches[match_id].best_of = (match["scores"][1] * 2) - 1
                     match_count = match["scores"][0]
                     while match_count > 0:
                         self.game_complete(scheduleid, 0)
