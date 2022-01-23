@@ -1,6 +1,5 @@
 from asyncore import write
 from PyQt5.uic.uiparser import DEBUG
-from matplotlib.pyplot import pause
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt, QUrl
