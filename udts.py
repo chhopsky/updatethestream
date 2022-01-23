@@ -1,4 +1,5 @@
 from PyQt5.uic.uiparser import DEBUG
+from matplotlib.pyplot import pause
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt, QUrl
@@ -49,7 +50,11 @@ def setup():
     window.refresh_ui_button.clicked.connect(force_refresh_ui)
     window.refresh_stream_button.clicked.connect(force_refresh_stream)
     window.add_team_button.clicked.connect(add_team)
+    window.add_team_icon_button.clicked.connect(add_team_icon)
+    window.add_team_hero_button.clicked.connect(add_team_hero)
     window.edit_team_button.clicked.connect(edit_team)
+    window.edit_team_icon_button.clicked.connect(edit_team_icon)
+    window.edit_team_hero_button.clicked.connect(edit_team_hero)
     window.team_list_widget.itemSelectionChanged.connect(team_selected)
     window.delete_team_button.clicked.connect(delete_team)
     window.delete_team_confirm_checkbox.clicked.connect(confirm_delete_team)
@@ -77,6 +82,10 @@ def setup():
     window.add_match_team2_dropdown.setCurrentIndex(-1)
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
+    window.add_team_icon_label.filename = False
+    window.add_team_hero_label.filename = False
+    window.edit_team_icon_label.filename = False
+    window.edit_team_hero_label.filename = False
 
 
 def set_config_ui():
@@ -373,6 +382,32 @@ def add_team():
         window.add_team_tricode_field.setText("")
         window.add_team_points_field.setText("")
         populate_teams()
+    if window.add_team_icon_label.filename:
+        new_team.logo_small = window.add_team_icon_label.filename
+    if window.add_team_hero_label.filename:
+        new_team.logo_big = window.add_team_hero_label.filename
+    window.add_team_icon_label.setText("No Logo.")
+    window.add_team_icon_label.filename = False
+    window.add_team_hero_label.setText("No Hero Icon.")
+    window.add_team_hero_label.filename = False
+
+
+def add_team_icon():
+    set_team_icon(window.add_team_icon_label)
+
+
+def add_team_hero():
+    set_team_icon(window.add_team_hero_label)
+
+
+def set_team_icon(label):
+    options = QtWidgets.QFileDialog.Options()
+    options |= QtWidgets.QFileDialog.DontUseNativeDialog
+    filename, _ = QtWidgets.QFileDialog.getOpenFileName(window,"Select a team icon", "","Image Files (*.png *.jpg *.gif *.mp4 *.mov *.avi *.mkv);;All Files (*)", options=options)
+    if filename:
+        label.filename=filename
+        head, tail = os.path.split(filename)
+        label.setText(tail)
 
 
 def edit_team():
@@ -395,15 +430,42 @@ def edit_team():
         update_standings()
 
 
+def edit_team_icon():
+    set_team_icon(window.edit_team_icon_label)
+
+
+def edit_team_hero(label):
+    set_team_icon(window.edit_team_hero_label)
+
+
 def team_selected():
     if window.team_list_widget.selectedItems():
         selected_item = window.team_list_widget.selectedItems()[0]
         id = selected_item.id
         window.selected_team = id
-        window.edit_team_tricode_field.setText(broadcast.teams[id].tricode)
-        window.edit_team_name_field.setText(broadcast.teams[id].name)
-        window.edit_team_points_field.setText(str(broadcast.teams[id].points))
+        team_to_edit = broadcast.get_team(id)
+        window.edit_team_tricode_field.setText(team_to_edit.tricode)
+        window.edit_team_name_field.setText(team_to_edit.name)
+        window.edit_team_points_field.setText(str(team_to_edit.points))
+        window.edit_team_icon_button.setEnabled(True)
+        window.edit_team_hero_button.setEnabled(True)
         window.edit_team_button.setEnabled(True)
+
+        if team_to_edit.logo_small:
+            window.edit_team_icon_label.filename = team_to_edit.logo_small
+            head, tail = os.path.split(team_to_edit.logo_small)
+            window.edit_team_icon_label.setText(tail)
+        else:
+            window.edit_team_icon_label.setText("No Logo.")
+            window.edit_team_icon_label.filename = False
+        if team_to_edit.logo_big:
+            window.edit_team_hero_label.filename = team_to_edit.logo_big
+            head, tail = os.path.split(team_to_edit.logo_big)
+            window.edit_team_hero_label.setText(tail)
+        else:
+            window.edit_team_hero_label.setText("No Hero Icon.")
+            window.edit_team_hero_label.filename = False
+
 
 
 def confirm_delete_team():

@@ -1,3 +1,4 @@
+from matplotlib.pyplot import pause
 from pydantic import BaseModel, Field
 from typing import Text, List, Dict, Optional
 from uuid import uuid4
@@ -6,6 +7,7 @@ import os
 import json
 import logging
 import errno
+import shutil
 
 class Team(BaseModel):
     id: str = ""
@@ -291,15 +293,29 @@ class Tournament(BaseModel):
 
         
         if len(self.schedule):
-            try:
+            #try: MATT FIX
                 # This section is for things that are written out for every scheduled match
                 for index, schedule_item in enumerate(self.schedule):
                     match = self.matches[schedule_item]
+                    team1 = self.teams.get(match.teams[0])
+                    team2 = self.teams.get(match.teams[1])
+
                     with open(f"streamlabels\match-{index}-teams.txt", "w") as f_teams:
-                        team1 = self.teams.get(match.teams[0])
-                        team2 = self.teams.get(match.teams[1])
                         f_teams.write(f"{team1.get_name()}\n")
                         f_teams.write(f"{team2.get_name()}\n")
+         
+                    for i, team in enumerate([team1,team2]):
+                        video_extensions = [".mkv",".mov",".mp4", ".avi"]
+                        if team.logo_small and os.path.isfile(team.logo_small):
+                            extension = ".png"
+                            if team.logo_small.rsplit('.',1) in video_extensions:
+                                extension = ".mp4"    
+                            shutil.copy(team.logo_small, f"streamlabels\match-{index}-team{i}-icon{extension}")
+                        if team.logo_big and os.path.isfile(team.logo_big):
+                            extension = ".png"
+                            if team.logo_big.rsplit('.',1) in video_extensions:
+                                extension = ".mp4"
+                            shutil.copy(team.logo_big, f"streamlabels\match-{index}-team{i}-icon{extension}")
 
                     with open(f"streamlabels\match-{index}-teams-horizontal.txt", "w") as f_teams:
                         team1 = self.teams.get(match.teams[0])
@@ -367,6 +383,9 @@ class Tournament(BaseModel):
                 if current_teams is not None:
                     t0 = 0
                     t1 = 1
+
+                    
+
                     if swap:
                         t0 = 1
                         t1 = 0
@@ -393,6 +412,23 @@ class Tournament(BaseModel):
 
                     with open(f"streamlabels\current-match-team2-score.txt", "w") as f_current:
                         f_current.write(f"{match.scores[t1]}\n")
+                    
+
+                    for i, team in enumerate([current_teams[t0],current_teams[t1]]):
+                        video_extensions = [".mkv",".mov",".mp4", ".avi"]
+                        if team.logo_small and os.path.isfile(team.logo_small):
+                            extension = ".png"
+                            if team.logo_small.rsplit('.',1) in video_extensions:
+                                extension = ".mp4"    
+                            shutil.copy(team.logo_small, f"streamlabels\current-match-team{i}-icon{extension}")
+                        if team.logo_big and os.path.isfile(team.logo_big):
+                            extension = ".png"
+                            if team.logo_big.rsplit('.', 1) in video_extensions:
+                                extension = ".mp4"
+                            shutil.copy(team.logo_big, f"streamlabels\current-match-team{i}-icon{extension}")
+                        
+
+
                 
                 # This section is for the standings / match history win/loss
                 standings = self.get_standings()
@@ -421,9 +457,9 @@ class Tournament(BaseModel):
                         result = standings[0]
                         team = self.teams[result[0]]
                         f_current.write(f"{team.get_name()}")
-            except:
+            #except: MATT FIX
                 # TODO: return an error to the UI and have it display
-                return False
+             #   return False MATT FIX
                 
         return
     
@@ -562,6 +598,13 @@ class Tournament(BaseModel):
         self.pts_config = new_pts_config
 
     ## HELPER FUNCTIONS
+    def get_team(self, team_id):
+        if team_id in self.teams.keys():
+            return self.teams[team_id]
+        else:
+            return None
+
+
     def get_teams_from_scheduleid(self, id):
         try:    
             match_id = self.schedule[id]
