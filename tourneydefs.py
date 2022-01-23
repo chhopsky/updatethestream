@@ -1,4 +1,3 @@
-from matplotlib.pyplot import pause
 from pydantic import BaseModel, Field
 from typing import Text, List, Dict, Optional
 from uuid import uuid4
