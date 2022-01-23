@@ -150,6 +150,7 @@ def open_challonge():
                 window.config["use_challonge"] = True
                 window.config["challonge_id"] = text
                 force_refresh_ui()
+                show_error("CHALLONGE_WARNING")
             else:
                 show_error("CHALLONGE_PARSE_FAIL")
 

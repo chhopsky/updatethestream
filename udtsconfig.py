@@ -19,4 +19,8 @@ ERRORS = {
     "SAVE_FILE_MISSING": {
         "title": "Could not load from file!", 
         "message": "The default tournament configuration file could not be found. Loading empty tournament."},
+    "CHALLONGE_WARNING" : {
+        "title": "Please read!",
+        "message": "Challonge does NOT inform us as to how many games are in a match. Please double check your imported matches, and be sure to adjust the best-ofs appropriately."
+    }
 }
