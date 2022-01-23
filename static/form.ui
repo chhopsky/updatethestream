@@ -608,6 +608,9 @@
          <property name="text">
           <string>Select Team Logo Image</string>
          </property>
+         <property name="enabled">
+            <bool> false </bool>
+         </property>
         </widget>
        </item>
        <item row="4" column="1">
@@ -621,6 +624,9 @@
         <widget class="QPushButton" name="edit_team_hero_button">
          <property name="text">
           <string>Select Team Hero Image</string>
+         </property>
+         <property name="enabled">
+            <bool> false </bool>
          </property>
         </widget>
        </item>
