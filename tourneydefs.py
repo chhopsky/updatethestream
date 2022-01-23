@@ -310,12 +310,12 @@ class Tournament(BaseModel):
                             extension = ".png"
                             if team.logo_small.rsplit('.',1) in video_extensions:
                                 extension = ".mp4"    
-                            shutil.copy(team.logo_small, f"streamlabels\match-{index}-team{i}-icon{extension}")
+                            shutil.copy(team.logo_small, f"streamlabels\match-{index}-team{i + 1}-icon{extension}")
                         if team.logo_big and os.path.isfile(team.logo_big):
                             extension = ".png"
                             if team.logo_big.rsplit('.',1) in video_extensions:
                                 extension = ".mp4"
-                            shutil.copy(team.logo_big, f"streamlabels\match-{index}-team{i}-icon{extension}")
+                            shutil.copy(team.logo_big, f"streamlabels\match-{index}-team{i + 1}-hero{extension}")
 
                     with open(f"streamlabels\match-{index}-teams-horizontal.txt", "w") as f_teams:
                         team1 = self.teams.get(match.teams[0])
@@ -420,12 +420,12 @@ class Tournament(BaseModel):
                             extension = ".png"
                             if team.logo_small.rsplit('.',1) in video_extensions:
                                 extension = ".mp4"    
-                            shutil.copy(team.logo_small, f"streamlabels\current-match-team{i}-icon{extension}")
+                            shutil.copy(team.logo_small, f"streamlabels\current-match-team{i + 1}-icon{extension}")
                         if team.logo_big and os.path.isfile(team.logo_big):
                             extension = ".png"
                             if team.logo_big.rsplit('.', 1) in video_extensions:
                                 extension = ".mp4"
-                            shutil.copy(team.logo_big, f"streamlabels\current-match-team{i}-icon{extension}")
+                            shutil.copy(team.logo_big, f"streamlabels\current-match-team{i + 1}-hero{extension}")
                         
 
 
