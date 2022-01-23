@@ -280,6 +280,7 @@ def match_reorder(direction):
     update_schedule()
     set_button_states()
     refresh_team_win_labels()
+    write_to_stream_if_enabled()
 
 
 def set_button_states():
@@ -309,7 +310,7 @@ def set_button_states():
         window.swap_button.setEnabled(False)
 
 
-def write_to_stream_if_enabled(self):
+def write_to_stream_if_enabled():
     if window.config.get("auto-write-changes-to-stream", True):
         force_refresh_stream()
 
