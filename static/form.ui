@@ -17,7 +17,7 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>10</x>
       <y>0</y>
       <width>800</width>
       <height>600</height>
@@ -965,23 +965,23 @@
      <attribute name="title">
       <string>Options</string>
      </attribute>
-     <widget class="QPushButton" name="edit_points_button">
+     <widget class="QPushButton" name="save_tournament_config_button">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>40</y>
-        <width>75</width>
-        <height>25</height>
+        <x>630</x>
+        <y>10</y>
+        <width>151</width>
+        <height>31</height>
        </rect>
       </property>
       <property name="text">
-       <string>Save Options</string>
+       <string>Update Tournament Options</string>
       </property>
      </widget>
      <widget class="QWidget" name="formLayoutWidget_5">
       <property name="geometry">
        <rect>
-        <x>100</x>
+        <x>10</x>
         <y>40</y>
         <width>170</width>
         <height>75</height>
@@ -1035,7 +1035,7 @@
      <widget class="QWidget" name="formLayoutWidget_6">
       <property name="geometry">
        <rect>
-        <x>100</x>
+        <x>10</x>
         <y>140</y>
         <width>251</width>
         <height>51</height>
@@ -1065,17 +1065,88 @@
        </item>
       </layout>
      </widget>
-     <widget class="QLabel" name="label_5">
+     <widget class="QLabel" name="tournament_options_label">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>491</width>
+        <width>601</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Tournament options. Changes here affect the live tournament, but are only saved to disk when the tournament is saved.</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="formLayoutWidget_7">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>260</y>
+        <width>241</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="checkbox_options">
+       <property name="formAlignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       </property>
+       <item row="0" column="0">
+        <widget class="QLabel" name="autolive_changes_label">
+         <property name="text">
+          <string>Automatically write changes to stream</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QCheckBox" name="autolive_changes_checkbox">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="Line" name="options_screen_line">
+      <property name="geometry">
+       <rect>
+        <x>7</x>
+        <y>200</y>
+        <width>771</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QLabel" name="program_options_label">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>220</y>
+        <width>581</width>
         <height>16</height>
        </rect>
       </property>
       <property name="text">
-       <string>Select configuration options for this tournament. Changes here will be saved in your tournament file.</string>
+       <string>Program options. Changes here will be saved in your config.cfg file and affect every tournament.</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="save_program_config_button">
+      <property name="geometry">
+       <rect>
+        <x>630</x>
+        <y>220</y>
+        <width>151</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save Program Options</string>
       </property>
      </widget>
     </widget>

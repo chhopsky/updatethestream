@@ -139,29 +139,27 @@ class Tournament(BaseModel):
                 self.matches[match_id].scores = [0, 0]
                 match["scores"] = match["scores_csv"].split("-")
                 match["scores"] = list(map(int, match["scores"]))
-                if match["winner_id"] == match["player1_id"]:
-                    # reset best_of and scores
-                    self.matches[match_id].best_of = (match["scores"][0] * 2) - 1
-                    # process index 1 first
-                    match_count = match["scores"][1]
-                    while match_count > 0:
-                        self.game_complete(scheduleid, 1)
-                        match_count -= 1
-                    match_count = match["scores"][0]
-                    while match_count > 0:
-                        self.game_complete(scheduleid, 0)
-                        match_count -= 1
-                else:
-                    self.matches[match_id].best_of = (match["scores"][1] * 2) - 1
-                    match_count = match["scores"][0]
-                    while match_count > 0:
-                        self.game_complete(scheduleid, 0)
-                        match_count -= 1
-                    match_count = match["scores"][1]
-                    while match_count > 0:
-                        self.game_complete(scheduleid, 1)
-                        match_count -= 1
-                    # process index 0 first
+                # assume winner index is for player 1
+                t1 = 0
+                t2 = 1
+
+                # if winner was player 2, invert the winner index
+                if match["winner_id"] == match["player2_id"]:
+                    t1 = 1
+                    t2 = 0
+                
+                # calculate best of
+                self.matches[match_id].best_of = (match["scores"][t1] * 2) - 1
+                
+                match_count = match["scores"][t2]
+                while match_count > 0:
+                    self.game_complete(scheduleid, t2)
+                    match_count -= 1
+
+                match_count = match["scores"][t1]
+                while match_count > 0:
+                    self.game_complete(scheduleid, t1)
+                    match_count -= 1
 
         for match in round_match_list:
             if match["state"] == "pending":
@@ -188,7 +186,8 @@ class Tournament(BaseModel):
 
         for value in tournamentinfo.get("participants"):
             participant = value.get("participant")
-            participant["id"] = str(participant["group_player_ids"][0])
+            if len(participant["group_player_ids"]):
+                participant["id"] = str(participant["group_player_ids"])
             team_list.append(participant)
 
         try:
@@ -212,8 +211,7 @@ class Tournament(BaseModel):
                     new_match.id = str(match["id"])
                     new_match.teams.append(match["player1_id"])
                     new_match.teams.append(match["player2_id"])
-                    self.matches[new_match.id] = new_match
-                    self.schedule.append(new_match.id)
+                    self.add_match(new_match)
 
             # create match history for them
             # TODO: update this for match/schedule split
@@ -223,11 +221,10 @@ class Tournament(BaseModel):
             for match in match_list:
                 if match["state"] == "open":
                     new_match = Match()
-                    new_match.id = match["id"]
+                    new_match.id = str(match["id"])
                     new_match.teams.append(match["player1_id"])
                     new_match.teams.append(match["player2_id"])
-                    self.matches[new_match.id] = new_match
-                    self.schedule.append(new_match.id)
+                    self.add_match(new_match)
 
             # add the upcoming matches where teams are not locked in
             for match in match_list:
@@ -242,8 +239,7 @@ class Tournament(BaseModel):
                         new_match.teams.append(match["player2_id"])
                     else:
                         new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")].id)
-                    self.matches[new_match.id] = new_match
-                    self.schedule.append(new_match.id)
+                    self.add_match(new_match)
         except:
             return False
 
@@ -288,7 +284,6 @@ class Tournament(BaseModel):
             except OSError as exc: # Guard against race condition
                 if exc.errno != errno.EEXIST:
                     raise
-
         
         if len(self.schedule):
             try:

@@ -1,3 +1,4 @@
+from asyncore import write
 from PyQt5.uic.uiparser import DEBUG
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
@@ -32,7 +33,7 @@ class Ui(QtWidgets.QMainWindow):
         self.config = loaded_config
         self.swapstate = 0
         self.setWindowIcon(pygui.QIcon('static/chhtv.ico'))
-        
+                 
 
 def setup():
     window.actionNew.triggered.connect(new)
@@ -64,7 +65,8 @@ def setup():
     window.undo_button.clicked.connect(undo)
     window.undo_button.setEnabled(False)
     window.update_from_challonge.clicked.connect(update_from_challonge)
-    window.edit_points_button.clicked.connect(edit_points)
+    window.save_tournament_config_button.clicked.connect(edit_tournament_config)
+    window.save_program_config_button.clicked.connect(edit_program_config)
     disable_move_buttons()
     populate_teams()
     populate_matches()
@@ -114,6 +116,7 @@ def open_file():
         window.config["challonge_id"] = False
         save_config(window.config)
         force_refresh_ui()
+        write_to_stream_if_enabled()
 
 
 def poll_challonge(tournament_id):
@@ -177,6 +180,7 @@ def update_from_challonge():
     tournament_info = poll_challonge(window.config["challonge_id"])
     broadcast.update_match_history_from_challonge(tournament_info)
     force_refresh_ui()
+    write()
 
 
 def save_file():
@@ -215,13 +219,19 @@ def save_as_state():
         save_config(window.config)
 
 
-def edit_points():
+def edit_tournament_config():
     new_pts_config = {
         "win": int(window.points_on_win_spinbox.text()),
         "tie": int(window.points_on_tie_spinbox.text()),
         "loss": int(window.points_on_loss_spinbox.text())
     }
     broadcast.edit_points(new_pts_config)
+    force_refresh_ui()
+
+
+def edit_program_config():
+    window.config["auto-write-changes-to-stream"] = window.autolive_changes_checkbox.isChecked()
+    save_config(window.config)
     force_refresh_ui()
 
 
@@ -288,6 +298,11 @@ def set_button_states():
     else:
         set_team_win_buttons_enabled(False)
         window.swap_button.setEnabled(False)
+
+
+def write_to_stream_if_enabled(self):
+    if window.config.get("auto-write-changes-to-stream", True):
+        force_refresh_stream()
 
 
 def force_refresh_stream():
@@ -393,6 +408,7 @@ def edit_team():
         populate_teams()
         update_schedule()
         update_standings()
+        write_to_stream_if_enabled()
 
 
 def team_selected():
@@ -426,6 +442,7 @@ def delete_team():
             populate_matches()
             set_button_states()
             refresh_team_win_labels()
+            write_to_stream_if_enabled()
 
 
 def add_match():
@@ -446,6 +463,7 @@ def add_match():
             set_button_states()
         populate_matches()
         refresh_team_win_labels()
+        write_to_stream_if_enabled()
 
 
 def edit_match():
@@ -463,6 +481,7 @@ def edit_match():
         broadcast.edit_match(match_id, match_data)
         window.edit_match_button.setEnabled(False)
         populate_matches()
+        write_to_stream_if_enabled()
 
 
 def confirm_delete_match():
@@ -487,6 +506,7 @@ def delete_match():
             set_button_states()
             
         refresh_team_win_labels()
+        write_to_stream_if_enabled()
 
 
 def match_selected():
@@ -626,7 +646,8 @@ except (json.JSONDecodeError, FileNotFoundError):
         "use_challonge": False,
         "challonge_id": False,
         "challonge_api_key": None,
-        "version": version
+        "version": version,
+        "auto-write-changes-to-stream": True
      }
     save_config(config)
 
