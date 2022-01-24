@@ -6,7 +6,7 @@ A tournament scores/schedule/standings management tool for esports tournament br
 # How to use:
 Download the latest release: https://github.com/chhopsky/updatethestream/releases  
 
-The program uses the teams and matches you configure to write out text files containing schedule, scores and standings. In OBS, or whatever broadcast program you use, add the text files from the "streamlabels" folder as text sources, and configure them however you want in your broadcast graphics.
+The program uses the teams and matches you configure to write out text files and images containing schedule, scores and standings. In OBS, or whatever broadcast program you use, add files from the "streamlabels" folder as sources, and configure them however you want in your broadcast graphics.
 
 # Demonstration:
 Video demo: https://youtu.be/77kKceSTzgI
@@ -22,14 +22,11 @@ Step by step:
 <img src="https://chhopsky.github.io/UDTS-screenshot.png">
 
 Notes:
-"Force refresh stream" will rewrite the text files, in case anything doesn't update for some reason.  
+"Force refresh stream" will rewrite the files, if you have auto-update disabled, or if you've edited a source.  
 "Force UI Update" will redraw and reload the UI in case the editing rules get in a bad state.  
 
 ## Known bugs
 - None, please report some.
-
-## WIP
-- Points per game not yet implemented
 
 Go nuts, GLHF, let me know how you want it to work, or tell me what broke.
 
@@ -38,7 +35,7 @@ config.cfg: stores basic config information
 tournament-config.json: defines teams, matches  
 tourneydefs.py: core class interactions  
 udts.py: UI and control plane  
-form.py: pythonization of the UI XML for auto-packaging purposes
+static/: Built-in additional files
 
 ### Disclaimer
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
