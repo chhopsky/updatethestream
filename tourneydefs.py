@@ -295,7 +295,7 @@ class Tournament(BaseModel):
                     team1 = self.teams.get(match.teams[0])
                     team2 = self.teams.get(match.teams[1])
 
-                    with open(f"streamlabels\match-{index}-teams.txt", "w") as f_teams:
+                    with open(f"streamlabels\match-{index + 1}-teams.txt", "w") as f_teams:
                         f_teams.write(f"{team1.get_name()}\n")
                         f_teams.write(f"{team2.get_name()}\n")
          
@@ -305,34 +305,34 @@ class Tournament(BaseModel):
                             extension = ".png"
                             if team.logo_small.rsplit('.',1) in video_extensions:
                                 extension = ".mp4"    
-                            shutil.copy(team.logo_small, f"streamlabels\match-{index}-team{i + 1}-icon{extension}")
+                            shutil.copy(team.logo_small, f"streamlabels\match-{index + 1}-team{i + 1}-icon{extension}")
                         if team.logo_big and os.path.isfile(team.logo_big):
                             extension = ".png"
                             if team.logo_big.rsplit('.',1) in video_extensions:
                                 extension = ".mp4"
-                            shutil.copy(team.logo_big, f"streamlabels\match-{index}-team{i + 1}-hero{extension}")
+                            shutil.copy(team.logo_big, f"streamlabels\match-{index + 1}-team{i + 1}-hero{extension}")
 
-                    with open(f"streamlabels\match-{index}-teams-horizontal.txt", "w") as f_teams:
+                    with open(f"streamlabels\match-{index + 1}-teams-horizontal.txt", "w") as f_teams:
                         team1 = self.teams.get(match.teams[0])
                         team2 = self.teams.get(match.teams[1])
                         f_teams.write(f"{team1.get_name()} vs {team2.get_name()}\n")
 
-                    with open(f"streamlabels\match-{index}-tricodes.txt", "w") as f_teams:
+                    with open(f"streamlabels\match-{index + 1}-tricodes.txt", "w") as f_teams:
                         team1 = self.teams.get(match.teams[0])
                         team2 = self.teams.get(match.teams[1])
                         f_teams.write(f"{team1.get_tricode()}\n")
                         f_teams.write(f"{team2.get_tricode()}\n")
 
-                    with open(f"streamlabels\match-{index}-tricodes-horizontal.txt", "w") as f_teams:
+                    with open(f"streamlabels\match-{index + 1}-tricodes-horizontal.txt", "w") as f_teams:
                         team1 = self.teams.get(match.teams[0])
                         team2 = self.teams.get(match.teams[1])
                         f_teams.write(f"{team1.get_tricode()} vs {team2.get_tricode()}\n")
 
-                    with open(f"streamlabels\match-{index}-scores.txt", "w") as f_scores:
+                    with open(f"streamlabels\match-{index + 1}-scores.txt", "w") as f_scores:
                         f_scores.write(f"{match.scores[0]}\n")
                         f_scores.write(f"{match.scores[1]}\n")
 
-                    with open(f"streamlabels\match-{index}-scores-horizontal.txt", "w") as f_scores:
+                    with open(f"streamlabels\match-{index + 1}-scores-horizontal.txt", "w") as f_scores:
                         f_scores.write(f"{match.scores[0]} - {match.scores[1]}\n")
 
                 # This section is for things that are written out once for the entire schedule
@@ -378,8 +378,6 @@ class Tournament(BaseModel):
                 if current_teams is not None:
                     t0 = 0
                     t1 = 1
-
-                    
 
                     if swap:
                         t0 = 1
