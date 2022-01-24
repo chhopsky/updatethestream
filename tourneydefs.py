@@ -167,12 +167,12 @@ class Tournament(BaseModel):
 
         for match in round_match_list:
             if match["state"] == "pending":
-                for match_id, our_match in enumerate(self.matches):
+                for match_id, our_match in self.matches.items():
                     if our_match.id == match["id"]:
                         if match.get("player1_id"):
-                            self.matches[match_id][0] == match["player1_id"]
+                            self.matches[match_id].teams[0] == match["player1_id"]
                         if match.get("player2_id"):
-                            self.matches[match_id][1] == match["player1_id"]
+                            self.matches[match_id].teams[1] == match["player2_id"]
 
 
     def load_from_challonge(self, tournamentinfo):
@@ -183,26 +183,42 @@ class Tournament(BaseModel):
         logging.debug("loading teams")
         match_list = []
         team_list = []
+
+        # fixups on the raw data
         for value in tournamentinfo.get("matches"):
             match = value.get("match")
             match["id"] = str(match["id"])
             match["winner_id"] = str(match["winner_id"])
-            match["player1_id"] = str(match["player1_id"])
-            match["player2_id"] = str(match["player2_id"])
+
+            # playerx_id is false if teams arent locked in. set placeholder
+            if match.get("player1_id"):
+                match["player1_id"] = str(match["player1_id"])
+            else:
+                match["player1_id"] = self.placeholder_team.id
+
+            if match.get("player2_id"):
+                match["player2_id"] = str(match["player2_id"])
+            else:
+                match["player2_id"] = self.placeholder_team.id
+
             match_list.append(match)
 
+        # some retrieve the palyer ids, which can be in two differentplaces
         for value in tournamentinfo.get("participants"):
             participant = value.get("participant")
             if len(participant["group_player_ids"]):
                 participant["id"] = participant["group_player_ids"][0]
             participant["id"] = str(participant["id"])
             team_list.append(participant)
-
+        
         try:
+            # this should never happen, but if for some reason there isn't a
+            # match id in the match, set our own
             for i, match in enumerate(match_list):
                 if not match.get("id"):
                     match_list[i]["id"] = str(uuid4())
 
+            #locate teams
             for team in team_list:
                 logging.debug(f"found new team with id {team['id']}")
                 new_team = Team()
@@ -235,18 +251,15 @@ class Tournament(BaseModel):
                 if match["state"] == "pending":
                     new_match = Match()
                     new_match.id = str(match["id"])
-                    if match.get("player1_id"):
-                        new_match.teams.append(match["player1_id"])
-                    else:
-                        new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")].id)
-                    if match.get("player2_id"):
-                        new_match.teams.append(match["player2_id"])
-                    else:
-                        new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")].id)
+                    new_match.teams.append(match["player1_id"])
+                    new_match.teams.append(match["player2_id"])
                     self.add_match(new_match)
 
-            # create match history for them
-            # TODO: update this for match/schedule split
+            # run the match history for the completed matches
+            # there is a risk here that matches on the tournament may be
+            # completed out of order, that we're not handling
+            # currently we only re-order on import. probably need to
+            # sort matches in schedule on update, just to be safe
             self.update_match_history_from_challonge(match_list)
         except:
             return False
