@@ -71,6 +71,7 @@ def setup():
     window.update_from_challonge.clicked.connect(update_from_challonge)
     window.save_tournament_config_button.clicked.connect(edit_tournament_config)
     window.save_program_config_button.clicked.connect(edit_program_config)
+    window.edit_tbd_team_icon_select_button.clicked.connect(add_tbd_icon)
     disable_move_buttons()
     populate_teams()
     populate_matches()
@@ -87,6 +88,7 @@ def setup():
     window.add_team_hero_label.filename = False
     window.edit_team_icon_label.filename = False
     window.edit_team_hero_label.filename = False
+    window.edit_tbd_team_icon_current_icon.filename = False
 
 
 def set_config_ui():
@@ -94,6 +96,8 @@ def set_config_ui():
     window.points_on_win_spinbox.setValue(point_config["win"])
     window.points_on_tie_spinbox.setValue(point_config["tie"])
     window.points_on_loss_spinbox.setValue(point_config["loss"])
+    placeholder = broadcast.get_team(broadcast.placeholder_team.id)
+    window.edit_tbd_team_icon_current_icon.setText(placeholder.logo_small)
 
 
 def open_github():
@@ -235,6 +239,12 @@ def edit_tournament_config():
         "loss": int(window.points_on_loss_spinbox.text())
     }
     broadcast.edit_points(new_pts_config)
+    placeholder = broadcast.get_team(broadcast.placeholder_team.id)
+    if window.edit_tbd_team_icon_current_icon.filename:
+        placeholder.logo_small = window.edit_tbd_team_icon_current_icon.filename
+    window.edit_tbd_team_icon_current_icon.filename = False
+    broadcast.edit_team(placeholder)
+
     force_refresh_ui()
 
 
@@ -415,6 +425,8 @@ def add_team_icon():
 def add_team_hero():
     set_team_icon(window.add_team_hero_label)
 
+def add_tbd_icon():
+    set_team_icon(window.edit_tbd_team_icon_current_icon)
 
 def set_team_icon(label):
     options = QtWidgets.QFileDialog.Options()
