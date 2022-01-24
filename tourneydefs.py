@@ -152,6 +152,8 @@ class Tournament(BaseModel):
                 
                 # calculate best of
                 self.matches[match_id].best_of = (match["scores"][t1] * 2) - 1
+                if self.matches[match_id].best_of < 1:
+                    raise Exception
                 
                 match_count = match["scores"][t2]
                 while match_count > 0:
@@ -174,6 +176,8 @@ class Tournament(BaseModel):
 
 
     def load_from_challonge(self, tournamentinfo):
+        with open(f"challonge_load.json", "w") as f_current:
+            f_current.write(json.dumps(tournamentinfo))
         self.mapping = {}
         self.clear_everything()
         logging.debug("loading teams")
@@ -182,6 +186,7 @@ class Tournament(BaseModel):
         for value in tournamentinfo.get("matches"):
             match = value.get("match")
             match["id"] = str(match["id"])
+            match["winner_id"] = str(match["winner_id"])
             match["player1_id"] = str(match["player1_id"])
             match["player2_id"] = str(match["player2_id"])
             match_list.append(match)
@@ -189,7 +194,8 @@ class Tournament(BaseModel):
         for value in tournamentinfo.get("participants"):
             participant = value.get("participant")
             if len(participant["group_player_ids"]):
-                participant["id"] = str(participant["group_player_ids"])
+                participant["id"] = participant["group_player_ids"][0]
+            participant["id"] = str(participant["id"])
             team_list.append(participant)
 
         try:
@@ -215,10 +221,6 @@ class Tournament(BaseModel):
                     new_match.teams.append(match["player2_id"])
                     self.add_match(new_match)
 
-            # create match history for them
-            # TODO: update this for match/schedule split
-            self.update_match_history_from_challonge(match_list)
-
             # add the upcoming matches where teams are locked in
             for match in match_list:
                 if match["state"] == "open":
@@ -242,6 +244,10 @@ class Tournament(BaseModel):
                     else:
                         new_match.teams.append(self.teams[self.get_team_id_by_tricode("TBD")].id)
                     self.add_match(new_match)
+
+            # create match history for them
+            # TODO: update this for match/schedule split
+            self.update_match_history_from_challonge(match_list)
         except:
             return False
 
@@ -471,10 +477,10 @@ class Tournament(BaseModel):
     def process_game(self, scheduleid, winner_index):
         match_id = self.get_match_id_from_scheduleid(scheduleid)
         match = self.matches[match_id]
-        cutoff = match.best_of / 2
+        cutoff = (match.best_of + 1) / 2
         match.scores[winner_index] += 1
         match.in_progress = True
-        if match.scores[0] > cutoff or match.scores[1] > cutoff or sum(match.scores) == match.best_of:
+        if match.scores[0] == cutoff or match.scores[1] == cutoff or sum(match.scores) == match.best_of:
             match.in_progress = False
             match.finished = True
             if match.scores[0] == match.scores[1]:
