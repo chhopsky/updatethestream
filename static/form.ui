@@ -605,11 +605,11 @@
        </item>
        <item row="3" column="1">
         <widget class="QPushButton" name="edit_team_icon_button">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Select Team Logo Image</string>
-         </property>
-         <property name="enabled">
-            <bool> false </bool>
          </property>
         </widget>
        </item>
@@ -622,11 +622,11 @@
        </item>
        <item row="5" column="1">
         <widget class="QPushButton" name="edit_team_hero_button">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Select Team Hero Image</string>
-         </property>
-         <property name="enabled">
-            <bool> false </bool>
          </property>
         </widget>
        </item>
@@ -974,9 +974,9 @@
      <widget class="QPushButton" name="save_tournament_config_button">
       <property name="geometry">
        <rect>
-        <x>630</x>
+        <x>600</x>
         <y>10</y>
-        <width>151</width>
+        <width>181</width>
         <height>31</height>
        </rect>
       </property>
@@ -1145,9 +1145,9 @@
      <widget class="QPushButton" name="save_program_config_button">
       <property name="geometry">
        <rect>
-        <x>630</x>
+        <x>600</x>
         <y>220</y>
-        <width>151</width>
+        <width>181</width>
         <height>31</height>
        </rect>
       </property>
