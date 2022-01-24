@@ -89,6 +89,14 @@ class Tournament(BaseModel):
     blank_image = "static/empty-graphic.png"
 
 
+    def get_placeholder_team(self):
+        placeholder = self.get_team(self.placeholder_team.id)
+        if placeholder:
+            return placeholder
+        else:
+            return self.placeholder_team
+
+
     def load_from(self, filename="tournament-config.json"):
         try:
             with open(filename) as f:

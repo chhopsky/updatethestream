@@ -6,6 +6,7 @@ from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QFont
 from urllib import request
 from uuid import uuid4
+import templates
 import udtsconfig
 import PyQt5.QtGui as pygui
 import sys
@@ -96,7 +97,7 @@ def set_config_ui():
     window.points_on_win_spinbox.setValue(point_config["win"])
     window.points_on_tie_spinbox.setValue(point_config["tie"])
     window.points_on_loss_spinbox.setValue(point_config["loss"])
-    placeholder = broadcast.get_team(broadcast.placeholder_team.id)
+    placeholder = broadcast.get_placeholder_team()
     window.edit_tbd_team_icon_current_icon.setText(placeholder.logo_small)
 
 

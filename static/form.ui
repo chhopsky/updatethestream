@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="live_tab">
      <attribute name="title">
@@ -366,7 +366,7 @@
        <string/>
       </property>
       <property name="pixmap">
-       <pixmap>static/chhtvlogo.png</pixmap>
+       <pixmap>chhtvlogo.png</pixmap>
       </property>
       <property name="scaledContents">
        <bool>true</bool>
