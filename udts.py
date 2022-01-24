@@ -728,8 +728,10 @@ if os.path.isfile(config.get("openfile")):
     result = broadcast.load_from(config["openfile"])
     loadfail = False
 
-if os.path.isfile(config.get("challonge_api_key_location")) and not config.get("challonge_api_key"):
-    with open(config.get("challonge_api_key_location")) as file:
+challonge_api_key_path = config.get("challonge_api_key_location", "creds/challonge-api-key")
+
+if os.path.isfile(challonge_api_key_path) and not config.get("challonge_api_key"):
+    with open(challonge_api_key_path) as file:
         config["challonge_api_key"] = file.read()
     save_config(config)
 
