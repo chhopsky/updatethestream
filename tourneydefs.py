@@ -152,7 +152,10 @@ class Tournament(BaseModel):
                     t2 = 0
                 
                 # calculate best of
-                self.matches[match_id].best_of = (match["scores"][t1] * 2) - 1
+                if match["scores"][0] == match["scores"][1]:
+                    self.matches[match_id].best_of = sum(match["scores"])
+                else:
+                    self.matches[match_id].best_of = (match["scores"][t1] * 2) - 1
 
                 # if someone marks a match as complete but doesn't enter a score for the winner,
                 # assume it was a best of 1 with one game
