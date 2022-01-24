@@ -1,3 +1,4 @@
+from asyncore import write
 from PyQt5.uic.uiparser import DEBUG
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
@@ -32,7 +33,7 @@ class Ui(QtWidgets.QMainWindow):
         self.config = loaded_config
         self.swapstate = 0
         self.setWindowIcon(pygui.QIcon('static/chhtv.ico'))
-        
+                 
 
 def setup():
     window.actionNew.triggered.connect(new)
@@ -49,7 +50,11 @@ def setup():
     window.refresh_ui_button.clicked.connect(force_refresh_ui)
     window.refresh_stream_button.clicked.connect(force_refresh_stream)
     window.add_team_button.clicked.connect(add_team)
+    window.add_team_icon_button.clicked.connect(add_team_icon)
+    window.add_team_hero_button.clicked.connect(add_team_hero)
     window.edit_team_button.clicked.connect(edit_team)
+    window.edit_team_icon_button.clicked.connect(edit_team_icon)
+    window.edit_team_hero_button.clicked.connect(edit_team_hero)
     window.team_list_widget.itemSelectionChanged.connect(team_selected)
     window.delete_team_button.clicked.connect(delete_team)
     window.delete_team_confirm_checkbox.clicked.connect(confirm_delete_team)
@@ -64,7 +69,8 @@ def setup():
     window.undo_button.clicked.connect(undo)
     window.undo_button.setEnabled(False)
     window.update_from_challonge.clicked.connect(update_from_challonge)
-    window.edit_points_button.clicked.connect(edit_points)
+    window.save_tournament_config_button.clicked.connect(edit_tournament_config)
+    window.save_program_config_button.clicked.connect(edit_program_config)
     disable_move_buttons()
     populate_teams()
     populate_matches()
@@ -77,6 +83,10 @@ def setup():
     window.add_match_team2_dropdown.setCurrentIndex(-1)
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
+    window.add_team_icon_label.filename = False
+    window.add_team_hero_label.filename = False
+    window.edit_team_icon_label.filename = False
+    window.edit_team_hero_label.filename = False
 
 
 def set_config_ui():
@@ -114,6 +124,7 @@ def open_file():
         window.config["challonge_id"] = False
         save_config(window.config)
         force_refresh_ui()
+        write_to_stream_if_enabled()
 
 
 def poll_challonge(tournament_id):
@@ -150,6 +161,7 @@ def open_challonge():
                 window.config["use_challonge"] = True
                 window.config["challonge_id"] = text
                 force_refresh_ui()
+                show_error("CHALLONGE_WARNING")
             else:
                 show_error("CHALLONGE_PARSE_FAIL")
 
@@ -177,6 +189,7 @@ def update_from_challonge():
     tournament_info = poll_challonge(window.config["challonge_id"])
     broadcast.update_match_history_from_challonge(tournament_info)
     force_refresh_ui()
+    write()
 
 
 def save_file():
@@ -215,13 +228,19 @@ def save_as_state():
         save_config(window.config)
 
 
-def edit_points():
+def edit_tournament_config():
     new_pts_config = {
         "win": int(window.points_on_win_spinbox.text()),
         "tie": int(window.points_on_tie_spinbox.text()),
         "loss": int(window.points_on_loss_spinbox.text())
     }
     broadcast.edit_points(new_pts_config)
+    force_refresh_ui()
+
+
+def edit_program_config():
+    window.config["auto-write-changes-to-stream"] = window.autolive_changes_checkbox.isChecked()
+    save_config(window.config)
     force_refresh_ui()
 
 
@@ -261,6 +280,7 @@ def match_reorder(direction):
     update_schedule()
     set_button_states()
     refresh_team_win_labels()
+    write_to_stream_if_enabled()
 
 
 def set_button_states():
@@ -288,6 +308,11 @@ def set_button_states():
     else:
         set_team_win_buttons_enabled(False)
         window.swap_button.setEnabled(False)
+
+
+def write_to_stream_if_enabled():
+    if window.config.get("auto-write-changes-to-stream", True):
+        force_refresh_stream()
 
 
 def force_refresh_stream():
@@ -373,6 +398,32 @@ def add_team():
         window.add_team_tricode_field.setText("")
         window.add_team_points_field.setText("")
         populate_teams()
+    if window.add_team_icon_label.filename:
+        new_team.logo_small = window.add_team_icon_label.filename
+    if window.add_team_hero_label.filename:
+        new_team.logo_big = window.add_team_hero_label.filename
+    window.add_team_icon_label.setText("No Logo.")
+    window.add_team_icon_label.filename = False
+    window.add_team_hero_label.setText("No Hero Icon.")
+    window.add_team_hero_label.filename = False
+
+
+def add_team_icon():
+    set_team_icon(window.add_team_icon_label)
+
+
+def add_team_hero():
+    set_team_icon(window.add_team_hero_label)
+
+
+def set_team_icon(label):
+    options = QtWidgets.QFileDialog.Options()
+    options |= QtWidgets.QFileDialog.DontUseNativeDialog
+    filename, _ = QtWidgets.QFileDialog.getOpenFileName(window,"Select a team icon", "","Image Files (*.png *.jpg *.gif *.mp4 *.mov *.avi *.mkv);;All Files (*)", options=options)
+    if filename:
+        label.filename=filename
+        head, tail = os.path.split(filename)
+        label.setText(tail)
 
 
 def edit_team():
@@ -381,6 +432,10 @@ def edit_team():
         update.id = window.selected_team
         update.name = window.edit_team_name_field.text()
         update.tricode = window.edit_team_tricode_field.text()
+        if window.edit_team_icon_label.filename:
+            update.logo_small = window.edit_team_icon_label.filename
+        if window.edit_team_hero_label.filename: 
+            update.logo_big = window.edit_team_hero_label.filename
         try:
             update.points = int(window.edit_team_points_field.text())
         except ValueError:
@@ -393,6 +448,15 @@ def edit_team():
         populate_teams()
         update_schedule()
         update_standings()
+        write_to_stream_if_enabled()
+
+
+def edit_team_icon():
+    set_team_icon(window.edit_team_icon_label)
+
+
+def edit_team_hero(label):
+    set_team_icon(window.edit_team_hero_label)
 
 
 def team_selected():
@@ -400,10 +464,29 @@ def team_selected():
         selected_item = window.team_list_widget.selectedItems()[0]
         id = selected_item.id
         window.selected_team = id
-        window.edit_team_tricode_field.setText(broadcast.teams[id].tricode)
-        window.edit_team_name_field.setText(broadcast.teams[id].name)
-        window.edit_team_points_field.setText(str(broadcast.teams[id].points))
+        team_to_edit = broadcast.get_team(id)
+        window.edit_team_tricode_field.setText(team_to_edit.tricode)
+        window.edit_team_name_field.setText(team_to_edit.name)
+        window.edit_team_points_field.setText(str(team_to_edit.points))
+        window.edit_team_icon_button.setEnabled(True)
+        window.edit_team_hero_button.setEnabled(True)
         window.edit_team_button.setEnabled(True)
+
+        if team_to_edit.logo_small:
+            window.edit_team_icon_label.filename = team_to_edit.logo_small
+            head, tail = os.path.split(team_to_edit.logo_small)
+            window.edit_team_icon_label.setText(tail)
+        else:
+            window.edit_team_icon_label.setText("No Logo.")
+            window.edit_team_icon_label.filename = False
+        if team_to_edit.logo_big:
+            window.edit_team_hero_label.filename = team_to_edit.logo_big
+            head, tail = os.path.split(team_to_edit.logo_big)
+            window.edit_team_hero_label.setText(tail)
+        else:
+            window.edit_team_hero_label.setText("No Hero Icon.")
+            window.edit_team_hero_label.filename = False
+
 
 
 def confirm_delete_team():
@@ -426,6 +509,7 @@ def delete_team():
             populate_matches()
             set_button_states()
             refresh_team_win_labels()
+            write_to_stream_if_enabled()
 
 
 def add_match():
@@ -446,6 +530,7 @@ def add_match():
             set_button_states()
         populate_matches()
         refresh_team_win_labels()
+        write_to_stream_if_enabled()
 
 
 def edit_match():
@@ -463,6 +548,7 @@ def edit_match():
         broadcast.edit_match(match_id, match_data)
         window.edit_match_button.setEnabled(False)
         populate_matches()
+        write_to_stream_if_enabled()
 
 
 def confirm_delete_match():
@@ -487,6 +573,7 @@ def delete_match():
             set_button_states()
             
         refresh_team_win_labels()
+        write_to_stream_if_enabled()
 
 
 def match_selected():
@@ -626,7 +713,8 @@ except (json.JSONDecodeError, FileNotFoundError):
         "use_challonge": False,
         "challonge_id": False,
         "challonge_api_key": None,
-        "version": version
+        "version": version,
+        "auto-write-changes-to-stream": True
      }
     save_config(config)
 
