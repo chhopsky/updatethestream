@@ -432,6 +432,10 @@ def edit_team():
         update.id = window.selected_team
         update.name = window.edit_team_name_field.text()
         update.tricode = window.edit_team_tricode_field.text()
+        if window.edit_team_icon_label.filename:
+            update.logo_small = window.edit_team_icon_label.filename
+        if window.edit_team_hero_label.filename: 
+            update.logo_big = window.edit_team_hero_label.filename
         try:
             update.points = int(window.edit_team_points_field.text())
         except ValueError:
