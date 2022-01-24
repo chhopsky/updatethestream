@@ -86,6 +86,7 @@ class Tournament(BaseModel):
     version : str = "0.3"
     pts_config: Dict = {"win": 1, "tie": 0, "loss": 0}
     default_pts_config: Dict = {"win": 1, "tie": 0, "loss": 0}
+    blank_image = "static/empty-graphic.png"
 
 
     def load_from(self, filename="tournament-config.json"):
@@ -152,18 +153,22 @@ class Tournament(BaseModel):
                 
                 # calculate best of
                 self.matches[match_id].best_of = (match["scores"][t1] * 2) - 1
-                if self.matches[match_id].best_of < 1:
-                    raise Exception
-                
-                match_count = match["scores"][t2]
-                while match_count > 0:
-                    self.game_complete(scheduleid, t2)
-                    match_count -= 1
 
-                match_count = match["scores"][t1]
-                while match_count > 0:
+                # if someone marks a match as complete but doesn't enter a score for the winner,
+                # assume it was a best of 1 with one game
+                if self.matches[match_id].best_of < 1 or sum(match["scores"]) == 0:
+                    self.matches[match_id].best_of = 1
                     self.game_complete(scheduleid, t1)
-                    match_count -= 1
+                else:
+                    match_count = match["scores"][t2]
+                    while match_count > 0:
+                        self.game_complete(scheduleid, t2)
+                        match_count -= 1
+
+                    match_count = match["scores"][t1]
+                    while match_count > 0:
+                        self.game_complete(scheduleid, t1)
+                        match_count -= 1
 
         for match in round_match_list:
             if match["state"] == "pending":
@@ -320,16 +325,21 @@ class Tournament(BaseModel):
          
                     for i, team in enumerate([team1,team2]):
                         video_extensions = [".mkv",".mov",".mp4", ".avi"]
+                        sourcefile = self.blank_image
+                        extension = ".png"
                         if team.logo_small and os.path.isfile(team.logo_small):
-                            extension = ".png"
+                            sourcefile = team.logo_small
                             if team.logo_small.rsplit('.',1) in video_extensions:
-                                extension = ".mp4"    
-                            shutil.copy(team.logo_small, f"streamlabels\match-{index + 1}-team{i + 1}-icon{extension}")
-                        if team.logo_big and os.path.isfile(team.logo_big):
-                            extension = ".png"
-                            if team.logo_big.rsplit('.',1) in video_extensions:
                                 extension = ".mp4"
-                            shutil.copy(team.logo_big, f"streamlabels\match-{index + 1}-team{i + 1}-hero{extension}")
+                        shutil.copy(sourcefile, f"streamlabels\match-{index + 1}-team{i + 1}-icon{extension}")
+                        
+                        sourcefile = self.blank_image
+                        extension = ".png"
+                        if team.logo_big and os.path.isfile(team.logo_big):
+                            sourcefile = team.logo_big
+                            if team.logo_big.rsplit('.', 1) in video_extensions:
+                                extension = ".mp4"
+                        shutil.copy(sourcefile, f"streamlabels\match-{index + 1}-team{i + 1}-hero{extension}")
 
                     with open(f"streamlabels\match-{index + 1}-teams-horizontal.txt", "w") as f_teams:
                         team1 = self.teams.get(match.teams[0])
@@ -428,19 +438,21 @@ class Tournament(BaseModel):
 
                     for i, team in enumerate([current_teams[t0],current_teams[t1]]):
                         video_extensions = [".mkv",".mov",".mp4", ".avi"]
+                        sourcefile = self.blank_image
+                        extension = ".png"
                         if team.logo_small and os.path.isfile(team.logo_small):
-                            extension = ".png"
+                            sourcefile = team.logo_small
                             if team.logo_small.rsplit('.',1) in video_extensions:
                                 extension = ".mp4"    
-                            shutil.copy(team.logo_small, f"streamlabels\current-match-team{i + 1}-icon{extension}")
+                        shutil.copy(sourcefile, f"streamlabels\current-match-team{i + 1}-icon{extension}")
+
+                        sourcefile = self.blank_image
+                        extension = ".png"
                         if team.logo_big and os.path.isfile(team.logo_big):
-                            extension = ".png"
+                            sourcefile = team.logo_big
                             if team.logo_big.rsplit('.', 1) in video_extensions:
                                 extension = ".mp4"
-                            shutil.copy(team.logo_big, f"streamlabels\current-match-team{i + 1}-hero{extension}")
-                        
-
-
+                        shutil.copy(sourcefile, f"streamlabels\current-match-team{i + 1}-hero{extension}")
                 
                 # This section is for the standings / match history win/loss
                 standings = self.get_standings()
