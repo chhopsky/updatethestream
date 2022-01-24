@@ -713,7 +713,6 @@ def save_config(config_to_save):
     with open("config.cfg", "w") as f:
         f.write(json.dumps(config_to_save))
 
-
 version = "0.3"
 try:
     with open("config.cfg") as f:
@@ -739,7 +738,10 @@ foundfile = False
 if os.path.isfile(config.get("openfile")):
     foundfile = True
     result = broadcast.load_from(config["openfile"])
-    loadfail = False
+    if not result:
+        loadfail = True
+else:
+    save_file()
 
 challonge_api_key_path = config.get("challonge_api_key_location", "creds/challonge-api-key")
 
@@ -755,7 +757,7 @@ app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplic
 window = Ui(loaded_config = config) # Create an instance of our class
 if loadfail:
     show_error("SAVE_FILE_ERROR", config["openfile"])
-if not foundfile:
-    show_error("SAVE_FILE_MISSING", config["openfile"])
+# if not foundfile:
+#     show_error("SAVE_FILE_MISSING", config["openfile"])
 setup()
 app.exec_() # Start the application
