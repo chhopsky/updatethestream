@@ -152,10 +152,10 @@ class Tournament(BaseModel):
                     t2 = 0
                 
                 # calculate best of
-                if match["winner_id"] == "None":
-                    self.matches[match_id].best_of = sum(match["scores"])
+                if match["winner_id"]:
+                    self.matches[match_id].best_of = (match["scores"][t1] * 2) - 1  
                 else:
-                    self.matches[match_id].best_of = (match["scores"][t1] * 2) - 1
+                    self.matches[match_id].best_of = sum(match["scores"])
 
                 # if someone marks a match as complete but doesn't enter a score for the winner,
                 # assume it was a best of 1 with one game
@@ -196,7 +196,8 @@ class Tournament(BaseModel):
         for value in tournamentinfo.get("matches"):
             match = value.get("match")
             match["id"] = str(match["id"])
-            match["winner_id"] = str(match["winner_id"])
+            if match.get("winner_id"):
+                match["winner_id"] = str(match["winner_id"])
 
             # playerx_id is false if teams arent locked in. set placeholder
             if match.get("player1_id"):
