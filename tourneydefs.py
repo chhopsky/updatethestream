@@ -152,7 +152,7 @@ class Tournament(BaseModel):
                     t2 = 0
                 
                 # calculate best of
-                if match["scores"][0] == match["scores"][1]:
+                if not match["winner_id"]:
                     self.matches[match_id].best_of = sum(match["scores"])
                 else:
                     self.matches[match_id].best_of = (match["scores"][t1] * 2) - 1
