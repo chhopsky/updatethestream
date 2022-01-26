@@ -352,7 +352,7 @@ def on_team2win_click():
 def team_won(team):
     logging.debug(f"team {team} won")
     match_in_progress = broadcast.current_match
-    broadcast.game_complete(broadcast.current_match, team)
+    broadcast.game_complete(team)
     set_button_states()
     update_schedule()
     update_standings()

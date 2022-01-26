@@ -87,6 +87,7 @@ class Tournament(BaseModel):
     pts_config: Dict = {"win": 1, "tie": 0, "loss": 0}
     default_pts_config: Dict = {"win": 1, "tie": 0, "loss": 0}
     blank_image = "static/empty-graphic.png"
+    output_folder = "streamlabels/"
 
 
     def get_placeholder_team(self):
@@ -145,7 +146,6 @@ class Tournament(BaseModel):
         for match in round_match_list:
             if match["state"] == "complete":
                 match_id = str(match["id"])
-                scheduleid = self.get_scheduleid_from_match_id(match_id)
                 self.matches[match_id].scores = [0, 0]
                 match["scores"] = match["scores_csv"].split("-")
                 match["scores"] = list(map(int, match["scores"]))
@@ -169,16 +169,16 @@ class Tournament(BaseModel):
                 # assume it was a best of 1 with one game
                 if self.matches[match_id].best_of < 1 or sum(match["scores"]) == 0:
                     self.matches[match_id].best_of = 1
-                    self.game_complete(scheduleid, t1)
+                    self.game_complete(t1)
                 else:
                     match_count = match["scores"][t2]
                     while match_count > 0:
-                        self.game_complete(scheduleid, t2)
+                        self.game_complete(t2)
                         match_count -= 1
 
                     match_count = match["scores"][t1]
                     while match_count > 0:
-                        self.game_complete(scheduleid, t1)
+                        self.game_complete(t1)
                         match_count -= 1
 
         for match in round_match_list:
@@ -315,7 +315,7 @@ class Tournament(BaseModel):
 
     def write_to_stream(self, swap=False):
         # do text write here
-        filename = "streamlabels/start.txt"
+        filename = f"{self.output_folder}start.txt"
         if not os.path.exists(os.path.dirname(filename)):
             try:
                 os.makedirs(os.path.dirname(filename))
@@ -331,7 +331,7 @@ class Tournament(BaseModel):
                     team1 = self.teams.get(match.teams[0])
                     team2 = self.teams.get(match.teams[1])
 
-                    with open(f"streamlabels\match-{index + 1}-teams.txt", "w") as f_teams:
+                    with open(f"{self.output_folder}match-{index + 1}-teams.txt", "w") as f_teams:
                         f_teams.write(f"{team1.get_name()}\n")
                         f_teams.write(f"{team2.get_name()}\n")
          
@@ -343,7 +343,7 @@ class Tournament(BaseModel):
                             sourcefile = team.logo_small
                             if team.logo_small.rsplit('.',1) in video_extensions:
                                 extension = ".mp4"
-                        shutil.copy(sourcefile, f"streamlabels\match-{index + 1}-team{i + 1}-icon{extension}")
+                        shutil.copy(sourcefile, f"{self.output_folder}match-{index + 1}-team{i + 1}-icon{extension}")
                         
                         sourcefile = self.blank_image
                         extension = ".png"
@@ -351,52 +351,52 @@ class Tournament(BaseModel):
                             sourcefile = team.logo_big
                             if team.logo_big.rsplit('.', 1) in video_extensions:
                                 extension = ".mp4"
-                        shutil.copy(sourcefile, f"streamlabels\match-{index + 1}-team{i + 1}-hero{extension}")
+                        shutil.copy(sourcefile, f"{self.output_folder}match-{index + 1}-team{i + 1}-hero{extension}")
 
-                    with open(f"streamlabels\match-{index + 1}-teams-horizontal.txt", "w") as f_teams:
+                    with open(f"{self.output_folder}match-{index + 1}-teams-horizontal.txt", "w") as f_teams:
                         team1 = self.teams.get(match.teams[0])
                         team2 = self.teams.get(match.teams[1])
                         f_teams.write(f"{team1.get_name()} vs {team2.get_name()}\n")
 
-                    with open(f"streamlabels\match-{index + 1}-tricodes.txt", "w") as f_teams:
+                    with open(f"{self.output_folder}match-{index + 1}-tricodes.txt", "w") as f_teams:
                         team1 = self.teams.get(match.teams[0])
                         team2 = self.teams.get(match.teams[1])
                         f_teams.write(f"{team1.get_tricode()}\n")
                         f_teams.write(f"{team2.get_tricode()}\n")
 
-                    with open(f"streamlabels\match-{index + 1}-tricodes-horizontal.txt", "w") as f_teams:
+                    with open(f"{self.output_folder}match-{index + 1}-tricodes-horizontal.txt", "w") as f_teams:
                         team1 = self.teams.get(match.teams[0])
                         team2 = self.teams.get(match.teams[1])
                         f_teams.write(f"{team1.get_tricode()} vs {team2.get_tricode()}\n")
 
-                    with open(f"streamlabels\match-{index + 1}-scores.txt", "w") as f_scores:
+                    with open(f"{self.output_folder}match-{index + 1}-scores.txt", "w") as f_scores:
                         f_scores.write(f"{match.scores[0]}\n")
                         f_scores.write(f"{match.scores[1]}\n")
 
-                    with open(f"streamlabels\match-{index + 1}-scores-horizontal.txt", "w") as f_scores:
+                    with open(f"{self.output_folder}match-{index + 1}-scores-horizontal.txt", "w") as f_scores:
                         f_scores.write(f"{match.scores[0]} - {match.scores[1]}\n")
 
                 # This section is for things that are written out once for the entire schedule
-                with open(f"streamlabels\schedule-teams.txt", "w") as f_schedule:
+                with open(f"{self.output_folder}schedule-teams.txt", "w") as f_schedule:
                     for index, schedule_item in enumerate(self.schedule):
                         match = self.matches[schedule_item]
                         team1 = self.teams.get(match.teams[0])
                         team2 = self.teams.get(match.teams[1])
                         f_schedule.write(f"{team1.get_name()} vs {team2.get_name()}\n")
                 
-                with open(f"streamlabels\schedule-tricodes.txt", "w") as f_schedule:
+                with open(f"{self.output_folder}schedule-tricodes.txt", "w") as f_schedule:
                     for index, schedule_item in enumerate(self.schedule):
                         match = self.matches[schedule_item]
                         team1 = self.teams.get(match.teams[0])
                         team2 = self.teams.get(match.teams[1])
                         f_schedule.write(f"{team1.get_tricode()} vs {team2.get_tricode()}\n")
 
-                with open(f"streamlabels\schedule-scores.txt", "w") as f_schedule:
+                with open(f"{self.output_folder}schedule-scores.txt", "w") as f_schedule:
                     for index, schedule_item in enumerate(self.schedule):
                         match = self.matches[schedule_item]
                         f_schedule.write(f"{match.scores[0]} - {match.scores[1]}\n")
 
-                with open(f"streamlabels\schedule-full-name.txt", "w") as f_schedule:
+                with open(f"{self.output_folder}schedule-full-name.txt", "w") as f_schedule:
                     for index, schedule_item in enumerate(self.schedule):
                         match = self.matches[schedule_item]
                         team1 = self.teams.get(match.teams[0])
@@ -404,7 +404,7 @@ class Tournament(BaseModel):
                         f_schedule.write(f"{team1.get_name()} vs {team2.get_name()} ")
                         f_schedule.write(f"({match.scores[0]} - {match.scores[1]})\n")
 
-                with open(f"streamlabels\schedule-full-tricode.txt", "w") as f_schedule:
+                with open(f"{self.output_folder}schedule-full-tricode.txt", "w") as f_schedule:
                     for index, schedule_item in enumerate(self.schedule):
                         match = self.matches[schedule_item]
                         team1 = self.teams.get(match.teams[0])
@@ -423,28 +423,28 @@ class Tournament(BaseModel):
                     if swap:
                         t0 = 1
                         t1 = 0
-                    with open(f"streamlabels\current-match-teams.txt", "w") as f_current:
+                    with open(f"{self.output_folder}current-match-teams.txt", "w") as f_current:
                         f_current.write(f"{current_teams[0].get_name()} vs {current_teams[1].get_name()}\n")
                     
-                    with open(f"streamlabels\current-match-tricodes.txt", "w") as f_current:
+                    with open(f"{self.output_folder}current-match-tricodes.txt", "w") as f_current:
                         f_current.write(f"{current_teams[0].get_tricode()} vs {current_teams[1].get_tricode()}\n")
 
-                    with open(f"streamlabels\current-match-team1-tricode.txt", "w") as f_current:
+                    with open(f"{self.output_folder}current-match-team1-tricode.txt", "w") as f_current:
                         f_current.write(f"{current_teams[t0].get_tricode()}\n")
 
-                    with open(f"streamlabels\current-match-team2-tricode.txt", "w") as f_current:
+                    with open(f"{self.output_folder}current-match-team2-tricode.txt", "w") as f_current:
                         f_current.write(f"{current_teams[t1].get_tricode()}\n")
                     
-                    with open(f"streamlabels\current-match-team1-name.txt", "w") as f_current:
+                    with open(f"{self.output_folder}current-match-team1-name.txt", "w") as f_current:
                         f_current.write(f"{current_teams[t0].get_name()}\n")
 
-                    with open(f"streamlabels\current-match-team2-name.txt", "w") as f_current:
+                    with open(f"{self.output_folder}current-match-team2-name.txt", "w") as f_current:
                         f_current.write(f"{current_teams[t1].get_name()}\n")
 
-                    with open(f"streamlabels\current-match-team1-score.txt", "w") as f_current:
+                    with open(f"{self.output_folder}current-match-team1-score.txt", "w") as f_current:
                         f_current.write(f"{match.scores[t0]}\n")
 
-                    with open(f"streamlabels\current-match-team2-score.txt", "w") as f_current:
+                    with open(f"{self.output_folder}current-match-team2-score.txt", "w") as f_current:
                         f_current.write(f"{match.scores[t1]}\n")
                     
 
@@ -456,7 +456,7 @@ class Tournament(BaseModel):
                             sourcefile = team.logo_small
                             if team.logo_small.rsplit('.',1) in video_extensions:
                                 extension = ".mp4"    
-                        shutil.copy(sourcefile, f"streamlabels\current-match-team{i + 1}-icon{extension}")
+                        shutil.copy(sourcefile, f"{self.output_folder}current-match-team{i + 1}-icon{extension}")
 
                         sourcefile = self.blank_image
                         extension = ".png"
@@ -464,32 +464,32 @@ class Tournament(BaseModel):
                             sourcefile = team.logo_big
                             if team.logo_big.rsplit('.', 1) in video_extensions:
                                 extension = ".mp4"
-                        shutil.copy(sourcefile, f"streamlabels\current-match-team{i + 1}-hero{extension}")
+                        shutil.copy(sourcefile, f"{self.output_folder}current-match-team{i + 1}-hero{extension}")
                 
                 # This section is for the standings / match history win/loss
                 standings = self.get_standings()
                 if standings:
-                    with open(f"streamlabels\standings-complete.txt", "w") as f_current:
+                    with open(f"{self.output_folder}standings-complete.txt", "w") as f_current:
                         for result in standings:
                             team = self.teams[result[0]]
                             f_current.write(f"{team.get_name()}: {result[1]}\n")
 
-                    with open(f"streamlabels\standings-teams-names.txt", "w") as f_current:
+                    with open(f"{self.output_folder}standings-teams-names.txt", "w") as f_current:
                         for result in standings:
                             team = self.teams[result[0]]
                             f_current.write(f"{team.get_name()}\n")
 
-                    with open(f"streamlabels\standings-teams-tricodes.txt", "w") as f_current:
+                    with open(f"{self.output_folder}standings-teams-tricodes.txt", "w") as f_current:
                         for result in standings:
                             team = self.teams[result[0]]
                             f_current.write(f"{team.get_tricode()}\n")
 
-                    with open(f"streamlabels\standings-teams-points.txt", "w") as f_current:
+                    with open(f"{self.output_folder}standings-teams-points.txt", "w") as f_current:
                         for result in standings:
                             team = self.teams[result[0]]
                             f_current.write(f"{result[1]}\n")
 
-                    with open(f"streamlabels\standings-teams-leader.txt", "w") as f_current:
+                    with open(f"{self.output_folder}standings-teams-leader.txt", "w") as f_current:
                         result = standings[0]
                         team = self.teams[result[0]]
                         f_current.write(f"{team.get_name()}")
@@ -529,11 +529,13 @@ class Tournament(BaseModel):
             self.current_match += 1
 
 
-    def game_complete(self, scheduleid, winner_index):
-        self.process_game(scheduleid, winner_index)
-        match_id = self.get_match_id_from_scheduleid(scheduleid)
-        finished_game = Game(match = match_id, winner=winner_index)
-        self.game_history.append(finished_game)
+    def game_complete(self, winner_index):
+        if self.current_match < len(self.schedule):
+            scheduleid = self.current_match
+            self.process_game(scheduleid, winner_index)
+            match_id = self.get_match_id_from_scheduleid(scheduleid)
+            finished_game = Game(match = match_id, winner=winner_index)
+            self.game_history.append(finished_game)
 
 
     def get_standings(self):
@@ -579,10 +581,9 @@ class Tournament(BaseModel):
         # delete any matches they have
 
         for i, schedule_item in reversed(list(enumerate(self.schedule))):
-            match = self.get_match_from_scheduleid(schedule_item)
-            if id in match.teams or self.teams[id].tricode in match.teams:
-                self.matches.pop(match.id)
-                del(self.schedule[i])
+            match = self.get_match(schedule_item)
+            if id in match.teams:
+                self.delete_match(match.id)
         self.teams.pop(id)
 
 
@@ -673,6 +674,8 @@ class Tournament(BaseModel):
     def get_current_match(self):
         return self.get_match_from_scheduleid(self.current_match)
 
+    def get_match(self, id):
+        return self.matches.get(id)
 
     def get_match_id_from_scheduleid(self, scheduleid):
         match_id = self.schedule[scheduleid]
