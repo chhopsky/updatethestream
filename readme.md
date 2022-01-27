@@ -29,8 +29,8 @@ Notes:
 "Force UI Update" will redraw and reload the UI.
 
 ## Known bugs
-- Editing a match that has already been played may cause output to be incorrect, or cause a crash.
-- Re-arranging the order of matches that have already been played may cause standings to be incorrect.
+- TBD placeholder team edits may not save with tournament.
+- TBD placeholder team may not show up in team list if not loading from Challonge
 
 Go nuts, GLHF, let me know how you want it to work, or tell me what broke.
 
