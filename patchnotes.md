@@ -1,6 +1,6 @@
 # Version History
 
-### v0.3-alpha: No Target
+### v0.3-alpha: Target 29/01/2022
 ## Features
 Added support for loading and updating from challonge.com round robin & community tournaments.
 Added additional outputs.
@@ -8,6 +8,9 @@ Added additional outputs.
 ## Bug Fixes
 Fixed a bug where attempting to load a draft tournament preview would cause a crash.
 Fixed a bug where progressing a match added from the UI would cause a crash.
+Fixed a bug where side swap would reset on next win.
+Fixed a bug where editing a team would not be reflected on the match screen.
+Assorted UI bug fixes.
 
 ### v0.2.1-alpha: 08/01/2022
 ## Features
