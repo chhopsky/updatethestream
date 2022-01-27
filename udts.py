@@ -462,6 +462,7 @@ def edit_team():
         populate_matches()
         update_schedule()
         update_standings()
+        refresh_team_win_labels()
         write_to_stream_if_enabled()
 
 
