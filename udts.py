@@ -32,7 +32,7 @@ class Ui(QtWidgets.QMainWindow):
         self.lock_matches = False
         self.lock_teams = False
         self.config = loaded_config
-        self.swapstate = 0
+        self.swapstate = False
         self.setWindowIcon(pygui.QIcon('static/chhtv.ico'))
                  
 
@@ -357,9 +357,9 @@ def team_won(team):
     update_schedule()
     update_standings()
     if match_in_progress != broadcast.current_match:
-        window.swapstate = 0
+        window.swapstate = False
         refresh_team_win_labels()
-    broadcast.write_to_stream()
+    broadcast.write_to_stream(window.swapstate)
 
 
 def set_team_win_buttons_enabled(new_state = True):
@@ -381,11 +381,11 @@ def refresh_team_win_labels():
 
 
 def swap_red_blue():
-    if window.swapstate == 0:
-        window.swapstate = 1
+    if window.swapstate == False:
+        window.swapstate = True
         broadcast.write_to_stream(swap = True)
     else:
-        window.swapstate = 0
+        window.swapstate = False
         broadcast.write_to_stream(swap = False)
     refresh_team_win_labels()
 
@@ -459,6 +459,7 @@ def edit_team():
         window.edit_team_points_field.setText("")
         window.edit_match_button.setEnabled(False)
         populate_teams()
+        populate_matches()
         update_schedule()
         update_standings()
         write_to_stream_if_enabled()

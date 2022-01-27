@@ -395,6 +395,25 @@ class Tournament(BaseModel):
                     for index, schedule_item in enumerate(self.schedule):
                         match = self.matches[schedule_item]
                         f_schedule.write(f"{match.scores[0]} - {match.scores[1]}\n")
+                
+                with open(f"{self.output_folder}schedule-teams-combined.txt", "w") as f_schedule:
+                    for index, schedule_item in enumerate(self.schedule):
+                        match = self.matches[schedule_item]
+                        team1 = self.teams.get(match.teams[0])
+                        team2 = self.teams.get(match.teams[1])
+                        f_schedule.write(f"{team1.get_name()}\n{team2.get_name()}\n\n")
+
+                with open(f"{self.output_folder}schedule-scores-combined.txt", "w") as f_schedule:
+                    for index, schedule_item in enumerate(self.schedule):
+                        match = self.matches[schedule_item]
+                        f_schedule.write(f"{match.scores[0]}\n{match.scores[1]}\n\n")
+
+                with open(f"{self.output_folder}schedule-tricodes-combined.txt", "w") as f_schedule:
+                    for index, schedule_item in enumerate(self.schedule):
+                        match = self.matches[schedule_item]
+                        team1 = self.teams.get(match.teams[0])
+                        team2 = self.teams.get(match.teams[1])
+                        f_schedule.write(f"{team1.get_tricode()}\n{team2.get_tricode()}\n\n")
 
                 with open(f"{self.output_folder}schedule-full-name.txt", "w") as f_schedule:
                     for index, schedule_item in enumerate(self.schedule):
