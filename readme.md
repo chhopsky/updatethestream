@@ -1,7 +1,7 @@
 # Update The Stream
 A tournament scores/schedule/standings management tool for esports tournament broadcasts.
 
-<img src="https://chhopsky.github.io/UDTS-demo.png">
+
 
 # How to use:
 Download the latest release: https://github.com/chhopsky/updatethestream/releases  
