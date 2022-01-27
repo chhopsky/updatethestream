@@ -192,11 +192,12 @@ class Tournament(BaseModel):
 
 
     def load_from_challonge(self, tournamentinfo):
-        with open(f"challonge_load.json", "w") as f_current:
-            f_current.write(json.dumps(tournamentinfo))
+        # TODO: make this a debug-level operation
+        # with open(f"challonge_load.json", "w") as f_current:
+        #     f_current.write(json.dumps(tournamentinfo))
         self.mapping = {}
         self.clear_everything()
-        logging.debug("loading teams")
+        logging.debug("Loading teams")
         match_list = []
         team_list = []
 
