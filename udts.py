@@ -91,6 +91,8 @@ def setup():
     window.edit_team_icon_label.filename = False
     window.edit_team_hero_label.filename = False
     window.edit_tbd_team_icon_current_icon.filename = False
+    window.team1_final_score_field.setEnabled(False)
+    window.team2_final_score_field.setEnabled(False)
 
 
 def set_config_ui():
