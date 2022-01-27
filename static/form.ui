@@ -179,7 +179,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Current Match</string>
+        <string>Who Won?</string>
        </property>
       </widget>
       <widget class="QLabel" name="standings_label">
