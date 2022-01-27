@@ -289,13 +289,16 @@ def match_move_down():
 def match_reorder(direction):
     scheduleid = window.match_list_widget.currentRow()
     move_map = {"up": -1, "down": 1}
-    broadcast.swap_matches(scheduleid, scheduleid + move_map[direction])
-    disable_move_buttons()
-    populate_matches()
-    update_schedule()
-    set_button_states()
-    refresh_team_win_labels()
-    write_to_stream_if_enabled()
+    result = broadcast.swap_matches(scheduleid, scheduleid + move_map[direction])
+    if result:
+        disable_move_buttons()
+        populate_matches()
+        update_schedule()
+        set_button_states()
+        refresh_team_win_labels()
+        write_to_stream_if_enabled()
+    else:
+        show_error("REARRANGE_MIXED_FINISH_STATE")
 
 
 def set_button_states():

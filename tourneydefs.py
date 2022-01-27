@@ -689,42 +689,49 @@ class Tournament(BaseModel):
 
     def swap_matches(self, scheduleid1, scheduleid2):
         # flip the match ids in the relevant schedule indexes
-        match_id_1 = self.get_match_id_from_scheduleid(scheduleid1)
-        match_id_2 = self.get_match_id_from_scheduleid(scheduleid2)
+        match_1 = self.get_match_from_scheduleid(scheduleid1)
+        match_2 = self.get_match_from_scheduleid(scheduleid2)
+      
+        # we cant swap a completed match with an incomplete match
+        if (match_1.finished != match_2.finished) or (match_1.in_progress != match_2.in_progress):
+            return False
+
         temp_value = self.schedule[scheduleid1]
         self.schedule[scheduleid1] = self.schedule[scheduleid2]
         self.schedule[scheduleid2] = temp_value
 
-        # using this to hold the game ids we need to relocate
-        rearrange = {
+        # start with the lowest game id and overwrite them from the list we just made
+        # we only need to do this if we found games to swap
+        if match_1.finished and match_2.finished:
+            rearrange = {
             1: [],
             2: []
         }
-        
         # locate the game ids we care about
-        new_games = []
-        for i, game in enumerate(self.game_history):
-            if game.match == match_id_1:
-                rearrange[1].append(i)
-            if game.match == match_id_2:
-                rearrange[2].append(i)
+            new_games = []
+            for i, game in enumerate(self.game_history):
+                if game.match == match_1.id:
+                    rearrange[1].append(i)
+                if game.match == match_2.id:
+                    rearrange[2].append(i)
 
-        # start with the lowest game id and overwrite them from the list we just made
-        starting_game = min(rearrange[1] + rearrange[2])
+                starting_game = min(rearrange[1] + rearrange[2])
 
-        # assume arg1 is first, flip if arg2 is first
-        i1 = 1
-        i2 = 2
-        if scheduleid2 < scheduleid1:
-            i1 = 2
-            i2 = 1
+                # assume arg1 is first, flip if arg2 is first
+                i1 = 1
+                i2 = 2
+                if scheduleid2 < scheduleid1:
+                    i1 = 2
+                    i2 = 1
 
-        for game_id in rearrange[i2] + rearrange[i1]:
-            new_games.append(self.game_history[game_id])
+                for game_id in rearrange[i2] + rearrange[i1]:
+                    new_games.append(self.game_history[game_id])
 
-        while len(new_games):
-            self.game_history[starting_game] = new_games.pop(0)
-            starting_game += 1
+                while len(new_games):
+                    self.game_history[starting_game] = new_games.pop(0)
+                    starting_game += 1
+
+        return True
     
 
     def get_current_match(self):
