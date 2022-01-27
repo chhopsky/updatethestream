@@ -99,7 +99,9 @@ def set_config_ui():
     window.points_on_tie_spinbox.setValue(point_config["tie"])
     window.points_on_loss_spinbox.setValue(point_config["loss"])
     placeholder = broadcast.get_placeholder_team()
-    window.edit_tbd_team_icon_current_icon.setText(placeholder.logo_small)
+    if placeholder.logo_small:
+        head, tail = os.path.split(placeholder.logo_small)
+        window.edit_tbd_team_icon_current_icon.setText(tail)
 
 
 def open_github():
@@ -246,7 +248,6 @@ def edit_tournament_config():
         placeholder.logo_small = window.edit_tbd_team_icon_current_icon.filename
     window.edit_tbd_team_icon_current_icon.filename = False
     broadcast.edit_team(placeholder)
-
     force_refresh_ui()
 
 
