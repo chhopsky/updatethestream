@@ -623,6 +623,8 @@ class Tournament(BaseModel):
             if game.match == match_id:
                 del(self.game_history[i])
         self.matches.pop(match_id)
+        if scheduleid <= self.current_match:
+            self.current_match -= 1
 
 
     def edit_match(self, match_id, match):

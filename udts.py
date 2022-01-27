@@ -589,6 +589,8 @@ def delete_match():
             set_button_states()
             
         refresh_team_win_labels()
+        update_schedule()
+        update_standings()
         write_to_stream_if_enabled()
 
 
