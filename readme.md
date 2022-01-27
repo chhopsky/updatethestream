@@ -35,11 +35,14 @@ Notes:
 Go nuts, GLHF, let me know how you want it to work, or tell me what broke.
 
 ## Files
+udts.py: UI and control plane  
+tourneydefs.py: core class interactions  
 config.cfg: stores basic config information  
 tournament-config.json: defines teams, matches  
-tourneydefs.py: core class interactions  
-udts.py: UI and control plane  
+tests.py: pytest validation of backend
 static/: Built-in additional files
+streamlabels/: Output folder for stream assets  
+tests/: fixtures for unit tests
 
 ## Other Links
 - [Patch Notes](patchnotes.md)  
