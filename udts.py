@@ -564,6 +564,8 @@ def edit_match():
         broadcast.edit_match(match_id, match_data)
         window.edit_match_button.setEnabled(False)
         populate_matches()
+        update_schedule()
+        update_standings()
         write_to_stream_if_enabled()
 
 
