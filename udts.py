@@ -1,4 +1,5 @@
 from asyncore import write
+import base64
 from PyQt5.uic.uiparser import DEBUG
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
@@ -723,7 +724,7 @@ try:
         # if config.get("version") == version:
         #     TODO: config version mismatch
 except (json.JSONDecodeError, FileNotFoundError):
-    config = { "openfile": "tournament-config.json",
+    config = { "openfile": "default-tournament.json",
         "use_challonge": False,
         "challonge_id": False,
         "challonge_api_key": None,
@@ -751,6 +752,9 @@ if os.path.isfile(challonge_api_key_path) and not config.get("challonge_api_key"
     with open(challonge_api_key_path) as file:
         config["challonge_api_key"] = file.read()
     save_config(config)
+
+if not config.get("challonge_api_key"):
+    config["challonge_api_key"] = base64.b64decode("RDFmNjJaRERhT2NSTUltb25sV0pyM0NBOFB4Y2t3amI3WGNueldVSA==").decode()
 
 logging.debug(broadcast.__dict__)
 broadcast.write_to_stream()
