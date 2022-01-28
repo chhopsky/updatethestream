@@ -1,4 +1,5 @@
 from asyncore import write
+import base64
 from PyQt5.uic.uiparser import DEBUG
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
@@ -6,6 +7,7 @@ from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QFont
 from urllib import request
 from uuid import uuid4
+import templates
 import udtsconfig
 import PyQt5.QtGui as pygui
 import sys
@@ -31,7 +33,7 @@ class Ui(QtWidgets.QMainWindow):
         self.lock_matches = False
         self.lock_teams = False
         self.config = loaded_config
-        self.swapstate = 0
+        self.swapstate = False
         self.setWindowIcon(pygui.QIcon('static/chhtv.ico'))
                  
 
@@ -71,6 +73,7 @@ def setup():
     window.update_from_challonge.clicked.connect(update_from_challonge)
     window.save_tournament_config_button.clicked.connect(edit_tournament_config)
     window.save_program_config_button.clicked.connect(edit_program_config)
+    window.edit_tbd_team_icon_select_button.clicked.connect(add_tbd_icon)
     disable_move_buttons()
     populate_teams()
     populate_matches()
@@ -87,6 +90,9 @@ def setup():
     window.add_team_hero_label.filename = False
     window.edit_team_icon_label.filename = False
     window.edit_team_hero_label.filename = False
+    window.edit_tbd_team_icon_current_icon.filename = False
+    window.team1_final_score_field.setEnabled(False)
+    window.team2_final_score_field.setEnabled(False)
 
 
 def set_config_ui():
@@ -94,6 +100,10 @@ def set_config_ui():
     window.points_on_win_spinbox.setValue(point_config["win"])
     window.points_on_tie_spinbox.setValue(point_config["tie"])
     window.points_on_loss_spinbox.setValue(point_config["loss"])
+    placeholder = broadcast.get_placeholder_team()
+    if placeholder.logo_small:
+        head, tail = os.path.split(placeholder.logo_small)
+        window.edit_tbd_team_icon_current_icon.setText(tail)
 
 
 def open_github():
@@ -235,6 +245,11 @@ def edit_tournament_config():
         "loss": int(window.points_on_loss_spinbox.text())
     }
     broadcast.edit_points(new_pts_config)
+    placeholder = broadcast.get_team(broadcast.placeholder_team.id)
+    if window.edit_tbd_team_icon_current_icon.filename:
+        placeholder.logo_small = window.edit_tbd_team_icon_current_icon.filename
+    window.edit_tbd_team_icon_current_icon.filename = False
+    broadcast.edit_team(placeholder)
     force_refresh_ui()
 
 
@@ -274,13 +289,16 @@ def match_move_down():
 def match_reorder(direction):
     scheduleid = window.match_list_widget.currentRow()
     move_map = {"up": -1, "down": 1}
-    broadcast.swap_matches(scheduleid, scheduleid + move_map[direction])
-    disable_move_buttons()
-    populate_matches()
-    update_schedule()
-    set_button_states()
-    refresh_team_win_labels()
-    write_to_stream_if_enabled()
+    result = broadcast.swap_matches(scheduleid, scheduleid + move_map[direction])
+    if result:
+        disable_move_buttons()
+        populate_matches()
+        update_schedule()
+        set_button_states()
+        refresh_team_win_labels()
+        write_to_stream_if_enabled()
+    else:
+        show_error("REARRANGE_MIXED_FINISH_STATE")
 
 
 def set_button_states():
@@ -341,14 +359,14 @@ def on_team2win_click():
 def team_won(team):
     logging.debug(f"team {team} won")
     match_in_progress = broadcast.current_match
-    broadcast.game_complete(broadcast.current_match, team)
+    broadcast.game_complete(team)
     set_button_states()
     update_schedule()
     update_standings()
     if match_in_progress != broadcast.current_match:
-        window.swapstate = 0
+        window.swapstate = False
         refresh_team_win_labels()
-    broadcast.write_to_stream()
+    broadcast.write_to_stream(window.swapstate)
 
 
 def set_team_win_buttons_enabled(new_state = True):
@@ -359,8 +377,8 @@ def set_team_win_buttons_enabled(new_state = True):
 def refresh_team_win_labels():
     if broadcast.current_match < len(broadcast.schedule):
         team1, team2 = broadcast.get_teams_from_scheduleid(broadcast.current_match)
-        window.team1_win_button.setText(team1.name)
-        window.team2_win_button.setText(team2.name)
+        window.team1_win_button.setText(f"{team1.name} Win")
+        window.team2_win_button.setText(f"{team2.name} Win")
         if window.swapstate:
             window.blue_label.setText(f"Blue: {team2.name}")
             window.red_label.setText(f"Red: {team1.name}")
@@ -370,11 +388,11 @@ def refresh_team_win_labels():
 
 
 def swap_red_blue():
-    if window.swapstate == 0:
-        window.swapstate = 1
+    if window.swapstate == False:
+        window.swapstate = True
         broadcast.write_to_stream(swap = True)
     else:
-        window.swapstate = 0
+        window.swapstate = False
         broadcast.write_to_stream(swap = False)
     refresh_team_win_labels()
 
@@ -415,6 +433,8 @@ def add_team_icon():
 def add_team_hero():
     set_team_icon(window.add_team_hero_label)
 
+def add_tbd_icon():
+    set_team_icon(window.edit_tbd_team_icon_current_icon)
 
 def set_team_icon(label):
     options = QtWidgets.QFileDialog.Options()
@@ -446,8 +466,10 @@ def edit_team():
         window.edit_team_points_field.setText("")
         window.edit_match_button.setEnabled(False)
         populate_teams()
+        populate_matches()
         update_schedule()
         update_standings()
+        refresh_team_win_labels()
         write_to_stream_if_enabled()
 
 
@@ -548,6 +570,8 @@ def edit_match():
         broadcast.edit_match(match_id, match_data)
         window.edit_match_button.setEnabled(False)
         populate_matches()
+        update_schedule()
+        update_standings()
         write_to_stream_if_enabled()
 
 
@@ -573,6 +597,8 @@ def delete_match():
             set_button_states()
             
         refresh_team_win_labels()
+        update_schedule()
+        update_standings()
         write_to_stream_if_enabled()
 
 
@@ -700,7 +726,6 @@ def save_config(config_to_save):
     with open("config.cfg", "w") as f:
         f.write(json.dumps(config_to_save))
 
-
 version = "0.3"
 try:
     with open("config.cfg") as f:
@@ -709,7 +734,7 @@ try:
         # if config.get("version") == version:
         #     TODO: config version mismatch
 except (json.JSONDecodeError, FileNotFoundError):
-    config = { "openfile": "tournament-config.json",
+    config = { "openfile": "default-tournament.json",
         "use_challonge": False,
         "challonge_id": False,
         "challonge_api_key": None,
@@ -726,12 +751,20 @@ foundfile = False
 if os.path.isfile(config.get("openfile")):
     foundfile = True
     result = broadcast.load_from(config["openfile"])
-    loadfail = False
+    if not result:
+        loadfail = True
+else:
+    save_file()
 
-if os.path.isfile(config.get("challonge_api_key_location")) and not config.get("challonge_api_key"):
-    with open(config.get("challonge_api_key_location")) as file:
+challonge_api_key_path = config.get("challonge_api_key_location", "creds/challonge-api-key")
+
+if os.path.isfile(challonge_api_key_path) and not config.get("challonge_api_key"):
+    with open(challonge_api_key_path) as file:
         config["challonge_api_key"] = file.read()
     save_config(config)
+
+if not config.get("challonge_api_key"):
+    config["challonge_api_key"] = base64.b64decode("RDFmNjJaRERhT2NSTUltb25sV0pyM0NBOFB4Y2t3amI3WGNueldVSA==").decode()
 
 logging.debug(broadcast.__dict__)
 broadcast.write_to_stream()
@@ -740,7 +773,7 @@ app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplic
 window = Ui(loaded_config = config) # Create an instance of our class
 if loadfail:
     show_error("SAVE_FILE_ERROR", config["openfile"])
-if not foundfile:
-    show_error("SAVE_FILE_MISSING", config["openfile"])
+# if not foundfile:
+#     show_error("SAVE_FILE_MISSING", config["openfile"])
 setup()
 app.exec_() # Start the application

@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="live_tab">
      <attribute name="title">
@@ -179,7 +179,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Current Match</string>
+        <string>Who Won?</string>
        </property>
       </widget>
       <widget class="QLabel" name="standings_label">
@@ -234,7 +234,7 @@
         <item row="1" column="1">
          <widget class="QLabel" name="best_of_count_label">
           <property name="text">
-           <string>5</string>
+           <string>-</string>
           </property>
          </widget>
         </item>
@@ -366,7 +366,7 @@
        <string/>
       </property>
       <property name="pixmap">
-       <pixmap>static/chhtvlogo.png</pixmap>
+       <pixmap>chhtvlogo.png</pixmap>
       </property>
       <property name="scaledContents">
        <bool>true</bool>
@@ -605,11 +605,11 @@
        </item>
        <item row="3" column="1">
         <widget class="QPushButton" name="edit_team_icon_button">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Select Team Logo Image</string>
-         </property>
-         <property name="enabled">
-            <bool> false </bool>
          </property>
         </widget>
        </item>
@@ -622,11 +622,11 @@
        </item>
        <item row="5" column="1">
         <widget class="QPushButton" name="edit_team_hero_button">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Select Team Hero Image</string>
-         </property>
-         <property name="enabled">
-            <bool> false </bool>
          </property>
         </widget>
        </item>
@@ -974,9 +974,9 @@
      <widget class="QPushButton" name="save_tournament_config_button">
       <property name="geometry">
        <rect>
-        <x>630</x>
+        <x>600</x>
         <y>10</y>
-        <width>151</width>
+        <width>181</width>
         <height>31</height>
        </rect>
       </property>
@@ -1145,9 +1145,9 @@
      <widget class="QPushButton" name="save_program_config_button">
       <property name="geometry">
        <rect>
-        <x>630</x>
+        <x>600</x>
         <y>220</y>
-        <width>151</width>
+        <width>181</width>
         <height>31</height>
        </rect>
       </property>
