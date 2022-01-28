@@ -11,7 +11,6 @@ Added:
 - Warning/error messages when you try to do something you shouldn't.
 
 ## Bug Fixes
-
 - Fixed a bug where editing a team wouldn't be reflected in the match UI.
 - Fixed a bug where editing a team didn't update the win/swap UI.
 - Fixed a bug where an error was shown trying to load the default tournament on first run.
@@ -22,7 +21,6 @@ Added:
 - Fixed a bug where moving a match that was in progress or completed could cause a crash.
 - Fixed a bug where attempting to load a draft tournament preview could cause a crash.
 - Fixed a bug where progressing a match added from the UI could cause a crash.
-
 
 ### v0.2.1-alpha: 08/01/2022
 ## Features
