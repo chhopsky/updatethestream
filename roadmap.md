@@ -1,7 +1,7 @@
 ### Roadmap
 
 ## 0.4.0
-- Resiliency around editing matches that have already occurred
+- Signed releases (no more UAC errors!)  
 - Ability to unschedule matches without deleting them
 
 ## Unscheduled
