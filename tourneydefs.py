@@ -309,6 +309,8 @@ class Tournament(BaseModel):
 
         output_dict["pts_config"] = self.pts_config
         
+        if not filename.endswith('.json'):
+            filename = filename + '.json'                  
         with open(filename, "w") as f:
             json.dump(output_dict, f)
         return
