@@ -3,6 +3,7 @@
 ## 0.4.0
 - Signed releases (no more UAC errors!)  
 - Ability to unschedule matches without deleting them
+- Support for matches with more than two participants like TFT or Battle Royales
 
 ## Unscheduled
 - Remote control  
