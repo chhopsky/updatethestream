@@ -29,8 +29,9 @@ Notes:
 "Force UI Update" will redraw and reload the UI.
 
 ## Known bugs
-- TBD placeholder team edits may not save with tournament.
-- TBD placeholder team may not show up in team list if not loading from Challonge
+- TBD placeholder team edits may not save with tournament.  
+- TBD placeholder team may not show up in team list if not loading from Challonge  
+- Loading from Challonge, then progressing matches out of order on the web site, then updating in the program, can cause the match history to become corrupted. If this happens, save your file and reload it.
 
 Go nuts, GLHF, let me know how you want it to work, or tell me what broke.
 
