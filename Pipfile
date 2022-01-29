@@ -13,6 +13,9 @@ pyinstaller = "*"
 bs4 = "*"
 validators = "*"
 pytest = "*"
+fastapi = "*"
+uvicorn = "*"
+jinja2 = "*"
 
 [requires]
 python_version = "3.8"
