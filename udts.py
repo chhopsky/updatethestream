@@ -3,12 +3,14 @@ import base64
 from PyQt5.uic.uiparser import DEBUG
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtCore import Qt, QUrl, QThread, pyqtSignal
 from PyQt5.QtGui import QFont
 from urllib import request
 from uuid import uuid4
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 import threading
 import uvicorn
 import udtsconfig
@@ -38,7 +40,7 @@ class Ui(QtWidgets.QMainWindow):
         self.config = loaded_config
         self.swapstate = False
         self.setWindowIcon(pygui.QIcon('static/chhtv.ico'))
-                 
+
 
 def setup():
     window.actionNew.triggered.connect(new)
@@ -71,7 +73,7 @@ def setup():
     window.match_move_up_button.clicked.connect(match_move_up)
     window.match_move_down_button.clicked.connect(match_move_down)
     window.swap_button.clicked.connect(swap_red_blue)
-    window.undo_button.clicked.connect(undo)
+    window.undo_button.clicked.connect(undo_button)
     window.undo_button.setEnabled(False)
     window.update_from_challonge.clicked.connect(update_from_challonge)
     window.save_tournament_config_button.clicked.connect(edit_tournament_config)
@@ -266,10 +268,9 @@ def exit_app():
     sys.exit()
 
 
-def undo():
-    broadcast.game_history.pop()
-    broadcast.update_match_scores()
-    broadcast.write_to_stream()
+def undo_button():
+    broadcast.undo()
+    write_to_stream_if_enabled()
     update_schedule()
     update_standings()
     refresh_team_win_labels()
@@ -350,6 +351,12 @@ def force_refresh_ui():
     set_button_states()
     set_config_ui()
 
+def refresh_main_page():
+    populate_matches()
+    update_schedule()
+    update_standings()
+    refresh_team_win_labels()
+    set_button_states()
     
 def on_team1win_click():
     team_won(0)
@@ -665,15 +672,14 @@ def populate_matches():
     window.match_list_widget.clear()
     window.schedule_list_widget.clear()
     for scheduleitem in broadcast.schedule:
-        match = broadcast.matches[scheduleitem]
-        team1 = broadcast.teams[match.teams[0]]
-        team2 = broadcast.teams[match.teams[1]]
+        match = broadcast.get_match(scheduleitem)
+        teams = broadcast.get_teams_from_match_id(scheduleitem)
         scores = f"{match.scores[0]}-{match.scores[1]}"
-        item = QtWidgets.QListWidgetItem(f"{team1.get_name()} vs {team2.get_name()}, BO{match.best_of}")
+        item = QtWidgets.QListWidgetItem(f"{teams[0].get_name()} vs {teams[1].get_name()}, BO{match.best_of}")
         item.id = match.id
-        item.team1id = team1.id
-        item.team2id = team2.id
-        item2 = QtWidgets.QListWidgetItem(f"{team1.get_name()} vs {team2.get_name()}, {scores}, BO{match.best_of}")
+        item.team1id = teams[0].id
+        item.team2id = teams[1].id
+        item2 = QtWidgets.QListWidgetItem(f"{teams[0].get_name()} vs {teams[1].get_name()}, {scores}, BO{match.best_of}")
         item2.setFlags(item2.flags() & ~Qt.ItemIsSelectable)
         window.match_list_widget.addItem(item)
         window.schedule_list_widget.addItem(item2)
@@ -732,35 +738,43 @@ def save_config(config_to_save):
 webservice = FastAPI()
 
 def run_server():
+    webservice.mount("/static", StaticFiles(directory="static"), name="static")
     uvicorn.run(webservice, host="0.0.0.0", port=8000)
 
-@webservice.get("/")
-def home():
-    return broadcast.get_points_config_all()
+@webservice.get("/", response_class=HTMLResponse)
+def web_home(request: Request):
+    return templates.TemplateResponse("web_controller.html", {"request": request, "status": broadcast.get_current_match_data()})
 
 @webservice.get("/win/team1")
-def win_team1():
+def web_win_team1():
     if window.team1_win_button.isEnabled():
-        on_team1win_click()
-        force_refresh_ui()
-    return broadcast.get_current_match_data()
+        thread.web_team1_win.emit()
+        thread.web_update_ui.emit()
+        return broadcast.get_current_match_data()
 
 @webservice.get("/win/team2")
-def win_team1():
+def web_win_team1():
     if window.team2_win_button.isEnabled():
-        on_team2win_click()
-        force_refresh_ui()
-    return broadcast.get_current_match_data()
+        thread.web_team1_win.emit()
+        thread.web_update_ui.emit()
+        return broadcast.get_current_match_data()
 
 @webservice.get("/sideswap")
-def sideswap():
+def web_sideswap():
     if window.swap_button.isEnabled():
-        swap_red_blue()
-        force_refresh_ui()
-    return broadcast.get_current_match_data()
+        thread.web_swap_sides.emit()
+        thread.web_update_ui.emit()
+        return broadcast.get_current_match_data()
+
+@webservice.get("/undo")
+async def web_undo():
+    if window.undo_button.isEnabled():
+        thread.web_undo.emit()
+        thread.web_update_ui.emit()
+        return broadcast.get_current_match_data()
 
 @webservice.get("/match/current/")
-def get_current_match():
+async def get_current_match():
     return broadcast.get_current_match_data()
 
 @webservice.get("/match/current/team/{team_index}/logo_small", response_class=FileResponse)
@@ -768,9 +782,20 @@ async def get_current_match_team1_logo_small(team_index):
     if team_index in ["0", "1"]:
         team_index = int(team_index)
         current_match = broadcast.get_current_match_data()
-        if os.path.isfile(current_match["teams"][team_index].logo_small):
-            return current_match["teams"][team_index].logo_small
+        if os.path.isfile(current_match["teams"][team_index]["logo_small"]):
+            return current_match["teams"][team_index]["logo_small"]
     return broadcast.blank_image
+
+
+class WebServerThread(QThread):
+    web_update_ui = pyqtSignal()
+    web_undo = pyqtSignal()
+    web_team1_win = pyqtSignal()
+    web_team2_win = pyqtSignal()
+    web_swap_sides = pyqtSignal()
+
+    def run(self):
+        run_server()
 
 if __name__ == "__main__":
     version = "0.3"
@@ -822,7 +847,15 @@ if __name__ == "__main__":
         show_error("SAVE_FILE_ERROR", config["openfile"])
 
     setup()
-    x = threading.Thread(target=run_server, daemon=True)
-    x.start()
+    templates = Jinja2Templates(directory="templates")
+    thread = WebServerThread()
+    thread.web_update_ui.connect(force_refresh_ui)
+    thread.web_undo.connect(undo_button)
+    thread.web_team1_win.connect(on_team1win_click)
+    thread.web_team2_win.connect(on_team2win_click)
+    thread.web_swap_sides.connect(swap_red_blue)
+    thread.start()
+    # x = threading.Thread(target=run_server, daemon=True)
+    # x.start()
     app.exec_() # Start the application
     

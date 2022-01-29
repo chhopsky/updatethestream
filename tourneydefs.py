@@ -559,6 +559,10 @@ class Tournament(BaseModel):
             self.game_history.append(finished_game)
 
 
+    def undo(self):
+        self.game_history.pop()
+        self.update_match_scores()
+
     def get_standings(self):
         standings = []
         standing_data = {}
@@ -643,7 +647,8 @@ class Tournament(BaseModel):
         match_to_use = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
         teams = self.get_teams_from_scheduleid(match_to_use)
         match = self.get_match_from_scheduleid(match_to_use)
-        return { "match": match, "teams": teams }
+        return { "match": match.to_dict(), "teams": [team.to_dict() for team in teams] }
+    
 
     ## POINTS GETTER/SETTER
     def get_points_config(self, result):

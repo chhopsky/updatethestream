@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Display IP Address</title>
+  <style>
+    body {
+      background-color: #FFCC00;
+    }
+
+    h1 {
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 140px;
+      font-size: 60px;
+      margin: -15px;
+    }
+
+    p {
+      font-family: sans-serif;
+      color: #907400;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Update The Stream Web Controller</h1>
+<p>
+  <table>
+      <tr>
+        <td>Current Match:</td>
+        <td id="current_match">{{ status.teams.0.name }} vs {{ status.teams.1.name }}</td>
+      </tr>
+      <tr>
+        <td>Score:</td>
+        <td id="current_match_score"></td>
+      </tr>
+      <tr>
+        <td>Best Of:</td>
+        <td id="current_match_best_of">{{ status.match.best_of }}</td>
+      </tr>
+    </table>
+  </p>
+  <p>
+    <button id=team_1_win onclick="call_controller('/win/team1')">Team 1 Win</button>
+    <button id=team_2_win onclick="call_controller('/win/team2')">Team 2 Win</button>
+    <button id=swap_sides onclick="call_controller('/sideswap')">Swap Sides</button>
+    <button id=team_1_win onclick="call_controller('/undo')">Undo</button>
+  </p>
+  <script>
+    let hostname = location.hostname;
+		function call_controller(endpoint)
+		{
+			fetch(endpoint)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (status) {
+        update_status(status)
+      })
+      .catch(function (error) {
+        console.log("Error: " + error);
+      });
+		}
+
+  function update_status(status_blob)
+  {
+    current_match = status_blob["teams"][0]["tricode"] + " " + status_blob["teams"][0]["name"];
+    const element = document.getElementById("current_match");
+    element.innerHTML = get_match_participants(status_blob);
+  }
+
+function get_match_participants(status) {
+  team1 = status["teams"][0]
+  team2 = status["teams"][1]
+  return get_team_name(team1) + " vs " + get_team_name(team2)
+}
+
+  function get_team_name(team){
+    if (team["name"] != "") {
+      return team["name"]
+    }
+    else {
+      return team["tricode"]
+    }
+  }
+
+  function get_team_tricode(team){
+
+  }
+	</script>
+  {{ status }} 
+</body>
+
+</html>
