@@ -46,7 +46,6 @@ class Team(BaseModel):
         else:
             return f"{self.tricode}: {self.name}"
 
-
 class Match(BaseModel):
     id: str = str(uuid4())
     teams: List[str] = []
@@ -640,6 +639,12 @@ class Tournament(BaseModel):
                 return key
         return None
 
+    def get_current_match_data(self):
+        match_to_use = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
+        teams = self.get_teams_from_scheduleid(match_to_use)
+        match = self.get_match_from_scheduleid(match_to_use)
+        return { "match": match, "teams": teams }
+
     ## POINTS GETTER/SETTER
     def get_points_config(self, result):
         if result in self.pts_config.keys():
@@ -659,6 +664,7 @@ class Tournament(BaseModel):
         self.pts_config = new_pts_config
 
     ## HELPER FUNCTIONS
+
     def get_team(self, team_id):
         if team_id in self.teams.keys():
             return self.teams[team_id]

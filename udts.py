@@ -7,7 +7,10 @@ from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QFont
 from urllib import request
 from uuid import uuid4
-import templates
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
+import threading
+import uvicorn
 import udtsconfig
 import PyQt5.QtGui as pygui
 import sys
@@ -726,54 +729,100 @@ def save_config(config_to_save):
     with open("config.cfg", "w") as f:
         f.write(json.dumps(config_to_save))
 
-version = "0.3"
-try:
-    with open("config.cfg") as f:
-        config = json.load(f)
-        config["version"] = "0.3"
-        # if config.get("version") == version:
-        #     TODO: config version mismatch
-except (json.JSONDecodeError, FileNotFoundError):
-    config = { "openfile": "default-tournament.json",
-        "use_challonge": False,
-        "challonge_id": False,
-        "challonge_api_key": None,
-        "version": version,
-        "auto-write-changes-to-stream": True
-     }
-    save_config(config)
+webservice = FastAPI()
 
-log = logging.Logger
-logging.Logger.setLevel(log, level = "DEBUG")
-broadcast = Tournament(version = version)
-loadfail = False
-foundfile = False
-if os.path.isfile(config.get("openfile")):
-    foundfile = True
-    result = broadcast.load_from(config["openfile"])
-    if not result:
-        loadfail = True
-else:
-    save_file()
+def run_server():
+    uvicorn.run(webservice, host="0.0.0.0", port=8000)
 
-challonge_api_key_path = config.get("challonge_api_key_location", "creds/challonge-api-key")
+@webservice.get("/")
+def home():
+    return broadcast.get_points_config_all()
 
-if os.path.isfile(challonge_api_key_path) and not config.get("challonge_api_key"):
-    with open(challonge_api_key_path) as file:
-        config["challonge_api_key"] = file.read()
-    save_config(config)
+@webservice.get("/win/team1")
+def win_team1():
+    if window.team1_win_button.isEnabled():
+        on_team1win_click()
+        force_refresh_ui()
+    return broadcast.get_current_match_data()
 
-if not config.get("challonge_api_key"):
-    config["challonge_api_key"] = base64.b64decode("RDFmNjJaRERhT2NSTUltb25sV0pyM0NBOFB4Y2t3amI3WGNueldVSA==").decode()
+@webservice.get("/win/team2")
+def win_team1():
+    if window.team2_win_button.isEnabled():
+        on_team2win_click()
+        force_refresh_ui()
+    return broadcast.get_current_match_data()
 
-logging.debug(broadcast.__dict__)
-broadcast.write_to_stream()
-current_match = 0
-app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplication
-window = Ui(loaded_config = config) # Create an instance of our class
-if loadfail:
-    show_error("SAVE_FILE_ERROR", config["openfile"])
-# if not foundfile:
-#     show_error("SAVE_FILE_MISSING", config["openfile"])
-setup()
-app.exec_() # Start the application
+@webservice.get("/sideswap")
+def sideswap():
+    if window.swap_button.isEnabled():
+        swap_red_blue()
+        force_refresh_ui()
+    return broadcast.get_current_match_data()
+
+@webservice.get("/match/current/")
+def get_current_match():
+    return broadcast.get_current_match_data()
+
+@webservice.get("/match/current/team/{team_index}/logo_small", response_class=FileResponse)
+async def get_current_match_team1_logo_small(team_index):
+    if team_index in ["0", "1"]:
+        team_index = int(team_index)
+        current_match = broadcast.get_current_match_data()
+        if os.path.isfile(current_match["teams"][team_index].logo_small):
+            return current_match["teams"][team_index].logo_small
+    return broadcast.blank_image
+
+if __name__ == "__main__":
+    version = "0.3"
+    try:
+        with open("config.cfg") as f:
+            config = json.load(f)
+            config["version"] = "0.3"
+            # if config.get("version") == version:
+            #     TODO: config version mismatch
+    except (json.JSONDecodeError, FileNotFoundError):
+        config = { "openfile": "default-tournament.json",
+            "use_challonge": False,
+            "challonge_id": False,
+            "challonge_api_key": None,
+            "version": version,
+            "auto-write-changes-to-stream": True
+        }
+        save_config(config)
+
+    log = logging.Logger
+    logging.Logger.setLevel(log, level = "DEBUG")
+    broadcast = Tournament(version = version)
+    loadfail = False
+    foundfile = False
+    if os.path.isfile(config.get("openfile")):
+        foundfile = True
+        result = broadcast.load_from(config["openfile"])
+        if not result:
+            loadfail = True
+    else:
+        save_file()
+
+    challonge_api_key_path = config.get("challonge_api_key_location", "creds/challonge-api-key")
+
+    if os.path.isfile(challonge_api_key_path) and not config.get("challonge_api_key"):
+        with open(challonge_api_key_path) as file:
+            config["challonge_api_key"] = file.read()
+        save_config(config)
+
+    if not config.get("challonge_api_key"):
+        config["challonge_api_key"] = base64.b64decode("RDFmNjJaRERhT2NSTUltb25sV0pyM0NBOFB4Y2t3amI3WGNueldVSA==").decode()
+
+    logging.debug(broadcast.__dict__)
+    broadcast.write_to_stream()
+    current_match = 0
+    app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplication
+    window = Ui(loaded_config = config) # Create an instance of our class
+    if loadfail:
+        show_error("SAVE_FILE_ERROR", config["openfile"])
+
+    setup()
+    x = threading.Thread(target=run_server, daemon=True)
+    x.start()
+    app.exec_() # Start the application
+    
