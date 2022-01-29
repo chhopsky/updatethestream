@@ -11,6 +11,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from os import mkdir
 import threading
 import uvicorn
 import udtsconfig
@@ -19,6 +20,7 @@ import sys
 import json
 import logging
 import os.path
+
 
 
 class Ui(QtWidgets.QMainWindow):
@@ -817,6 +819,8 @@ if __name__ == "__main__":
         }
         save_config(config)
 
+    if not os.path.isdir("./logs"):
+        mkdir("./logs")
     logger = logging.getLogger("udts_main")
     logging.basicConfig(filename="./logs/udts.log", filemode='a', level=LOGLEVEL, format='%(name)s - %(levelname)s - %(message)s')
 
