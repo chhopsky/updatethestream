@@ -141,8 +141,8 @@ def open_challonge():
             else:
                 found_tournament = True
         except Exception as e:
-            logging.error("Could not load JSON!")
-            logging.error(e)
+            logger.error("Could not load JSON!")
+            logger.error(e)
             show_error("CHALLONGE_LOAD_FAIL")
         if found_tournament:
             result = broadcast.load_from_challonge(tournament_info)
@@ -158,6 +158,7 @@ def show_error(error_code = "UNKNOWN", additional_info = None):
     if error_code not in udtsconfig.ERRORS.keys():
         additional_info = f"The code was {error_code}."
         error_code = "BAD_UNKNOWN"
+        logger.error(error_code)
 
     title = udtsconfig.ERRORS[error_code]["title"]
     message = udtsconfig.ERRORS[error_code]["message"]
@@ -170,6 +171,7 @@ def show_error(error_code = "UNKNOWN", additional_info = None):
     msg.setWindowTitle(title)
     msg.setText(messagetext)
     msg.setIcon(QtWidgets.QMessageBox.Critical)
+    logger.error(messagetext)
     x = msg.exec_()
 
 
@@ -314,7 +316,7 @@ def on_team2win_click():
 
 
 def team_won(team):
-    logging.debug(f"team {team} won")
+    logger.debug(f"team {team} won")
     match_in_progress = broadcast.current_match
     broadcast.game_complete(broadcast.current_match, team)
     set_button_states()
@@ -630,8 +632,12 @@ except (json.JSONDecodeError, FileNotFoundError):
      }
     save_config(config)
 
-log = logging.Logger
-logging.Logger.setLevel(log, level = "DEBUG")
+LOGLEVEL = "DEBUG"
+
+logger = logging.getLogger("udts_main")
+logging.basicConfig(filename="./logs/udts.log", filemode='a', level=LOGLEVEL, format='%(name)s - %(levelname)s - %(message)s')
+
+logger.info("====init====")
 broadcast = Tournament(version = version)
 loadfail = False
 foundfile = False
@@ -645,7 +651,8 @@ if os.path.isfile(config.get("challonge_api_key_location")) and not config.get("
         config["challonge_api_key"] = file.read()
     save_config(config)
 
-logging.debug(broadcast.__dict__)
+logger.debug(broadcast.__dict__)
+
 broadcast.write_to_stream()
 current_match = 0
 app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplication
