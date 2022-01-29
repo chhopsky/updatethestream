@@ -753,9 +753,9 @@ def web_win_team1():
         return broadcast.get_current_match_data()
 
 @webservice.get("/win/team2")
-def web_win_team1():
+def web_win_team2():
     if window.team2_win_button.isEnabled():
-        thread.web_team1_win.emit()
+        thread.web_team2_win.emit()
         thread.web_update_ui.emit()
         return broadcast.get_current_match_data()
 
