@@ -11,6 +11,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from os import mkdir
 import threading
 import uvicorn
 import udtsconfig
@@ -19,6 +20,7 @@ import sys
 import json
 import logging
 import os.path
+
 
 
 class Ui(QtWidgets.QMainWindow):
@@ -167,8 +169,8 @@ def open_challonge():
             else:
                 found_tournament = True
         except Exception as e:
-            logging.error("Could not load JSON!")
-            logging.error(e)
+            logger.error("Could not load JSON!")
+            logger.error(e)
             show_error("CHALLONGE_LOAD_FAIL")
         if found_tournament:
             result = broadcast.load_from_challonge(tournament_info)
@@ -197,6 +199,7 @@ def show_error(error_code = "UNKNOWN", additional_info = None):
     msg.setWindowTitle(title)
     msg.setText(messagetext)
     msg.setIcon(QtWidgets.QMessageBox.Critical)
+    logger.error(message)
     x = msg.exec_()
 
 
@@ -367,7 +370,7 @@ def on_team2win_click():
 
 
 def team_won(team):
-    logging.debug(f"team {team} won")
+    logger.debug(f"team {team} won")
     match_in_progress = broadcast.current_match
     broadcast.game_complete(team)
     set_button_states()
@@ -753,7 +756,7 @@ def web_win_team1():
     return broadcast.get_current_match_data_json()
 
 @webservice.get("/win/team2")
-def web_win_team1():
+def web_win_team2():
     if window.team2_win_button.isEnabled():
         thread.web_team2_win.emit()
         thread.web_update_ui.emit()
@@ -799,6 +802,7 @@ class WebServerThread(QThread):
 
 if __name__ == "__main__":
     version = "0.3"
+    LOGLEVEL = "DEBUG"
     try:
         with open("config.cfg") as f:
             config = json.load(f)
@@ -815,8 +819,12 @@ if __name__ == "__main__":
         }
         save_config(config)
 
-    log = logging.Logger
-    logging.Logger.setLevel(log, level = "DEBUG")
+    if not os.path.isdir("./logs"):
+        mkdir("./logs")
+    logger = logging.getLogger("udts_main")
+    logging.basicConfig(filename="./logs/udts.log", filemode='a', level=LOGLEVEL, format='%(name)s - %(levelname)s - %(message)s')
+
+    logger.info("====init====")
     broadcast = Tournament(version = version)
     loadfail = False
     foundfile = False
@@ -838,7 +846,7 @@ if __name__ == "__main__":
     if not config.get("challonge_api_key"):
         config["challonge_api_key"] = base64.b64decode("RDFmNjJaRERhT2NSTUltb25sV0pyM0NBOFB4Y2t3amI3WGNueldVSA==").decode()
 
-    logging.debug(broadcast.__dict__)
+    logger.debug(broadcast.__dict__)
     broadcast.write_to_stream()
     current_match = 0
     app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplication

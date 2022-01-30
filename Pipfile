@@ -13,8 +13,8 @@ pyinstaller = "*"
 bs4 = "*"
 validators = "*"
 pytest = "*"
-uvicorn = "*"
 fastapi = "*"
+uvicorn = "*"
 jinja2 = "*"
 
 [requires]
