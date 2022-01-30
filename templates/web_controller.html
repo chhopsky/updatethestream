@@ -43,13 +43,26 @@
     </table>
   </p>
   <p>
-    <button id=team_1_win onclick="call_controller('/win/team1')">Team 1 Win</button>
-    <button id=team_2_win onclick="call_controller('/win/team2')">Team 2 Win</button>
-    <button id=swap_sides onclick="call_controller('/sideswap')">Swap Sides</button>
-    <button id=team_1_win onclick="call_controller('/undo')">Undo</button>
+    <button id=team_1_win onclick="register_click('/win/team1')">Team 1 Win</button>
+    <button id=team_2_win onclick="register_click('/win/team2')">Team 2 Win</button>
+    <button id=swap_sides onclick="register_click('/sideswap')">Swap Sides</button>
+    <button id=team_1_win onclick="register_click('/undo')">Undo</button>
   </p>
   <script>
     call_controller("/match/current")
+
+    function register_click(endpoint){
+      fetch(endpoint)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function(status){
+        call_controller("/match/current/")
+      })
+      .catch(function (error) {
+        console.log("Error: " + error);
+      });
+    }
 
 		function call_controller(endpoint)
 		{

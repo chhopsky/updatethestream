@@ -1,5 +1,6 @@
 from asyncore import write
 import base64
+from http.client import OK
 from PyQt5.uic.uiparser import DEBUG
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
@@ -7,10 +8,11 @@ from PyQt5.QtCore import Qt, QUrl, QThread, pyqtSignal
 from PyQt5.QtGui import QFont
 from urllib import request
 from uuid import uuid4
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from waiting import wait, TimeoutExpired
 from os import mkdir
 import threading
 import uvicorn
@@ -341,7 +343,8 @@ def write_to_stream_if_enabled():
 
 
 def force_refresh_stream():
-    broadcast.write_to_stream()
+    x = threading.Thread(target=broadcast.write_to_stream)
+    x.start()
 
 
 def force_refresh_ui():
@@ -360,11 +363,21 @@ def refresh_main_page():
     update_standings()
     refresh_team_win_labels()
     set_button_states()
-    
+
+
+def from_api(func):
+    def wrapper_from_api(*args, **kwargs):
+        thread.request_started(args[0])
+        func()
+        thread.request_finished(args[0])
+    return wrapper_from_api
+ 
+
+@from_api    
 def on_team1win_click():
     team_won(0)
 
-
+@from_api
 def on_team2win_click():
     team_won(1)
 
@@ -749,35 +762,52 @@ def web_home(request: Request):
     return templates.TemplateResponse("web_controller.html", {"request": request, "status": broadcast.get_current_match_data_json()})
 
 @webservice.get("/win/team1")
-def web_win_team1():
+def web_win_team1(response: Response):
+    request_id = uuid4()
     if window.team1_win_button.isEnabled():
-        thread.web_team1_win.emit()
+        thread.web_team1_win.emit(request_id)
         thread.web_update_ui.emit()
-    return broadcast.get_current_match_data_json()
+        return 
+    response.status_code = 400
+    return response
 
 @webservice.get("/win/team2")
-def web_win_team2():
+def web_win_team2(response: Response):
+    request_id = uuid4()
     if window.team2_win_button.isEnabled():
-        thread.web_team2_win.emit()
+        thread.web_team2_win.emit(request_id)
         thread.web_update_ui.emit()
-    return broadcast.get_current_match_data_json()
+        return
+    response.status_code = 400
+    return response
+
 
 @webservice.get("/sideswap")
-def web_sideswap():
+def web_sideswap(response: Response):
+    request_id = uuid4()
     if window.swap_button.isEnabled():
-        thread.web_swap_sides.emit()
+        thread.web_swap_sides.emit(request_id)
         thread.web_update_ui.emit()
-    return broadcast.get_current_match_data_json()
+        return
+    response.status_code = 400
+    return response
 
 @webservice.get("/undo")
-async def web_undo():
+async def web_undo(response: Response):
+    request_id = uuid4()
     if window.undo_button.isEnabled():
-        thread.web_undo.emit()
+        thread.web_undo.emit(request_id)
         thread.web_update_ui.emit()
-    return broadcast.get_current_match_data_json()
+        return
+    response.status_code = 400
+    return response
 
 @webservice.get("/match/current/")
 async def get_current_match():
+    try:
+        wait(lambda: thread.requests_incomplete(), timeout_seconds=2, sleep_seconds=0.1, waiting_for="outstanding requests to be processed")
+    except TimeoutExpired:
+        return broadcast.get_current_match_data_json()
     return broadcast.get_current_match_data_json()
 
 @webservice.get("/match/current/team/{team_index}/logo_small", response_class=FileResponse)
@@ -792,10 +822,28 @@ async def get_current_match_team1_logo_small(team_index):
 
 class WebServerThread(QThread):
     web_update_ui = pyqtSignal()
-    web_undo = pyqtSignal()
-    web_team1_win = pyqtSignal()
-    web_team2_win = pyqtSignal()
-    web_swap_sides = pyqtSignal()
+    web_undo = pyqtSignal(object)
+    web_team1_win = pyqtSignal(object)
+    web_team2_win = pyqtSignal(object)
+    web_swap_sides = pyqtSignal(object)
+    request_state = {}
+
+    def requests_incomplete(self):
+        if len(self.request_state):
+            return False
+        else:
+            return True
+
+    def is_request_finished(self, request_id):
+        if self.request_state.get(request_id):
+            return True
+        return False
+
+    def request_finished(self, request_id):
+        self.request_state.pop(request_id)
+
+    def request_started(self, request_id):
+        self.request_state[request_id] = True
 
     def run(self):
         run_server()
@@ -863,7 +911,5 @@ if __name__ == "__main__":
     thread.web_team2_win.connect(on_team2win_click)
     thread.web_swap_sides.connect(swap_red_blue)
     thread.start()
-    # x = threading.Thread(target=run_server, daemon=True)
-    # x.start()
     app.exec_() # Start the application
     

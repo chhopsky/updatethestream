@@ -644,7 +644,6 @@ class Tournament(BaseModel):
         return None
 
     def get_current_match_data_json(self):
-        sleep(0.2)
         match_to_use = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
         teams = self.get_teams_from_scheduleid(match_to_use)
         match = self.get_match_from_scheduleid(match_to_use)
