@@ -643,11 +643,12 @@ class Tournament(BaseModel):
                 return key
         return None
 
-    def get_current_match_data(self):
+    def get_current_match_data_json(self):
+        sleep(0.2)
         match_to_use = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
         teams = self.get_teams_from_scheduleid(match_to_use)
         match = self.get_match_from_scheduleid(match_to_use)
-        return { "match": match.to_dict(), "teams": [team.to_dict() for team in teams] }
+        return { "match": match.to_dict(state=True), "teams": [team.to_dict(state=True) for team in teams] }
     
 
     ## POINTS GETTER/SETTER

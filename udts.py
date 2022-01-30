@@ -743,39 +743,39 @@ def run_server():
 
 @webservice.get("/", response_class=HTMLResponse)
 def web_home(request: Request):
-    return templates.TemplateResponse("web_controller.html", {"request": request, "status": broadcast.get_current_match_data()})
+    return templates.TemplateResponse("web_controller.html", {"request": request, "status": broadcast.get_current_match_data_json()})
 
 @webservice.get("/win/team1")
 def web_win_team1():
     if window.team1_win_button.isEnabled():
         thread.web_team1_win.emit()
         thread.web_update_ui.emit()
-        return broadcast.get_current_match_data()
+    return broadcast.get_current_match_data_json()
 
 @webservice.get("/win/team2")
 def web_win_team1():
     if window.team2_win_button.isEnabled():
-        thread.web_team1_win.emit()
+        thread.web_team2_win.emit()
         thread.web_update_ui.emit()
-        return broadcast.get_current_match_data()
+    return broadcast.get_current_match_data_json()
 
 @webservice.get("/sideswap")
 def web_sideswap():
     if window.swap_button.isEnabled():
         thread.web_swap_sides.emit()
         thread.web_update_ui.emit()
-        return broadcast.get_current_match_data()
+    return broadcast.get_current_match_data_json()
 
 @webservice.get("/undo")
 async def web_undo():
     if window.undo_button.isEnabled():
         thread.web_undo.emit()
         thread.web_update_ui.emit()
-        return broadcast.get_current_match_data()
+    return broadcast.get_current_match_data_json()
 
 @webservice.get("/match/current/")
 async def get_current_match():
-    return broadcast.get_current_match_data()
+    return broadcast.get_current_match_data_json()
 
 @webservice.get("/match/current/team/{team_index}/logo_small", response_class=FileResponse)
 async def get_current_match_team1_logo_small(team_index):

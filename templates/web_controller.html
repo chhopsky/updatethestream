@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>Display IP Address</title>
+  <title>Someone, Update The Stream!</title>
   <style>
     body {
       background-color: #FFCC00;
@@ -30,7 +30,7 @@
   <table>
       <tr>
         <td>Current Match:</td>
-        <td id="current_match">{{ status.teams.0.name }} vs {{ status.teams.1.name }}</td>
+        <td id="current_match"></td>
       </tr>
       <tr>
         <td>Score:</td>
@@ -38,7 +38,7 @@
       </tr>
       <tr>
         <td>Best Of:</td>
-        <td id="current_match_best_of">{{ status.match.best_of }}</td>
+        <td id="current_match_best_of"></td>
       </tr>
     </table>
   </p>
@@ -49,7 +49,8 @@
     <button id=team_1_win onclick="call_controller('/undo')">Undo</button>
   </p>
   <script>
-    let hostname = location.hostname;
+    call_controller("/match/current")
+
 		function call_controller(endpoint)
 		{
 			fetch(endpoint)
@@ -66,10 +67,23 @@
 
   function update_status(status_blob)
   {
-    current_match = status_blob["teams"][0]["tricode"] + " " + status_blob["teams"][0]["name"];
-    const element = document.getElementById("current_match");
-    element.innerHTML = get_match_participants(status_blob);
+    const match_element = document.getElementById("current_match");
+    const scores_element = document.getElementById("current_match_score");
+    const best_of_element = document.getElementById("current_match_best_of");
+    match_element.innerHTML = get_match_participants(status_blob);
+    
+    scores_element.innerHTML = get_scores(status_blob);
+    best_of_element.innerHTML = status_blob["match"]["best_of"]
   }
+
+function get_scores(status){
+  if(typeof status["match"]["scores"][0] === 'undefined'){
+    return "0 - 0"
+  }
+  else {
+    return status["match"]["scores"][0] + " - " + status["match"]["scores"][1]
+  }
+}
 
 function get_match_participants(status) {
   team1 = status["teams"][0]
@@ -90,7 +104,6 @@ function get_match_participants(status) {
 
   }
 	</script>
-  {{ status }} 
 </body>
 
 </html>
