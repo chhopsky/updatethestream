@@ -648,7 +648,38 @@ class Tournament(BaseModel):
         teams = self.get_teams_from_scheduleid(match_to_use)
         match = self.get_match_from_scheduleid(match_to_use)
         return { "match": match.to_dict(state=True), "teams": [team.to_dict(state=True) for team in teams] }
+
+    def get_schedule_standings_json(self):
+        standings_original = self.get_standings()
+        standings = []
+        for standing in standings_original:
+            standing_dict = {}
+            standing_dict["team"] = self.get_team(standing[0]).get_name()
+            standing_dict["points"] = standing[1]
+            standings.append(standing_dict)
+        schedule = self.get_schedule()
+        return { "schedule": schedule, "standings": standings }
     
+    def get_schedule(self):
+        schedule_output = []
+        for item in self.schedule:
+            match_dict = {}
+            teams = self.get_teams_from_match_id(item)
+            match = self.get_match(item)
+            match_dict["teams"] = f"{teams[0].get_name()} vs {teams[1].get_name()}"
+            match_dict["scores"] = f"{match.scores[0]} - {match.scores[1]}"
+            match_dict["status"] = "Not Started"
+            match_dict["winner"] = ""
+            if match.finished:
+                match_dict["status"] = "Finished"
+                if match.winner < 2:
+                    match_dict["winner"] = teams[match.winner].get_name()
+                else:
+                    match_dict["winner"] = "Tie"
+            elif match.in_progress:
+                match_dict["status"] = "In Progress"
+            schedule_output.append(match_dict)
+        return schedule_output
 
     ## POINTS GETTER/SETTER
     def get_points_config(self, result):

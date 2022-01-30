@@ -802,19 +802,31 @@ async def web_undo(response: Response):
     response.status_code = 400
     return response
 
-@webservice.get("/match/current/")
+@webservice.get("/match/current")
 async def get_current_match():
     try:
         wait(lambda: thread.requests_incomplete(), timeout_seconds=2, sleep_seconds=0.1, waiting_for="outstanding requests to be processed")
     except TimeoutExpired:
-        return broadcast.get_current_match_data_json()
-    return broadcast.get_current_match_data_json()
+        response_value = broadcast.get_current_match_data_json()
+        response_value["swap_state"] = window.swapstate
+        return response_value
+    response_value = broadcast.get_current_match_data_json()
+    response_value["swap_state"] = window.swapstate
+    return response_value
+
+@webservice.get("/tournament/status")
+async def get_current_match():
+    try:
+        wait(lambda: thread.requests_incomplete(), timeout_seconds=2, sleep_seconds=0.1, waiting_for="outstanding requests to be processed")
+    except TimeoutExpired:
+        return broadcast.get_schedule_standings_json()
+    return broadcast.get_schedule_standings_json()
 
 @webservice.get("/match/current/team/{team_index}/logo_small", response_class=FileResponse)
 async def get_current_match_team1_logo_small(team_index):
     if team_index in ["0", "1"]:
         team_index = int(team_index)
-        current_match = broadcast.get_current_match_data()
+        current_match = broadcast.get_current_match_data_json()
         if os.path.isfile(current_match["teams"][team_index]["logo_small"]):
             return current_match["teams"][team_index]["logo_small"]
     return broadcast.blank_image
