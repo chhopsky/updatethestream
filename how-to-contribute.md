@@ -26,4 +26,5 @@ A bit more in-depth, but avoids installing VSCode if you don't want to.  You can
 4. Install `pipenv`: `pip install pipenv`
 5. Create a lock file: `pipenv lock`
 6. Create the environment: `pipenv install --python 3.8`
-7. Run the app: `pipenv run udts.py`
+7. Activate the development environment: `pipenv shell`
+8. Run the program: `python udts.py`
