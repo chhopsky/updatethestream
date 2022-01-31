@@ -1,0 +1,81 @@
+{
+  "Actions": [
+    {
+      "Icon": "action/images/chhtv",
+      "Name": "Team 1",
+      "States": [
+        {
+          "Image": "action/images/chhtv"
+        }
+      ],
+      "Tooltip": "Team 1 Win",
+      "UUID": "com.udts.team1win"
+    },
+    {
+      "Icon": "action/images/chhtv",
+      "Name": "Team 2",
+      "States": [
+        {
+          "Image": "action/images/chhtv"
+        }
+      ],
+      "Tooltip": "Team 2 Win",
+      "UUID": "com.udts.team2win"
+    },
+    {
+      "Icon": "action/images/chhtv",
+      "Name": "Swap Teams",
+      "States": [
+        {
+          "Image": "action/images/chhtv"
+        }
+      ],
+      "Tooltip": "Swap Teams",
+      "UUID": "com.udts.swapsides"
+    },
+    {
+      "Icon": "action/images/chhtv",
+      "Name": "Force Update",
+      "States": [
+        {
+          "Image": "action/images/chhtv"
+        }
+      ],
+      "Tootip": "Force Update",
+      "UUID": "com.udts.forceupdate"
+    },
+    {
+      "Icon": "action/images/chhtv",
+      "Name": "Undo Last Result",
+      "States": [
+        {
+          "Image": "action/images/chhtv"
+        }
+      ],
+      "Tooltip": "Undo Last Result",
+      "UUID": "com.udts.undo"
+    }
+  ],
+  "SDKVersion": 2,
+  "Author": "UDTS", 
+  "CodePath": "index.html", 
+  "Description": "Someone, update the stream!", 
+  "Name": "UDTS", 
+  "Icon": "action/images/chhtv", 
+  "URL": "https://github.com/chhopsky/updatethestream", 
+  "Version": "0.0.1",
+  "OS": [
+    {
+        "Platform": "mac", 
+        "MinimumVersion" : "10.11"
+    },
+    {
+        "Platform": "windows", 
+        "MinimumVersion" : "10"
+    }
+  ],
+  "Software": 
+    {
+        "MinimumVersion" : "4.1"
+  }
+}
