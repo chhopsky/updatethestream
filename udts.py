@@ -2,11 +2,12 @@ from asyncore import write
 import base64
 from http.client import OK
 from PyQt5.uic.uiparser import DEBUG
+from numpy import true_divide
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt, QUrl, QThread, pyqtSignal
 from PyQt5.QtGui import QFont
-from urllib import request
+from urllib import request, response
 from uuid import uuid4
 from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import FileResponse, HTMLResponse
@@ -23,6 +24,7 @@ import sys
 import json
 import logging
 import os.path
+import requests
 
 
 
@@ -93,6 +95,7 @@ def setup():
     refresh_team_win_labels()
     set_button_states()
     set_config_ui()
+    version_check()
     window.add_match_team1_dropdown.setCurrentIndex(-1)
     window.add_match_team2_dropdown.setCurrentIndex(-1)
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
@@ -132,6 +135,20 @@ def new():
     refresh_team_win_labels()
     set_button_states()
     set_config_ui()
+
+
+def version_check():
+    url = "https://raw.githubusercontent.com/chhopsky/updatethestream/main/config.cfg"
+    response = requests.get(url)
+    cdict = response.json()
+
+    if response.ok:
+        with open("config.cfg") as f:
+            config = json.load(f)
+            if not config.get("version_checked") and config.get("version") != cdict["version"]:
+                show_error("CLIENT_OUT_OF_DATE")
+                window.config["version_checked"] = True
+                save_config(window.config)
 
 
 def open_file():
