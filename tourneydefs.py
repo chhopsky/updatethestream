@@ -295,7 +295,7 @@ class Tournament(BaseModel):
                 participant["id"] = participant["group_player_ids"][0]
             participant["id"] = str(participant["id"])
             team_list.append(participant)
-        
+
         try:
             # this should never happen, but if for some reason there isn't a
             # match id in the match, set our own

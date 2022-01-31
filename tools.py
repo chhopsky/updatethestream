@@ -38,6 +38,20 @@ def generate_random_tricode_from_name(teamname, anything=False):
     return new_tricode.upper()
 
 def determine_tricode(teamname, tricodelist):
+    if " " in teamname or "_" in teamname or "-" in teamname:
+        new_teamname = teamname.replace("_", " ").replace("-"," ")
+        teamname_split = new_teamname.split(" ")
+        if len(teamname_split) > 1:
+            if len(teamname_split) >= 3:
+                if len(teamname_split[0]) and len(teamname_split[1]) and len(teamname_split[2]):
+                    if is_tricode_unique(f"{teamname_split[0][0:1]}{teamname_split[1][0:1]}{teamname_split[2][0:1]}".upper(), tricodelist):
+                        return f"{teamname_split[0][0:1]}{teamname_split[1][0:1]}{teamname_split[2][0:1]}".upper()
+    if "." in teamname:
+        teamname_split = teamname.split(".")
+        if len(teamname_split) > 1:
+            if len(teamname_split[0]) and len(teamname_split[1]):
+                if is_tricode_unique(f"{teamname_split[0:1]}{teamname_split[1][0:2]}", tricodelist):
+                    return f"{teamname_split[0][0:1]}{teamname_split[1][0:2]}"
     if teamname.upper().startswith("TEAM"):
         new_teamname = teamname.upper().lstrip("TEAM").lstrip("_")
         if is_tricode_unique(new_teamname[0:3], tricodelist):
@@ -48,16 +62,6 @@ def determine_tricode(teamname, tricodelist):
             return new_teamname[0:3].upper()
     if is_tricode_unique(teamname[0:3].upper(), tricodelist):
         return teamname[0:3].upper()
-    if " " in teamname:
-        teamname_split = teamname.split(" ")
-        if len(teamname_split) > 1:
-            if len(teamname_split) >= 3:
-                if len(teamname_split[0]) and len(teamname_split[1]) and len(teamname_split[2]):
-                    if is_tricode_unique(f"{teamname_split[0][0:1]}{teamname_split[1][0:1]}{teamname_split[2][0:1]}".upper(), tricodelist):
-                        return f"{teamname_split[0][0:1]}{teamname_split[1][0:1]}{teamname_split[2][0:1]}".upper()
-            if len(teamname_split[0]) and len(teamname_split[1]) > 2:
-                if is_tricode_unique(f"{teamname_split[0][0:1]}{teamname_split[1][0:2]}".upper(),tricodelist):
-                    return f"{teamname_split[0][0:1]}{teamname_split[1][0:2]}".upper()
     if len(teamname) > 3:
         if is_tricode_unique(f"{teamname[0:0]}{teamname[-1:]}".upper(), tricodelist):
             return f"{teamname[0:0]}{teamname[-1:]}"
