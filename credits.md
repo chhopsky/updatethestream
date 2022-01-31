@@ -1,5 +1,8 @@
 ### Credits
 
+## Original Design / Project Maintainer
+Chris "chhopsky" Pollock  
+
 ## Programming
 Chris "chhopsky" Pollock  
 Matt "Nibiria" Clendaniel  
