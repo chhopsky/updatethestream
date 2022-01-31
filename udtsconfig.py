@@ -23,6 +23,10 @@ ERRORS = {
         "title": "Please read!",
         "message": "Challonge does NOT inform us as to how many games are in a match. Please double check your imported matches, and be sure to adjust the best-ofs appropriately."
     },
+    "FACEIT_LOAD_FAIL" : {
+        "title": "FACEIT load error!",
+        "message": "Something went wrong trying to load data from FACEIT. Please try again later, or send us a copy of your log file if the error persists."
+    },
     "REARRANGE_MIXED_FINISH_STATE" : {
         "title": "Can't swap mixed match states!",
         "message": "Cannot swap a match that's finished with one that's not, or one that's in progress with one that's not started. Consider undoing your results first."

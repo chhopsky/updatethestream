@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from waiting import wait, TimeoutExpired
 from os import mkdir
+import tools
 import threading
 import uvicorn
 import udtsconfig
@@ -50,6 +51,7 @@ def setup():
     window.actionNew.triggered.connect(new)
     window.actionOpen.triggered.connect(open_file)
     window.actionOpenFromChallonge.triggered.connect(open_challonge)
+    window.actionOpenfromFACEIT.triggered.connect(open_faceit)
     window.actionSave.triggered.connect(save_file)
     window.actionSaveAs.triggered.connect(save_as)
     window.actionSaveAsState.triggered.connect(save_as_state)
@@ -146,27 +148,37 @@ def open_file():
         write_to_stream_if_enabled()
 
 
-def poll_challonge(tournament_id):
-    API_KEY = config.get("challonge_api_key")
-    url = f"https://api.challonge.com/v1/tournaments/{tournament_id}/matches.json?api_key={API_KEY}"
-    page = request.urlopen(url)
-    response_matches = page.read()
-    url = f"https://api.challonge.com/v1/tournaments/{tournament_id}/participants.json?api_key={API_KEY}"
-    page = request.urlopen(url)
-    response_participants = page.read()
-    response = {
-        "matches": json.loads(response_matches.decode()),
-        "participants": json.loads(response_participants.decode())
-    }
-    return response
+def open_faceit():
+    text, ok = QtWidgets.QInputDialog.getText(window, "FACEIT Tournament ID", "Paste faceit.com tournament code")
+    if text and ok:
+        found_tournament = False
+        try:
+            faceit_data = tools.poll_faceit(text)
+            if not len(faceit_data.get("matches")) > 1 and not len(faceit_data.get["teams"]) > 1:
+                raise Exception
+            else:
+                found_tournament = True
+        except Exception as e:
+            logger.error("Could not load JSON!")
+            logger.error(e)
+            show_error("FACEIT_LOAD_FAIL")
+        if found_tournament:
+            result = broadcast.load_from_faceit(faceit_data)
+            window.config["use_faceit"] = True
+            window.config["faceit_id"] = text
+            force_refresh_ui()
+            write_to_stream_if_enabled()
+        else:
+            show_error("FACEIT_LOAD_FAIL")
+
 
 def open_challonge():
-    text, ok = QtWidgets.QInputDialog.getText(window, "Name of the Team", "Paste Challonge.com tournament code")
+    text, ok = QtWidgets.QInputDialog.getText(window, "Challonge Tournament ID", "Paste Challonge.com tournament code")
     if text and ok and config.get("challonge_api_key"):
         found_tournament = False
         try:
-            tournament_info = poll_challonge(text)
-            if not len(tournament_info["matches"]) > 1 or not len(tournament_info["matches"]) > 1:
+            tournament_info = tools.poll_challonge(text, config.get("challonge_api_key"))
+            if not len(tournament_info["matches"]) > 1 or not len(tournament_info["participants"]) > 1:
                 raise Exception
             else:
                 found_tournament = True
@@ -180,6 +192,7 @@ def open_challonge():
                 window.config["use_challonge"] = True
                 window.config["challonge_id"] = text
                 force_refresh_ui()
+                write_to_stream_if_enabled()
                 show_error("CHALLONGE_WARNING")
             else:
                 show_error("CHALLONGE_PARSE_FAIL")
@@ -206,7 +219,7 @@ def show_error(error_code = "UNKNOWN", additional_info = None):
 
 
 def update_from_challonge():
-    tournament_info = poll_challonge(window.config["challonge_id"])
+    tournament_info = tools.poll_challonge(window.config["challonge_id"])
     broadcast.update_match_history_from_challonge(tournament_info)
     force_refresh_ui()
     write()
@@ -866,7 +879,7 @@ if __name__ == "__main__":
     try:
         with open("config.cfg") as f:
             config = json.load(f)
-            config["version"] = "0.3"
+            config["version"] = "0.4"
             # if config.get("version") == version:
             #     TODO: config version mismatch
     except (json.JSONDecodeError, FileNotFoundError):

@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Text, List, Dict, Optional
 from uuid import uuid4
 from errors import MatchScheduleDesync
+from copy import deepcopy
 import os
 import json
 import logging
@@ -65,6 +66,36 @@ class Match(BaseModel):
                 if key not in list_to_not_return:
                     dict_to_return[key] = value
             return dict_to_return
+
+    def ensure_safe_scores(self):
+        scores_invalid = False
+        t1 = 0
+        t2 = 1
+        if self.winner == 1:
+            t1 = 1
+            t2 = 0
+        if self.best_of < sum(self.scores):
+            scores_invalid = True
+
+        if self.scores[t1] != (self.best_of + 1) / 2:
+            scores_invalid = True
+
+        if self.scores[t2] >= (self.best_of + 1) / 2:
+            scores_invalid = True
+
+        if self.scores[t1] or self.scores[t2] < 0:
+            scores_invalid = True
+
+        if scores_invalid:
+            if self.best_of == 2:
+                if self.winner < 2:
+                    self.scores[t1] = 2
+                else:
+                    self.scores = [1, 1]
+            else:
+                self.scores[t1] = (self.best_of + 1) / 2
+                if (self.scores[t2] >= (self.best_of + 1) / 2) or self.scores[t2] < 0:
+                    self.scores[t2] = 0
 
 class Game(BaseModel):
     match: str = ""
@@ -139,6 +170,43 @@ class Tournament(BaseModel):
             return False
         return True
 
+    def load_from_faceit(self, tournament_data):
+        self.mapping = {}
+        self.clear_everything()
+
+        for team in tournament_data["teams"].values():
+            self.add_team(team)
+
+        for match in tournament_data["matches"]:
+            new_match = deepcopy(match)
+            new_match.finished = False
+            new_match.in_progress = False
+            new_match.scores = [0,0]
+            new_match.winner = 2
+            self.add_match(new_match)
+        
+        for i, match_state in enumerate(tournament_data["matches"]):
+            match = deepcopy(match_state)
+
+            if match.finished:
+                t1 = 0
+                t2 = 1
+                if match.winner == 1:
+                    t1 = 1
+                    t2 = 0
+                
+                match.ensure_safe_scores()
+
+                game_count = match.scores[t2]
+                while game_count > 0:
+                    self.game_complete(t2)
+                    game_count -= 1
+
+                game_count = match.scores[t1]
+                while game_count > 0:
+                    self.game_complete(t1)
+                    game_count -= 1
+        return True
 
     def update_match_history_from_challonge(self, round_match_list):
         self.game_history = []
