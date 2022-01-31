@@ -4,6 +4,7 @@ import requests
 import json
 import pprint
 import random
+import string
 
 def poll_challonge(tournament_id, API_KEY):
     url = f"https://api.challonge.com/v1/tournaments/{tournament_id}/matches.json?api_key={API_KEY}"
@@ -24,12 +25,16 @@ def is_tricode_unique(teamname, tricodelist):
     else:
         return True
 
-def generate_random_tricode_from_name(teamname):
+def generate_random_tricode_from_name(teamname, anything=False):
     i = []
-    i.append(random.choice(range(len(teamname))))
-    i.append(random.choice(range(len(teamname))))
-    i.append(random.choice(range(len(teamname))))
-    new_tricode = teamname[i[0]] + teamname[i[1]] + teamname[i[2]]
+    source_string = teamname
+    if anything:
+        source_string = string.ascii_uppercase
+    
+    i.append(random.choice(range(len(source_string))))
+    i.append(random.choice(range(len(source_string))))
+    i.append(random.choice(range(len(source_string))))
+    new_tricode = source_string[i[0]] + source_string[i[1]] + source_string[i[2]]
     return new_tricode.upper()
 
 def determine_tricode(teamname, tricodelist):
@@ -58,11 +63,19 @@ def determine_tricode(teamname, tricodelist):
             return f"{teamname[0:0]}{teamname[-1:]}"
     
     found_tricode = False
+    random_tricode = False
+    i=0
     while found_tricode is not True:
-        new_tricode = generate_random_tricode_from_name(teamname)
+        new_tricode = generate_random_tricode_from_name(teamname, anything=random_tricode)
         if is_tricode_unique(new_tricode, tricodelist):
             found_tricode = True
             return new_tricode
+        if i > 10:
+            random_tricode = True
+        if i > 100:
+            return "ERR"
+        i += 1
+    
 
 def poll_faceit(tournament_id):
     teams_url = f"https://api.faceit.com/championships/v1/championship/{tournament_id}/subscription"
