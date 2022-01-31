@@ -11,6 +11,7 @@ Leothechosen
 
 ## Documentation
 CubicFoxxx
+Nikolas Tapia
 
 ## Moderation
 Someone  
@@ -18,6 +19,8 @@ Someone
 ## Feature Suggestions
 CubicFoxxx
 Leothechosen
+Dandro
+Prem Thottumkara
 
 ## Additional Assistance
 Lazuli/Kerri
