@@ -26,5 +26,9 @@ ERRORS = {
     "REARRANGE_MIXED_FINISH_STATE" : {
         "title": "Can't swap mixed match states!",
         "message": "Cannot swap a match that's finished with one that's not, or one that's in progress with one that's not started. Consider undoing your results first."
+    },
+    "CLIENT_OUT_OF_DATE" : {
+        "title": "New Update Available!",
+        "message": "Get new features, bugfixes, and more in our latest update, available at https://github.com/chhopsky/updatethestream/releases"
     }
 }
