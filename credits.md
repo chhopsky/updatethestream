@@ -1,31 +1,31 @@
 ### Credits
 
 ## Programming
-Chris "chhopsky" Pollock
-Matt "Nibiria" Clendaniel
+Chris "chhopsky" Pollock  
+Matt "Nibiria" Clendaniel  
 Leothechosen
 
 ## QA
-CubicFoxxx
+CubicFoxxx  
 Leothechosen
 
 ## Documentation
-CubicFoxxx
+CubicFoxxx  
 Nikolas Tapia
 
 ## Moderation
-Someone  
+Someone   
 
 ## Feature Suggestions
-CubicFoxxx
-Leothechosen
-Dandro
-Prem Thottumkara
+CubicFoxxx  
+Leothechosen  
+Dandro  
+Prem "Estarion" Thottumkara  
 
 ## Additional Assistance
-Lazuli/Kerri
-heytred
-Mayples
+Lazuli/Kerri  
+heytred  
+Mayples  
 
 ## Playtesters
 Froskurinn  
