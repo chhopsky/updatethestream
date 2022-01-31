@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Text, List, Dict, Optional
 from uuid import uuid4
 from errors import MatchScheduleDesync
+from copy import deepcopy
 import os
 import json
 import logging
@@ -46,7 +47,6 @@ class Team(BaseModel):
         else:
             return f"{self.tricode}: {self.name}"
 
-
 class Match(BaseModel):
     id: str = str(uuid4())
     teams: List[str] = []
@@ -66,6 +66,36 @@ class Match(BaseModel):
                 if key not in list_to_not_return:
                     dict_to_return[key] = value
             return dict_to_return
+
+    def ensure_safe_scores(self):
+        scores_invalid = False
+        t1 = 0
+        t2 = 1
+        if self.winner == 1:
+            t1 = 1
+            t2 = 0
+        if self.best_of < sum(self.scores):
+            scores_invalid = True
+
+        if self.scores[t1] != (self.best_of + 1) / 2:
+            scores_invalid = True
+
+        if self.scores[t2] >= (self.best_of + 1) / 2:
+            scores_invalid = True
+
+        if self.scores[t1] or self.scores[t2] < 0:
+            scores_invalid = True
+
+        if scores_invalid:
+            if self.best_of == 2:
+                if self.winner < 2:
+                    self.scores[t1] = 2
+                else:
+                    self.scores = [1, 1]
+            else:
+                self.scores[t1] = (self.best_of + 1) / 2
+                if (self.scores[t2] >= (self.best_of + 1) / 2) or self.scores[t2] < 0:
+                    self.scores[t2] = 0
 
 class Game(BaseModel):
     match: str = ""
@@ -140,6 +170,43 @@ class Tournament(BaseModel):
             return False
         return True
 
+    def load_from_faceit(self, tournament_data):
+        self.mapping = {}
+        self.clear_everything()
+
+        for team in tournament_data["teams"].values():
+            self.add_team(team)
+
+        for match in tournament_data["matches"]:
+            new_match = deepcopy(match)
+            new_match.finished = False
+            new_match.in_progress = False
+            new_match.scores = [0,0]
+            new_match.winner = 2
+            self.add_match(new_match)
+        
+        for i, match_state in enumerate(tournament_data["matches"]):
+            match = deepcopy(match_state)
+
+            if match.finished:
+                t1 = 0
+                t2 = 1
+                if match.winner == 1:
+                    t1 = 1
+                    t2 = 0
+                
+                match.ensure_safe_scores()
+
+                game_count = match.scores[t2]
+                while game_count > 0:
+                    self.game_complete(t2)
+                    game_count -= 1
+
+                game_count = match.scores[t1]
+                while game_count > 0:
+                    self.game_complete(t1)
+                    game_count -= 1
+        return True
 
     def update_match_history_from_challonge(self, round_match_list):
         self.game_history = []
@@ -228,7 +295,7 @@ class Tournament(BaseModel):
                 participant["id"] = participant["group_player_ids"][0]
             participant["id"] = str(participant["id"])
             team_list.append(participant)
-        
+
         try:
             # this should never happen, but if for some reason there isn't a
             # match id in the match, set our own
@@ -560,6 +627,10 @@ class Tournament(BaseModel):
             self.game_history.append(finished_game)
 
 
+    def undo(self):
+        self.game_history.pop()
+        self.update_match_scores()
+
     def get_standings(self):
         standings = []
         standing_data = {}
@@ -640,6 +711,44 @@ class Tournament(BaseModel):
                 return key
         return None
 
+    def get_current_match_data_json(self):
+        match_to_use = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
+        teams = self.get_teams_from_scheduleid(match_to_use)
+        match = self.get_match_from_scheduleid(match_to_use)
+        return { "match": match.to_dict(state=True), "teams": [team.to_dict(state=True) for team in teams] }
+
+    def get_schedule_standings_json(self):
+        standings_original = self.get_standings()
+        standings = []
+        for standing in standings_original:
+            standing_dict = {}
+            standing_dict["team"] = self.get_team(standing[0]).get_name()
+            standing_dict["points"] = standing[1]
+            standings.append(standing_dict)
+        schedule = self.get_schedule()
+        return { "schedule": schedule, "standings": standings }
+    
+    def get_schedule(self):
+        schedule_output = []
+        for item in self.schedule:
+            match_dict = {}
+            teams = self.get_teams_from_match_id(item)
+            match = self.get_match(item)
+            match_dict["teams"] = f"{teams[0].get_name()} vs {teams[1].get_name()}"
+            match_dict["scores"] = f"{match.scores[0]} - {match.scores[1]}"
+            match_dict["status"] = "Not Started"
+            match_dict["winner"] = ""
+            if match.finished:
+                match_dict["status"] = "Finished"
+                if match.winner < 2:
+                    match_dict["winner"] = teams[match.winner].get_name()
+                else:
+                    match_dict["winner"] = "Tie"
+            elif match.in_progress:
+                match_dict["status"] = "In Progress"
+            schedule_output.append(match_dict)
+        return schedule_output
+
     ## POINTS GETTER/SETTER
     def get_points_config(self, result):
         if result in self.pts_config.keys():
@@ -659,6 +768,7 @@ class Tournament(BaseModel):
         self.pts_config = new_pts_config
 
     ## HELPER FUNCTIONS
+
     def get_team(self, team_id):
         if team_id in self.teams.keys():
             return self.teams[team_id]

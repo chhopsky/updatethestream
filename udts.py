@@ -1,14 +1,23 @@
 from asyncore import write
 import base64
+from http.client import OK
 from PyQt5.uic.uiparser import DEBUG
 from numpy import true_divide
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtCore import Qt, QUrl, QThread, pyqtSignal
 from PyQt5.QtGui import QFont
 from urllib import request, response
 from uuid import uuid4
-import templates
+from fastapi import FastAPI, Request, Response, status
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from waiting import wait, TimeoutExpired
+from os import mkdir
+import tools
+import threading
+import uvicorn
 import udtsconfig
 import PyQt5.QtGui as pygui
 import sys
@@ -16,6 +25,7 @@ import json
 import logging
 import os.path
 import requests
+
 
 
 class Ui(QtWidgets.QMainWindow):
@@ -37,12 +47,13 @@ class Ui(QtWidgets.QMainWindow):
         self.config = loaded_config
         self.swapstate = False
         self.setWindowIcon(pygui.QIcon('static/chhtv.ico'))
-                 
+
 
 def setup():
     window.actionNew.triggered.connect(new)
     window.actionOpen.triggered.connect(open_file)
     window.actionOpenFromChallonge.triggered.connect(open_challonge)
+    window.actionOpenfromFACEIT.triggered.connect(open_faceit)
     window.actionSave.triggered.connect(save_file)
     window.actionSaveAs.triggered.connect(save_as)
     window.actionSaveAsState.triggered.connect(save_as_state)
@@ -70,7 +81,7 @@ def setup():
     window.match_move_up_button.clicked.connect(match_move_up)
     window.match_move_down_button.clicked.connect(match_move_down)
     window.swap_button.clicked.connect(swap_red_blue)
-    window.undo_button.clicked.connect(undo)
+    window.undo_button.clicked.connect(undo_button)
     window.undo_button.setEnabled(False)
     window.update_from_challonge.clicked.connect(update_from_challonge)
     window.save_tournament_config_button.clicked.connect(edit_tournament_config)
@@ -154,33 +165,43 @@ def open_file():
         write_to_stream_if_enabled()
 
 
-def poll_challonge(tournament_id):
-    API_KEY = config.get("challonge_api_key")
-    url = f"https://api.challonge.com/v1/tournaments/{tournament_id}/matches.json?api_key={API_KEY}"
-    page = request.urlopen(url)
-    response_matches = page.read()
-    url = f"https://api.challonge.com/v1/tournaments/{tournament_id}/participants.json?api_key={API_KEY}"
-    page = request.urlopen(url)
-    response_participants = page.read()
-    response = {
-        "matches": json.loads(response_matches.decode()),
-        "participants": json.loads(response_participants.decode())
-    }
-    return response
-
-def open_challonge():
-    text, ok = QtWidgets.QInputDialog.getText(window, "Name of the Team", "Paste Challonge.com tournament code")
-    if text and ok and config.get("challonge_api_key"):
+def open_faceit():
+    text, ok = QtWidgets.QInputDialog.getText(window, "FACEIT Tournament ID", "Paste faceit.com tournament code")
+    if text and ok:
         found_tournament = False
         try:
-            tournament_info = poll_challonge(text)
-            if not len(tournament_info["matches"]) > 1 or not len(tournament_info["matches"]) > 1:
+            faceit_data = tools.poll_faceit(text)
+            if not len(faceit_data.get("matches")) > 1 and not len(faceit_data.get["teams"]) > 1:
                 raise Exception
             else:
                 found_tournament = True
         except Exception as e:
-            logging.error("Could not load JSON!")
-            logging.error(e)
+            logger.error("Could not load JSON!")
+            logger.error(e)
+            show_error("FACEIT_LOAD_FAIL")
+        if found_tournament:
+            result = broadcast.load_from_faceit(faceit_data)
+            window.config["use_faceit"] = True
+            window.config["faceit_id"] = text
+            force_refresh_ui()
+            write_to_stream_if_enabled()
+        else:
+            show_error("FACEIT_LOAD_FAIL")
+
+
+def open_challonge():
+    text, ok = QtWidgets.QInputDialog.getText(window, "Challonge Tournament ID", "Paste Challonge.com tournament code")
+    if text and ok and config.get("challonge_api_key"):
+        found_tournament = False
+        try:
+            tournament_info = tools.poll_challonge(text, config.get("challonge_api_key"))
+            if not len(tournament_info["matches"]) > 1 or not len(tournament_info["participants"]) > 1:
+                raise Exception
+            else:
+                found_tournament = True
+        except Exception as e:
+            logger.error("Could not load JSON!")
+            logger.error(e)
             show_error("CHALLONGE_LOAD_FAIL")
         if found_tournament:
             result = broadcast.load_from_challonge(tournament_info)
@@ -188,6 +209,7 @@ def open_challonge():
                 window.config["use_challonge"] = True
                 window.config["challonge_id"] = text
                 force_refresh_ui()
+                write_to_stream_if_enabled()
                 show_error("CHALLONGE_WARNING")
             else:
                 show_error("CHALLONGE_PARSE_FAIL")
@@ -209,11 +231,12 @@ def show_error(error_code = "UNKNOWN", additional_info = None):
     msg.setWindowTitle(title)
     msg.setText(messagetext)
     msg.setIcon(QtWidgets.QMessageBox.Critical)
+    logger.error(message)
     x = msg.exec_()
 
 
 def update_from_challonge():
-    tournament_info = poll_challonge(window.config["challonge_id"])
+    tournament_info = tools.poll_challonge(window.config["challonge_id"])
     broadcast.update_match_history_from_challonge(tournament_info)
     force_refresh_ui()
     write()
@@ -280,10 +303,9 @@ def exit_app():
     sys.exit()
 
 
-def undo():
-    broadcast.game_history.pop()
-    broadcast.update_match_scores()
-    broadcast.write_to_stream()
+def undo_button():
+    broadcast.undo()
+    write_to_stream_if_enabled()
     update_schedule()
     update_standings()
     refresh_team_win_labels()
@@ -351,7 +373,8 @@ def write_to_stream_if_enabled():
 
 
 def force_refresh_stream():
-    broadcast.write_to_stream()
+    x = threading.Thread(target=broadcast.write_to_stream)
+    x.start()
 
 
 def force_refresh_ui():
@@ -364,17 +387,33 @@ def force_refresh_ui():
     set_button_states()
     set_config_ui()
 
-    
+def refresh_main_page():
+    populate_matches()
+    update_schedule()
+    update_standings()
+    refresh_team_win_labels()
+    set_button_states()
+
+
+def from_api(func):
+    def wrapper_from_api(*args, **kwargs):
+        thread.request_started(args[0])
+        func()
+        thread.request_finished(args[0])
+    return wrapper_from_api
+ 
+
+@from_api    
 def on_team1win_click():
     team_won(0)
 
-
+@from_api
 def on_team2win_click():
     team_won(1)
 
 
 def team_won(team):
-    logging.debug(f"team {team} won")
+    logger.debug(f"team {team} won")
     match_in_progress = broadcast.current_match
     broadcast.game_complete(team)
     set_button_states()
@@ -679,15 +718,14 @@ def populate_matches():
     window.match_list_widget.clear()
     window.schedule_list_widget.clear()
     for scheduleitem in broadcast.schedule:
-        match = broadcast.matches[scheduleitem]
-        team1 = broadcast.teams[match.teams[0]]
-        team2 = broadcast.teams[match.teams[1]]
+        match = broadcast.get_match(scheduleitem)
+        teams = broadcast.get_teams_from_match_id(scheduleitem)
         scores = f"{match.scores[0]}-{match.scores[1]}"
-        item = QtWidgets.QListWidgetItem(f"{team1.get_name()} vs {team2.get_name()}, BO{match.best_of}")
+        item = QtWidgets.QListWidgetItem(f"{teams[0].get_name()} vs {teams[1].get_name()}, BO{match.best_of}")
         item.id = match.id
-        item.team1id = team1.id
-        item.team2id = team2.id
-        item2 = QtWidgets.QListWidgetItem(f"{team1.get_name()} vs {team2.get_name()}, {scores}, BO{match.best_of}")
+        item.team1id = teams[0].id
+        item.team2id = teams[1].id
+        item2 = QtWidgets.QListWidgetItem(f"{teams[0].get_name()} vs {teams[1].get_name()}, {scores}, BO{match.best_of}")
         item2.setFlags(item2.flags() & ~Qt.ItemIsSelectable)
         window.match_list_widget.addItem(item)
         window.schedule_list_widget.addItem(item2)
@@ -742,55 +780,178 @@ def reset_dropdowns():
 def save_config(config_to_save):
     with open("config.cfg", "w") as f:
         f.write(json.dumps(config_to_save))
-version = "0.3"
-try:
-    with open("config.cfg") as f:
-        config = json.load(f)
-        config["version"] = "0.3"
-        # if config.get("version") == version:
-        #     TODO: config version mismatch
-except (json.JSONDecodeError, FileNotFoundError):
-    config = { "openfile": "default-tournament.json",
-        "use_challonge": False,
-        "challonge_id": False,
-        "challonge_api_key": None,
-        "version": version,
-        "auto-write-changes-to-stream": True
-        
-     }
-    save_config(config)
 
-log = logging.Logger
-logging.Logger.setLevel(log, level = "DEBUG")
-broadcast = Tournament(version = version)
-loadfail = False
-foundfile = False
-if os.path.isfile(config.get("openfile")):
-    foundfile = True
-    result = broadcast.load_from(config["openfile"])
-    if not result:
-        loadfail = True
-else:
-    save_file()
+webservice = FastAPI()
 
-challonge_api_key_path = config.get("challonge_api_key_location", "creds/challonge-api-key")
+def run_server():
+    webservice.mount("/static", StaticFiles(directory="static"), name="static")
+    uvicorn.run(webservice, host="0.0.0.0", port=8000)
 
-if os.path.isfile(challonge_api_key_path) and not config.get("challonge_api_key"):
-    with open(challonge_api_key_path) as file:
-        config["challonge_api_key"] = file.read()
-    save_config(config)
+@webservice.get("/", response_class=HTMLResponse)
+def web_home(request: Request):
+    return templates.TemplateResponse("web_controller.html", {"request": request, "status": broadcast.get_current_match_data_json()})
 
-if not config.get("challonge_api_key"):
-    config["challonge_api_key"] = base64.b64decode("RDFmNjJaRERhT2NSTUltb25sV0pyM0NBOFB4Y2t3amI3WGNueldVSA==").decode()
+@webservice.get("/win/team1")
+def web_win_team1(response: Response):
+    request_id = uuid4()
+    if window.team1_win_button.isEnabled():
+        thread.web_team1_win.emit(request_id)
+        thread.web_update_ui.emit()
+        return 
+    response.status_code = 400
+    return response
 
-logging.debug(broadcast.__dict__)
-broadcast.write_to_stream()
-current_match = 0
-app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplication
-window = Ui(loaded_config = config) # Create an instance of our class
-if loadfail:
-    show_error("SAVE_FILE_ERROR", config["openfile"])
-# if not foundfile:
-#     show_error("SAVE_FILE_MISSING", config["openfile"])
-setup()
-app.exec_() # Start the application
+@webservice.get("/win/team2")
+def web_win_team2(response: Response):
+    request_id = uuid4()
+    if window.team2_win_button.isEnabled():
+        thread.web_team2_win.emit(request_id)
+        thread.web_update_ui.emit()
+        return
+    response.status_code = 400
+    return response
+
+
+@webservice.get("/sideswap")
+def web_sideswap(response: Response):
+    request_id = uuid4()
+    if window.swap_button.isEnabled():
+        thread.web_swap_sides.emit(request_id)
+        thread.web_update_ui.emit()
+        return
+    response.status_code = 400
+    return response
+
+@webservice.get("/undo")
+async def web_undo(response: Response):
+    request_id = uuid4()
+    if window.undo_button.isEnabled():
+        thread.web_undo.emit(request_id)
+        thread.web_update_ui.emit()
+        return
+    response.status_code = 400
+    return response
+
+@webservice.get("/match/current")
+async def get_current_match():
+    try:
+        wait(lambda: thread.requests_incomplete(), timeout_seconds=2, sleep_seconds=0.1, waiting_for="outstanding requests to be processed")
+    except TimeoutExpired:
+        response_value = broadcast.get_current_match_data_json()
+        response_value["swap_state"] = window.swapstate
+        return response_value
+    response_value = broadcast.get_current_match_data_json()
+    response_value["swap_state"] = window.swapstate
+    return response_value
+
+@webservice.get("/tournament/status")
+async def get_current_match():
+    try:
+        wait(lambda: thread.requests_incomplete(), timeout_seconds=2, sleep_seconds=0.1, waiting_for="outstanding requests to be processed")
+    except TimeoutExpired:
+        return broadcast.get_schedule_standings_json()
+    return broadcast.get_schedule_standings_json()
+
+@webservice.get("/match/current/team/{team_index}/logo_small", response_class=FileResponse)
+async def get_current_match_team1_logo_small(team_index):
+    if team_index in ["0", "1"]:
+        team_index = int(team_index)
+        current_match = broadcast.get_current_match_data_json()
+        if os.path.isfile(current_match["teams"][team_index]["logo_small"]):
+            return current_match["teams"][team_index]["logo_small"]
+    return broadcast.blank_image
+
+
+class WebServerThread(QThread):
+    web_update_ui = pyqtSignal()
+    web_undo = pyqtSignal(object)
+    web_team1_win = pyqtSignal(object)
+    web_team2_win = pyqtSignal(object)
+    web_swap_sides = pyqtSignal(object)
+    request_state = {}
+
+    def requests_incomplete(self):
+        if len(self.request_state):
+            return False
+        else:
+            return True
+
+    def is_request_finished(self, request_id):
+        if self.request_state.get(request_id):
+            return True
+        return False
+
+    def request_finished(self, request_id):
+        self.request_state.pop(request_id)
+
+    def request_started(self, request_id):
+        self.request_state[request_id] = True
+
+    def run(self):
+        run_server()
+
+if __name__ == "__main__":
+    version = "0.3"
+    LOGLEVEL = "DEBUG"
+    try:
+        with open("config.cfg") as f:
+            config = json.load(f)
+            config["version"] = "0.4"
+            # if config.get("version") == version:
+            #     TODO: config version mismatch
+    except (json.JSONDecodeError, FileNotFoundError):
+        config = { "openfile": "default-tournament.json",
+            "use_challonge": False,
+            "challonge_id": False,
+            "challonge_api_key": None,
+            "version": version,
+            "auto-write-changes-to-stream": True
+        }
+        save_config(config)
+
+    if not os.path.isdir("./logs"):
+        mkdir("./logs")
+    logger = logging.getLogger("udts_main")
+    logging.basicConfig(filename="./logs/udts.log", filemode='a', level=LOGLEVEL, format='%(name)s - %(levelname)s - %(message)s')
+
+    logger.info("====init====")
+    broadcast = Tournament(version = version)
+    loadfail = False
+    foundfile = False
+    if os.path.isfile(config.get("openfile")):
+        foundfile = True
+        result = broadcast.load_from(config["openfile"])
+        if not result:
+            loadfail = True
+    else:
+        save_file()
+
+    challonge_api_key_path = config.get("challonge_api_key_location", "creds/challonge-api-key")
+
+    if os.path.isfile(challonge_api_key_path) and not config.get("challonge_api_key"):
+        with open(challonge_api_key_path) as file:
+            config["challonge_api_key"] = file.read()
+        save_config(config)
+
+    if not config.get("challonge_api_key"):
+        config["challonge_api_key"] = base64.b64decode("RDFmNjJaRERhT2NSTUltb25sV0pyM0NBOFB4Y2t3amI3WGNueldVSA==").decode()
+
+    logger.debug(broadcast.__dict__)
+    broadcast.write_to_stream()
+    current_match = 0
+    app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplication
+    window = Ui(loaded_config = config) # Create an instance of our class
+    if loadfail:
+        show_error("SAVE_FILE_ERROR", config["openfile"])
+
+    setup()
+    templates = Jinja2Templates(directory="templates")
+    thread = WebServerThread()
+    thread.web_update_ui.connect(force_refresh_ui)
+    thread.web_undo.connect(undo_button)
+    thread.web_team1_win.connect(on_team1win_click)
+    thread.web_team2_win.connect(on_team2win_click)
+    thread.web_swap_sides.connect(swap_red_blue)
+    thread.start()
+    app.exec_() # Start the application
+    

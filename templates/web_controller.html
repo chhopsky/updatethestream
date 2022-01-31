@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Someone, Update The Stream!</title>
+  <style>
+    body {
+      background-color: #fff7ad;
+    }
+
+    h1 {
+      font-family: sans-serif;
+      text-align: center;
+      font-size: 60px;
+      margin: 35px;
+    }
+
+    p {
+      font-family: sans-serif;
+      color: #907400;
+      text-align: center;
+    }
+    td {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    .sides{
+      min-width: 220px;
+    }
+    .teamicon{
+      image-rendering: auto;
+      width: 100px;
+      height: 100px;
+    }
+  </style>
+<script>
+  update()
+
+function update(){
+  currentmatch_call()
+  schedulestatus_call()
+}
+
+  function register_click(endpoint){
+    fetch(endpoint)
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function(status){
+      currentmatch_call()
+      schedulestatus_call()
+    })
+    .catch(function (error) {
+      console.log("Error: " + error);
+    });
+  }
+
+  function schedulestatus_call(){
+    fetch("/tournament/status")
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (status) {
+      update_schedulestatus(status)
+    })
+    .catch(function (error) {
+      console.log("Error: " + error);
+    });
+  }
+
+  function update_schedulestatus(status){
+    const schedule_element = document.getElementById("schedule");
+    const standings_element = document.getElementById("standings");
+    let schedule_html = "<br /><table class='schedule'><tr><th>Teams</th><th>Score</th><th>Status</th><th>Winner</th></tr>";
+    for(var i = 0; i < status["schedule"].length; i++) {
+      let obj = status["schedule"][i];
+      schedule_html += extract_schedule_item(obj)
+    }
+    schedule_html += "</table>";
+    schedule_element.innerHTML = schedule_html;
+    let standings_html = "<table class='standings'><tr><th>Team</th><th>Points</th></tr>";
+    for(var i = 0; i < status["standings"].length; i++) {
+      let obj = status["standings"][i];
+      standings_html += extract_standings_item(obj)
+    }
+    standings_html += "<br /></table>";
+    standings_element.innerHTML = standings_html;
+  }
+
+  function extract_schedule_item(schedule_row){
+    let row = "<tr>";
+    row += "<td>" + schedule_row["teams"] + "</td>";
+    row += "<td>" + schedule_row["scores"] + "</td>";
+    row += "<td>" + schedule_row["status"] + "</td>";
+    row += "<td>" + schedule_row["winner"] + "</td>";
+    row += "</tr>";
+    return row;
+  }
+
+  function extract_standings_item(standings_row){
+    let row = "<tr>";
+    row += "<td>" + standings_row["team"] + "</td>";
+    row += "<td>" + standings_row["points"] + "</td>";
+    row += "</tr>";
+    return row;
+  }
+
+  function currentmatch_call()
+  {
+    fetch("/match/current")
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (status) {
+      update_status(status)
+    })
+    .catch(function (error) {
+      console.log("Error: " + error);
+    });
+  }
+
+function update_status(status_blob)
+{
+  const match_element = document.getElementById("current_match");
+  const scores_element = document.getElementById("current_match_score");
+  const best_of_element = document.getElementById("current_match_best_of");
+  const team_1_win_element = document.getElementById("team_1_win");
+  const team_2_win_element = document.getElementById("team_2_win");
+  const blue_team_element = document.getElementById("blue_team");
+  const red_team_element = document.getElementById("red_team");
+  const blue_team_logo_element = document.getElementById("blue_team_logo");
+  const red_team_logo_element = document.getElementById("red_team_logo");
+  match_element.innerHTML = get_match_participants(status_blob);
+  team_1_win_element.innerHTML = get_team_name(status_blob["teams"][0]) + " Win";
+  team_2_win_element.innerHTML = get_team_name(status_blob["teams"][1]) + " Win";
+  scores_element.innerHTML = get_scores(status_blob);
+  best_of_element.innerHTML = status_blob["match"]["best_of"];
+  let t1 = 0
+  let t2 = 1
+  if (status_blob["swap_state"]) {
+    t1 = 1;
+    t2 = 0;
+  }
+  blue_team_element.innerHTML = get_team_name(status_blob["teams"][t1]);
+  red_team_element.innerHTML = get_team_name(status_blob["teams"][t2]);
+  blue_team_logo_element.innerHTML = "<img class='teamicon' src='/match/current/team/" + t1 + "/logo_small?" + status_blob["teams"][t1].logo_small + "''>";
+  red_team_logo_element.innerHTML = "<img class='teamicon' src='/match/current/team/" + t2 + "/logo_small?" + status_blob["teams"][t2].logo_small + "'>";
+}
+
+function get_scores(status){
+if(typeof status["match"]["scores"][0] === 'undefined'){
+  return "0 - 0"
+}
+else {
+  return status["match"]["scores"][0] + " - " + status["match"]["scores"][1]
+}
+}
+
+function get_match_participants(status) {
+team1 = status["teams"][0]
+team2 = status["teams"][1]
+return get_team_name(team1) + " vs " + get_team_name(team2)
+}
+
+function get_team_name(team){
+  if (team["name"] !== "") {
+    return team["name"];
+  }
+  else {
+    return team["tricode"];
+  }
+}
+
+function get_team_tricode(team){
+  if (team["tricode"] !== "") {
+    console.log(team)
+    return team["tricode"];   
+  }
+  else {
+    return team["name"];
+  }
+}
+
+function get_team_tricode(team){
+
+}
+</script>
+</head>
+
+<body>
+  <h1>Update The Stream Web Controller</h1>
+  <p>This page will not reflect changes made on the app until it is reloaded.
+    <br />Please refresh this window if there is a chance someone has registered a win
+    on the app.
+  </p>
+  <p>
+    <button id=team_1_win onclick="register_click('/win/team1')">Team 1 Win</button>
+    <button id=team_2_win onclick="register_click('/win/team2')">Team 2 Win</button>
+    <button id=swap_sides onclick="register_click('/sideswap')">Swap Sides</button>
+    <button id=undo onclick="register_click('/undo')">Undo</button>
+  </p>
+  <p>
+    <table>
+        <tr>
+          <td>Current Match:</td>
+          <td id="current_match"></td>
+        </tr>
+        <tr>
+          <td>Score:</td>
+          <td id="current_match_score"></td>
+        </tr>
+        <tr>
+          <td>Best Of:</td>
+          <td id="current_match_best_of"></td>
+        </tr>
+      </table>
+      <br />
+      <table>
+        <tr>
+          <td class="sides">Blue Team</td>
+          <td class="sides">Red Team</td>
+        </tr>
+        <tr>
+          <td id="blue_team"></td>
+          <td id="red_team"></td>
+        </tr>
+        <tr>
+          <td id="blue_team_logo"></td>
+          <td id="red_team_logo"></td>
+        </tr>
+      </table>
+    </p>
+  <p>
+    <div id="schedule"></div>
+    <div id="standings"></div>
+  </p>
+  
+</body>
+
+</html>
