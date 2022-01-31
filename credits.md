@@ -1,6 +1,6 @@
 ### Credits
 
-## Original Design / Project Maintainer
+## Original Design / Product Manager / Project Maintainer
 Chris "chhopsky" Pollock  
 
 ## Programming
