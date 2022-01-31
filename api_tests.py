@@ -1,13 +1,23 @@
 from tourneydefs import Tournament, Match, Team
 import requests
-import tools
+import processors
 import pprint
 
+tricodelist = []
+teamname_list = ["Team Solo Mid", "Counter-Logic Gaming", "Pentanet.GG", "Dignitas", 
+"Rogue Warriors", "Royal Never Give Up", "Team Shit", "Team Shiny", "Evil Geniuses", "Edward Gaming",
+"team_nyquil", "team_nyantic", "team_nyr", "team_nyra", "team_nyra2", "team_nyraaaaa2", "aaaaaaaa", "fuckyourmom",
+"a hahahaha","a hahahaha2", "a hahahaha3","a hahahaha4"]
+for team in teamname_list:
+    tc = processors.determine_tricode(team, tricodelist)
+    tricodelist.append(tc)
+    print(f"{team}: {tc}")
 
-tournament_id = "cf6c68c9-2f50-4589-a30c-16817e406b97"
 
-tournament = tools.poll_faceit(tournament_id)
-pprint.pprint(tournament)
+# tournament_id = "cf6c68c9-2f50-4589-a30c-16817e406b97"
+
+# tournament = tools.poll_faceit(tournament_id)
+# pprint.pprint(tournament)
 # teams = {}
 # for team in tournament["teams"]["payload"]["items"]:
 #     current_team = team["team"]

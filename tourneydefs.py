@@ -8,6 +8,7 @@ import json
 import logging
 import errno
 import shutil
+import processors
 
 class Team(BaseModel):
     id: str = ""
@@ -304,12 +305,14 @@ class Tournament(BaseModel):
                     match_list[i]["id"] = str(uuid4())
 
             #locate teams
+            tricode_list = []
             for team in team_list:
                 logging.debug(f"found new team with id {team['id']}")
                 new_team = Team()
                 new_team.name = team["display_name"]
                 new_team.id = str(team["id"])
-                new_team.tricode = team["name"][0:3].upper()
+                new_team.tricode = processors.determine_tricode(team["name"], tricode_list)[0:3]
+                tricode_list.append(new_team.tricode)
                 self.mapping[new_team.tricode] = new_team.id
                 self.add_team(new_team)
 

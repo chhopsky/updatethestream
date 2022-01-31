@@ -14,7 +14,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from waiting import wait, TimeoutExpired
 from os import mkdir
-import tools
+import loaders
+import processors
 import threading
 import uvicorn
 import udtsconfig
@@ -153,7 +154,7 @@ def open_faceit():
     if text and ok:
         found_tournament = False
         try:
-            faceit_data = tools.poll_faceit(text)
+            faceit_data = loaders.poll_faceit(text)
             if not len(faceit_data.get("matches")) > 1 and not len(faceit_data.get["teams"]) > 1:
                 raise Exception
             else:
@@ -177,7 +178,7 @@ def open_challonge():
     if text and ok and config.get("challonge_api_key"):
         found_tournament = False
         try:
-            tournament_info = tools.poll_challonge(text, config.get("challonge_api_key"))
+            tournament_info = loaders.poll_challonge(text, config.get("challonge_api_key"))
             if not len(tournament_info["matches"]) > 1 or not len(tournament_info["participants"]) > 1:
                 raise Exception
             else:
