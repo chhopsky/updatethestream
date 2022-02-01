@@ -47,6 +47,12 @@ def determine_tricode(teamname, tricodelist):
             # if it's a two word name
             if len(tn_s) == 2:
                 # try the first letters of the two words
+                if len(tn_s[0]) == 3:
+                    if is_tricode_unique(f"{tn_s[0]}", tricodelist):
+                        return f"{tn_s[0]}"
+                    if len(tn_s[1]):
+                        if is_tricode_unique(f"{tn_s[0][0:1]}{tn_s[0][2:3]}{tn_s[1][0:1]}", tricodelist):
+                            return f"{tn_s[0][0:1]}{tn_s[0][2:3]}{tn_s[1][0:1]}"
                 if len(tn_s[0]) and len(tn_s[1]):
                     if is_tricode_unique(f"{tn_s[0][0:1]}{tn_s[1][0:1]}", tricodelist):
                         return f"{tn_s[0][0:1]}{tn_s[1][0:1]}"
