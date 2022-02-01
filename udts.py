@@ -2,7 +2,6 @@ from asyncore import write
 import base64
 from http.client import OK
 from PyQt5.uic.uiparser import DEBUG
-from numpy import true_divide
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt, QUrl, QThread, pyqtSignal
@@ -16,7 +15,6 @@ from fastapi.templating import Jinja2Templates
 from waiting import wait, TimeoutExpired
 from os import mkdir
 import loaders
-import processors
 import threading
 import uvicorn
 import udtsconfig
