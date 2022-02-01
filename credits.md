@@ -8,6 +8,9 @@ Chris "chhopsky" Pollock
 Matt "Nibiria" Clendaniel  
 Leothechosen
 
+## UI / UX
+Nikolas Tapia
+
 ## QA
 CubicFoxxx  
 Leothechosen
