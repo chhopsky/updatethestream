@@ -235,7 +235,7 @@ def show_error(error_code = "UNKNOWN", additional_info = None):
 
 
 def update_from_challonge():
-    tournament_info = tools.poll_challonge(window.config["challonge_id"])
+    tournament_info = loaders.poll_challonge(window.config["challonge_id"])
     broadcast.update_match_history_from_challonge(tournament_info)
     force_refresh_ui()
     write()
