@@ -11,6 +11,7 @@ Leothechosen
 ## UI / UX
 Chris "chhopsky" Pollock  
 Nikolas Tapia
+Gia Linh Nguyen
 
 ## QA
 CubicFoxxx  
