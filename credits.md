@@ -17,6 +17,9 @@ Gia Linh Nguyen
 CubicFoxxx  
 Leothechosen
 
+## Build Automation
+Nikolas Tapia
+
 ## Documentation
 Chris "chhopsky" Pollock  
 CubicFoxxx  
