@@ -31,9 +31,16 @@ def generate_random_tricode_from_name(teamname, anything=False):
     new_tricode = source_string[i[0]] + source_string[i[1]] + source_string[i[2]]
     return new_tricode
 
+
 def determine_tricode(teamname, tricodelist):
     tn = teamname.upper()
     # tn: original teamname, tn_s: teamname, split by something
+
+    # check if some idiot entered a tricode-equipped name already
+    if tn.find("[") > -1 and tn.find("]") > -1 and (tn.find("]") - tn.find("[") < 6):
+        if is_tricode_unique(tn[tn.find("[")+1:tn.find("]")], tricodelist):
+            return tn[tn.find("[")+1:tn.find("]")]
+
     # First, if it's a two or three word name, people expect the first letters
     if " " in tn or "_" in tn or "-" in tn:
         new_tn = tn.replace("_", " ").replace("-"," ")
@@ -46,13 +53,15 @@ def determine_tricode(teamname, tricodelist):
                         return f"{tn_s[0][0:1]}{tn_s[1][0:1]}{tn_s[2][0:1]}"
             # if it's a two word name
             if len(tn_s) == 2:
-                # try the first letters of the two words
+                # if the first word is three characters, try that
                 if len(tn_s[0]) == 3:
                     if is_tricode_unique(f"{tn_s[0]}", tricodelist):
                         return f"{tn_s[0]}"
+                    # if that's taken, check if the second part of the split exists and try first/last of first word and first of second
                     if len(tn_s[1]):
                         if is_tricode_unique(f"{tn_s[0][0:1]}{tn_s[0][2:3]}{tn_s[1][0:1]}", tricodelist):
                             return f"{tn_s[0][0:1]}{tn_s[0][2:3]}{tn_s[1][0:1]}"
+                # try the first letters of the two words
                 if len(tn_s[0]) and len(tn_s[1]):
                     if is_tricode_unique(f"{tn_s[0][0:1]}{tn_s[1][0:1]}", tricodelist):
                         return f"{tn_s[0][0:1]}{tn_s[1][0:1]}"
