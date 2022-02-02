@@ -866,6 +866,15 @@ async def get_current_match_team1_logo_small(team_index):
             return current_match["teams"][team_index]["logo_small"]
     return broadcast.blank_image
 
+@webservice.get("/teams/all")
+async def get_all_teams():
+    teams = broadcast.get_all_teams()
+    output = {"teams": {} }
+    for id, team in teams.items():
+        team_dict = team.to_dict(b64images = True)
+        output["teams"][id] = team_dict
+    return output
+
 
 class WebServerThread(QThread):
     web_update_ui = pyqtSignal()
@@ -945,6 +954,7 @@ if __name__ == "__main__":
     logger.debug(broadcast.__dict__)
     broadcast.write_to_stream()
     current_match = 0
+    QtWidgets.QApplication.setStyle("fusion")
     app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplication
     window = Ui(loaded_config = config) # Create an instance of our class
     if loadfail:

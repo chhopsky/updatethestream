@@ -5,6 +5,7 @@ from errors import MatchScheduleDesync
 from copy import deepcopy
 import os
 import json
+import base64
 import logging
 import errno
 import shutil
@@ -18,15 +19,17 @@ class Team(BaseModel):
     logo_big: str = ""
     logo_small: str = ""
 
-    def to_dict(self, state=False):
+    def to_dict(self, state=False, b64images=False):
+        dict_to_return = {}
         if state:
-            return self.__dict__
+            dict_to_return = self.__dict__
         else:
-            dict_to_return = {}
             for key, value in self.__dict__.items():
                 if key != "points":
                     dict_to_return[key] = value
-            return dict_to_return
+        if b64images:
+            dict_to_return["logo_small_b64"] = self.get_logo_b64()
+        return dict_to_return
 
     def get_name(self):
         if self.name:
@@ -47,6 +50,13 @@ class Team(BaseModel):
             return self.name
         else:
             return f"{self.tricode}: {self.name}"
+    
+    def get_logo_b64(self):
+        if os.path.isfile(self.logo_small):
+            with open(self.logo_small, "rb") as f:
+                file = f.read()
+                if file:
+                    return base64.b64encode(file).decode()
 
 class Match(BaseModel):
     id: str = str(uuid4())
@@ -778,6 +788,8 @@ class Tournament(BaseModel):
         else:
             return None
 
+    def get_all_teams(self):
+        return self.teams
 
     def get_teams_from_scheduleid(self, id):
         try:    
