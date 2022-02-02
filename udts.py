@@ -1,6 +1,8 @@
 from asyncore import write
 import base64
 from http.client import OK
+from typing import List
+from typing_extensions import Self
 from PyQt5.uic.uiparser import DEBUG
 from tourneydefs import Tournament, Match, Team
 from PyQt5 import QtWidgets, uic
@@ -79,6 +81,7 @@ def setup():
     window.delete_match_confirm_checkbox.clicked.connect(confirm_delete_match)
     window.match_move_up_button.clicked.connect(match_move_up)
     window.match_move_down_button.clicked.connect(match_move_down)
+    window.clear_matches_button.clicked.connect(clear_matches_and_game_history)
     window.swap_button.clicked.connect(swap_red_blue)
     window.undo_button.clicked.connect(undo_button)
     window.undo_button.setEnabled(False)
@@ -290,6 +293,15 @@ def edit_tournament_config():
     window.edit_tbd_team_icon_current_icon.filename = False
     broadcast.edit_team(placeholder)
     force_refresh_ui()
+
+
+def clear_matches_and_game_history():
+    broadcast.clear_matches_and_game_history()
+    populate_matches()
+    update_schedule()
+    update_standings()
+    refresh_team_win_labels()
+    set_button_states()
 
 
 def edit_program_config():
