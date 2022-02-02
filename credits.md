@@ -10,7 +10,7 @@ Leothechosen
 
 ## UI / UX
 Chris "chhopsky" Pollock  
-Nikolas Tapia
+Nikolas Tapia  
 Gia Linh Nguyen
 
 ## QA
