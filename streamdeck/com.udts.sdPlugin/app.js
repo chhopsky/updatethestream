@@ -1,4 +1,4 @@
-var knownButtons = []
+var knownButtons = {}
 $SD.on('connected', (jsonObj) => connected(jsonObj));
 
 function connected(jsn) {
@@ -21,64 +21,22 @@ function connected(jsn) {
 };
 
 const action = {
-    settings:{},
     onWillAppear: function (jsn) {
-        for (button of knownButtons) {
-            if (button.action == jsn.action) {
-                var button_already_exists = true
-            }
-        }
-        if (!button_already_exists) {
-            knownButtons.push(jsn)
-        }
-        button_already_exists = false
-        this.settings = jsn.payload.settings;
-        fetch("http://localhost:8000/match/current/")
-            .then(response => response.json())
-            .then((data) => {
-                let team_1_tricode = data["teams"][0]["tricode"];
-                let team_2_tricode = data["teams"][1]["tricode"];
-                if (jsn.action == "com.udts.team1win") {
-                    this.settings.mynameinput = team_1_tricode + "\nWin";
-                    this.setTitle(jsn);
-                }
-                else if (jsn.action == "com.udts.team2win") {
-                    this.settings.mynameinput = team_2_tricode + "\nWin";
-                    this.setTitle(jsn);
-                }
-            })
-            .catch(error => {
-                if (jsn.action == "com.udts.team1win") {
-                    this.settings.mynameinput = "Team 1\nWin"
-                    this.setTitle(jsn)
-                }
-                else if (jsn.action == "com.udts.team2win") {
-                    this.settings.mynameinput = "Team 2\nWin"
-                    this.setTitle(jsn)
-                }
-            })
+        knownButtons[jsn.action] = jsn
         if (jsn.action == "com.udts.swapsides") {
-            this.settings.mynameinput = "Swap\nRed/Blue";
-            this.setTitle(jsn);
+            this.setTitle(jsn, "Swap\nRed/Blue");
+            this.updateSides(jsn)  // This is here because I want it to only run once. Placing it elsewhere will make it run multiple times, so here is the next best place.
         }
         else if (jsn.action == "com.udts.forceupdate") {
-            this.settings.mynameinput = "Force\nUpdate";
-            this.setTitle(jsn);
+            this.setTitle(jsn, "Force\nUpdate");
         }
         else if (jsn.action == "com.udts.undo") {
-            this.settings.mynameinput = "Undo"
-            this.setTitle(jsn)
+            this.setTitle(jsn, "Undo")
         }
     },
 
     onWillDisappear: function (jsn) {
-        let index_num = 0
-        for (button of knownButtons) {
-            if (button["action"] == jsn.action) {
-                knownButtons.splice(index_num, 1);
-            }
-            index_num++ 
-        }
+        delete knownButtons[jsn.action]
     },
 
     onKeyUp: function (jsn) {
@@ -99,30 +57,39 @@ const action = {
             fetch("http://localhost:8000/undo")
             .then(response => response.json())
         }
+        this.updateSides(jsn)
+    },
+
+    setTitle: function(jsn, new_name) {
+        $SD.api.setTitle(jsn.context, new_name)
+    },
+
+    updateSides: function(jsn) {
+        let team_1_tricode;
+        let team_2_tricode;
         fetch("http://localhost:8000/match/current/")
             .then(response => response.json())
             .then((data) => {
-                let team_1_tricode = data["teams"][0]["tricode"] + "\nWin";
-                let team_2_tricode = data["teams"][1]["tricode"] + "\nWin";
-                for (button of knownButtons) {
-                    if (button.action == "com.udts.team1win") {
-                        this.setTitle(button, team_1_tricode)
-                    }
-                    else if (button.action == "com.udts.team2win") {
-                        this.setTitle(button, team_2_tricode)
-                    }
+                console.log(data)
+                team_1_tricode = data["teams"][0]["tricode"] + "\nWin"
+                team_1_logo = data["teams"][0]["logo_small"]
+                if (team_1_tricode == "") {
+                    team_1_tricode = "Team 1\nWin"
                 }
+                team_2_tricode = data["teams"][1]["tricode"] + "\nWin"
+                team_2_logo = data["teams"][1]["logo_small"]
+                if (team_2_tricode == "") {
+                    team_2_tricode = "Team 2\nWin"
+                }
+                this.setTitle(knownButtons["com.udts.team1win"], team_1_tricode)
+                this.setTitle(knownButtons["com.udts.team2win"], team_2_tricode)
             })
-    },
-
-    setTitle: function(jsn, new_name = "") {
-        if (this.settings && this.settings.hasOwnProperty('mynameinput') && new_name == "") {
-            $SD.api.setTitle(jsn.context, this.settings.mynameinput);
-        }
-        else {
-            $SD.api.setTitle(jsn.context, new_name)
-        }
-    },
-
+            .catch(error => {
+                team_1_tricode = "Team 1\nWin"
+                team_2_tricode = "Team 2\nWin"
+                this.setTitle(knownButtons["com.udts.team1win"], team_1_tricode)
+                this.setTitle(knownButtons["com.udts.team2win"], team_2_tricode)
+            })
+    }
 };
 
