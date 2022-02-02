@@ -796,7 +796,7 @@ def web_win_team1(response: Response):
     if window.team1_win_button.isEnabled():
         thread.web_team1_win.emit(request_id)
         thread.web_update_ui.emit()
-        return 
+        return {}
     response.status_code = 400
     return response
 
@@ -806,7 +806,7 @@ def web_win_team2(response: Response):
     if window.team2_win_button.isEnabled():
         thread.web_team2_win.emit(request_id)
         thread.web_update_ui.emit()
-        return
+        return {}
     response.status_code = 400
     return response
 
@@ -817,7 +817,7 @@ def web_sideswap(response: Response):
     if window.swap_button.isEnabled():
         thread.web_swap_sides.emit(request_id)
         thread.web_update_ui.emit()
-        return
+        return {}
     response.status_code = 400
     return response
 
@@ -827,21 +827,26 @@ async def web_undo(response: Response):
     if window.undo_button.isEnabled():
         thread.web_undo.emit(request_id)
         thread.web_update_ui.emit()
-        return
+        return {}
     response.status_code = 400
     return response
 
 @webservice.get("/match/current")
 async def get_current_match():
-    try:
-        wait(lambda: thread.requests_incomplete(), timeout_seconds=2, sleep_seconds=0.1, waiting_for="outstanding requests to be processed")
-    except TimeoutExpired:
-        response_value = broadcast.get_current_match_data_json()
-        response_value["swap_state"] = window.swapstate
-        return response_value
+    if thread.requests_incomplete():
+        try:
+            wait(lambda: thread.requests_incomplete(), timeout_seconds=2, sleep_seconds=0.1, waiting_for="outstanding requests to be processed")
+        except TimeoutExpired:
+            response_value = broadcast.get_current_match_data_json()
+            response_value["swap_state"] = window.swapstate
+            return response_value
     response_value = broadcast.get_current_match_data_json()
     response_value["swap_state"] = window.swapstate
     return response_value
+
+@webservice.get("/stream/refresh")
+async def force_refresh():
+    thread.web_swap_sides.emit()
 
 @webservice.get("/tournament/status")
 async def get_current_match():
@@ -867,6 +872,7 @@ class WebServerThread(QThread):
     web_team1_win = pyqtSignal(object)
     web_team2_win = pyqtSignal(object)
     web_swap_sides = pyqtSignal(object)
+    web_refresh_stream = pyqtSignal()
     request_state = {}
 
     def requests_incomplete(self):
@@ -951,6 +957,7 @@ if __name__ == "__main__":
     thread.web_team1_win.connect(on_team1win_click)
     thread.web_team2_win.connect(on_team2win_click)
     thread.web_swap_sides.connect(swap_red_blue)
+    thread.web_refresh_stream.connect(force_refresh_stream)
     thread.start()
     app.exec_() # Start the application
     

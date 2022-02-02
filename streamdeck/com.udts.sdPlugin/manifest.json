@@ -57,9 +57,9 @@
     }
   ],
   "SDKVersion": 2,
-  "Author": "UDTS", 
+  "Author": "UDTS Team", 
   "CodePath": "index.html", 
-  "Description": "Someone, update the stream!", 
+  "Description": "Someone, Update The Stream!", 
   "Name": "UDTS", 
   "Icon": "action/images/chhtv", 
   "URL": "https://github.com/chhopsky/updatethestream", 
