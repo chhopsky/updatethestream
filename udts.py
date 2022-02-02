@@ -846,7 +846,7 @@ async def get_current_match():
 
 @webservice.get("/stream/refresh")
 async def force_refresh():
-    thread.web_swap_sides.emit()
+    thread.web_refresh_stream.emit()
 
 @webservice.get("/tournament/status")
 async def get_current_match():
