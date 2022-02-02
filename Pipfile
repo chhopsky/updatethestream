@@ -17,6 +17,7 @@ fastapi = "*"
 uvicorn = "*"
 jinja2 = "*"
 waiting = "*"
+requests = "*"
 
 [requires]
 python_version = "3.8"
