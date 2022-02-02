@@ -23,11 +23,11 @@
       "UUID": "com.udts.team2win"
     },
     {
-      "Icon": "action/images/chhtv",
+      "Icon": "action/images/sideswap",
       "Name": "Swap Teams",
       "States": [
         {
-          "Image": "action/images/chhtv"
+          "Image": "action/images/sideswap"
         }
       ],
       "Tooltip": "Swap Teams",
