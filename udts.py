@@ -954,7 +954,7 @@ if __name__ == "__main__":
     logger.debug(broadcast.__dict__)
     broadcast.write_to_stream()
     current_match = 0
-    QtWidgets.QApplication.setStyle("fusion")
+    QtWidgets.QApplication.setStyle("fusion") # Standardize UI graphics
     app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplication
     window = Ui(loaded_config = config) # Create an instance of our class
     if loadfail:
