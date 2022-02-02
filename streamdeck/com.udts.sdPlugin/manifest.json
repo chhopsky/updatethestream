@@ -1,22 +1,22 @@
 {
   "Actions": [
     {
-      "Icon": "action/images/chhtv",
+      "Icon": "action/images/win",
       "Name": "Team 1",
       "States": [
         {
-          "Image": "action/images/chhtv"
+          "Image": "action/images/win"
         }
       ],
       "Tooltip": "Team 1 Win",
       "UUID": "com.udts.team1win"
     },
     {
-      "Icon": "action/images/chhtv",
+      "Icon": "action/images/win",
       "Name": "Team 2",
       "States": [
         {
-          "Image": "action/images/chhtv"
+          "Image": "action/images/win"
         }
       ],
       "Tooltip": "Team 2 Win",
@@ -34,22 +34,22 @@
       "UUID": "com.udts.swapsides"
     },
     {
-      "Icon": "action/images/chhtv",
-      "Name": "Force Update",
+      "Icon": "action/images/forcerefreshstream",
+      "Name": "Force Refresh Stream",
       "States": [
         {
-          "Image": "action/images/chhtv"
+          "Image": "action/images/forcerefreshstream"
         }
       ],
-      "Tootip": "Force Update",
-      "UUID": "com.udts.forceupdate"
+      "Tootip": "Force Refresh Stream",
+      "UUID": "com.udts.forcerefreshstream"
     },
     {
-      "Icon": "action/images/chhtv",
+      "Icon": "action/images/undo",
       "Name": "Undo Last Result",
       "States": [
         {
-          "Image": "action/images/chhtv"
+          "Image": "action/images/undo"
         }
       ],
       "Tooltip": "Undo Last Result",
