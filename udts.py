@@ -109,7 +109,24 @@ def setup():
     window.edit_tbd_team_icon_current_icon.filename = False
     window.team1_final_score_field.setEnabled(False)
     window.team2_final_score_field.setEnabled(False)
+    window.add_team_name_field.textChanged.connect(on_team_text_change)
+    window.add_team_tricode_field.textChanged.connect(on_team_text_change)
+    window.add_match_team1_dropdown.currentIndexChanged.connect(on_match_dropdown_change)
+    window.add_match_team2_dropdown.currentIndexChanged.connect(on_match_dropdown_change)
+    window.add_match_bestof_dropdown.currentIndexChanged.connect(on_match_dropdown_change)
 
+def on_team_text_change():
+    # Team UI Tab
+    if (window.add_team_name_field.text() != '') or (window.add_team_tricode_field.text() != ''):
+        window.add_team_button.setEnabled(True)
+    else:
+        window.add_team_button.setEnabled(False)
+
+def on_match_dropdown_change():
+    # Match UI Tab
+    if (window.add_match_team1_dropdown.currentIndex() != -1) and (window.add_match_team2_dropdown.currentIndex() != -1) and (window.add_match_bestof_dropdown.currentIndex() != -1):
+        window.add_match_button.setEnabled(True)
+    
 
 def set_config_ui():
     point_config = broadcast.get_points_config_all()
@@ -378,6 +395,7 @@ def set_button_states():
         window.swap_button.setEnabled(False)
 
 
+
 def write_to_stream_if_enabled():
     if window.config.get("auto-write-changes-to-stream", True):
         force_refresh_stream()
@@ -483,6 +501,8 @@ def add_team():
         window.add_team_tricode_field.setText("")
         window.add_team_points_field.setText("")
         populate_teams()
+    else:
+        return
     if window.add_team_icon_label.filename:
         new_team.logo_small = window.add_team_icon_label.filename
     if window.add_team_hero_label.filename:
@@ -614,6 +634,7 @@ def add_match():
         new_match.teams.append(widget1.id)
         new_match.teams.append(widget2.id)
         new_match.best_of = int(window.add_match_bestof_dropdown.currentText())
+        window.add_match_button.setEnabled(False)
         broadcast.add_match(new_match)
         if len(broadcast.matches) == 1:
             set_button_states()
