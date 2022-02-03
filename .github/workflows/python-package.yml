@@ -5,7 +5,7 @@ name: Update the Stream
 
 on:
   push:
-    branches: [ main, development ]
+    branches: [ development ]
   pull_request:
     branches: [ main, development ]
 
