@@ -844,18 +844,38 @@ async def get_current_match():
     response_value["swap_state"] = window.swapstate
     return response_value
 
+
 @webservice.get("/stream/refresh")
 async def force_refresh():
     thread.web_refresh_stream.emit()
     return {}
 
+
 @webservice.get("/tournament/status")
 async def get_current_match():
+    output = {}
+    timed_out = False
     try:
         wait(lambda: thread.requests_incomplete(), timeout_seconds=2, sleep_seconds=0.1, waiting_for="outstanding requests to be processed")
     except TimeoutExpired:
-        return broadcast.get_schedule_standings_json()
-    return broadcast.get_schedule_standings_json()
+        timed_out = True
+        output = broadcast.get_schedule_standings_json()
+    if not timed_out:
+        output = broadcast.get_schedule_standings_json()
+
+    teams = broadcast.get_all_teams()
+    output["teams"] = {}
+    for id, team in teams.items():
+        team_dict = team.to_dict(b64images = True)
+        output["teams"][id] = team_dict
+    return output
+    
+
+@webservice.get("/tournament/all")
+async def get_tournament_all():
+    # TODO: this
+    return {}
+
 
 @webservice.get("/match/current/team/{team_index}/logo_small", response_class=FileResponse)
 async def get_current_match_team1_logo_small(team_index):
@@ -866,7 +886,8 @@ async def get_current_match_team1_logo_small(team_index):
             return current_match["teams"][team_index]["logo_small"]
     return broadcast.blank_image
 
-@webservice.get("/teams/all")
+
+@webservice.get("/teams")
 async def get_all_teams():
     teams = broadcast.get_all_teams()
     output = {"teams": {} }
@@ -874,6 +895,52 @@ async def get_all_teams():
         team_dict = team.to_dict(b64images = True)
         output["teams"][id] = team_dict
     return output
+
+
+@webservice.get("/teams/{teamid}")
+async def get_team(teamid):
+    team = broadcast.get_team(teamid)
+    output = {}
+    team_dict = team.to_dict(b64images = True)
+    output[team.id] = team_dict
+    return output
+
+@webservice.get("/schedule")
+async def get_schedule_all():
+    schedule = broadcast.get_schedule()
+    output = {"schedule": []}
+    if len(schedule):
+        output["schedule"] = schedule
+    return output
+    
+
+@webservice.get("/schedule/{item}")
+async def get_schedule(item: int):
+    schedule = broadcast.get_schedule(item)
+    output = {"schedule": []}
+    if len(schedule):
+        output["schedule"] = schedule
+    return output
+
+
+@webservice.get("/matches")
+async def get_all_matches():
+    matches = broadcast.get_all_matches()
+    output = {"matches": {} }
+    for id, match in matches.items():
+        match_dict = match.to_dict(state = True)
+        output["matches"][id] = match_dict
+    return output
+
+
+@webservice.get("/matches/{matchid}")
+async def get_match(matchid):
+    match = broadcast.get_match(matchid)
+    output = {}
+    match_dict = match.to_dict(state = True)
+    output[match.id] = match_dict
+    return output
+
 
 
 class WebServerThread(QThread):

@@ -810,6 +810,17 @@ class Tournament(BaseModel):
             return None
 
 
+    def get_all_matches(self):
+        return self.matches
+
+    
+    def get_schedule(self, item = None):
+        if not item:
+            return self.schedule
+        elif int(item) < len(self.schedule):
+            return self.schedule[item]
+
+
     def get_scheduleid_from_match_id(self, match_id):
         return self.schedule.index(match_id)
 
