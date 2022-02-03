@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1108</width>
-    <height>617</height>
+    <width>1049</width>
+    <height>734</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="live_tab">
        <attribute name="title">
@@ -52,6 +52,12 @@
               <property name="enabled">
                <bool>false</bool>
               </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="toolTip">
                <string>Reload current tournament state from Challonge</string>
               </property>
@@ -61,15 +67,12 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="stop_button">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
+             <widget class="QPushButton" name="undo_button">
               <property name="toolTip">
-               <string>Stops the tournament. All progress will be lost.</string>
+               <string>In case of misclicking which team won, click this to roll back.</string>
               </property>
               <property name="text">
-               <string>Stop (Not Implemented)</string>
+               <string>Undo Last Result</string>
               </property>
              </widget>
             </item>
@@ -101,8 +104,17 @@
           </item>
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_8">
+            <property name="topMargin">
+             <number>8</number>
+            </property>
             <item>
              <widget class="QPushButton" name="swap_button">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="toolTip">
                <string>Switch which sides teams are on.</string>
               </property>
@@ -112,60 +124,65 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="blue_label">
-              <property name="text">
-               <string>Blue:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="red_label">
-              <property name="text">
-               <string>Red:</string>
-              </property>
-             </widget>
+             <layout class="QVBoxLayout" name="verticalLayout_4">
+              <item>
+               <widget class="QLabel" name="blue_label">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Blue:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="red_label">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Red:</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>
           <item>
-           <widget class="QPushButton" name="undo_button">
-            <property name="toolTip">
-             <string>In case of misclicking which team won, click this to roll back.</string>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="label">
             <property name="text">
-             <string>Undo Last Result</string>
+             <string/>
+            </property>
+            <property name="pixmap">
+             <pixmap>chhtvlogo.png</pixmap>
+            </property>
+            <property name="scaledContents">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,0">
-            <item alignment="Qt::AlignLeft">
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string/>
-              </property>
-              <property name="pixmap">
-               <pixmap>chhtvlogo.png</pixmap>
-              </property>
-              <property name="scaledContents">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_2">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>esports for everyone</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <layout class="QHBoxLayout" name="horizontalLayout"/>
           </item>
          </layout>
         </item>
@@ -175,10 +192,73 @@
            <string>Tournament In Progress:</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
+           <item row="2" column="0" colspan="3">
+            <layout class="QFormLayout" name="info_form">
+             <property name="leftMargin">
+              <number>5</number>
+             </property>
+             <property name="topMargin">
+              <number>5</number>
+             </property>
+             <item row="1" column="0">
+              <widget class="QLabel" name="best_of_label">
+               <property name="text">
+                <string>Best of:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLabel" name="best_of_count_label">
+               <property name="text">
+                <string>-</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="up_next_label">
+               <property name="text">
+                <string>Up Next:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLabel" name="up_next_match">
+               <property name="text">
+                <string>PGG vs IMAY</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
            <item row="0" column="1">
             <widget class="QLabel" name="final_score_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Final Score</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="4" rowspan="2">
+            <widget class="QListWidget" name="standings_list_widget"/>
+           </item>
+           <item row="1" column="3" rowspan="2">
+            <widget class="QListWidget" name="schedule_list_widget"/>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="now_playing_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Who Won?</string>
              </property>
             </widget>
            </item>
@@ -218,19 +298,38 @@
              </item>
             </layout>
            </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="now_playing_label">
-             <property name="text">
-              <string>Who Won?</string>
+           <item row="1" column="1">
+            <layout class="QVBoxLayout" name="game_score_vbox">
+             <property name="sizeConstraint">
+              <enum>QLayout::SetFixedSize</enum>
              </property>
-            </widget>
-           </item>
-           <item row="0" column="4">
-            <widget class="QLabel" name="standings_label">
-             <property name="text">
-              <string>Standings</string>
+             <property name="leftMargin">
+              <number>5</number>
              </property>
-            </widget>
+             <property name="rightMargin">
+              <number>5</number>
+             </property>
+             <item>
+              <widget class="QLineEdit" name="team1_final_score_field">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="team2_final_score_field">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item row="1" column="0">
             <layout class="QVBoxLayout" name="win_controls_vbox">
@@ -256,68 +355,27 @@
              </item>
             </layout>
            </item>
-           <item row="1" column="1">
-            <layout class="QVBoxLayout" name="game_score_vbox">
-             <property name="leftMargin">
-              <number>5</number>
+           <item row="0" column="4">
+            <widget class="QLabel" name="standings_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
-             <property name="rightMargin">
-              <number>5</number>
+             <property name="text">
+              <string>Standings</string>
              </property>
-             <item>
-              <widget class="QLineEdit" name="team1_final_score_field"/>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="team2_final_score_field"/>
-             </item>
-            </layout>
-           </item>
-           <item row="2" column="0" colspan="3">
-            <layout class="QFormLayout" name="info_form">
-             <property name="leftMargin">
-              <number>5</number>
-             </property>
-             <property name="topMargin">
-              <number>5</number>
-             </property>
-             <item row="1" column="0">
-              <widget class="QLabel" name="best_of_label">
-               <property name="text">
-                <string>Best of:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLabel" name="best_of_count_label">
-               <property name="text">
-                <string>-</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="up_next_label">
-               <property name="text">
-                <string>Up Next:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QLabel" name="up_next_match">
-               <property name="text">
-                <string>PGG vs IMAY</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="1" column="4" rowspan="2">
-            <widget class="QListWidget" name="standings_list_widget"/>
-           </item>
-           <item row="1" column="3" rowspan="2">
-            <widget class="QListWidget" name="schedule_list_widget"/>
+            </widget>
            </item>
            <item row="0" column="3">
             <widget class="QLabel" name="schedule_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Schedule</string>
              </property>
@@ -333,129 +391,17 @@
         <string>Teams</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_5">
-        <item row="0" column="4" rowspan="3">
-         <widget class="QListWidget" name="team_list_widget">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>1</verstretch>
-           </sizepolicy>
-          </property>
-          <item>
-           <property name="text">
-            <string/>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QPushButton" name="edit_team_button">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Save Edits</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1" colspan="3">
-         <layout class="QFormLayout" name="add_team_form">
-          <item row="0" column="0">
-           <widget class="QLabel" name="add_team_name_label">
-            <property name="text">
-             <string>Name</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="add_team_tricode_label">
-            <property name="text">
-             <string>Tricode</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="add_team_name_field">
-            <property name="placeholderText">
-             <string>e.g. Team Solo Mid</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="add_team_tricode_field">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="placeholderText">
-             <string>e.g. TSM</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="add_team_points_label">
-            <property name="text">
-             <string>Points</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="add_team_points_field">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="placeholderText">
-             <string>e.g. 10</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QPushButton" name="add_team_icon_button">
-            <property name="toolTip">
-             <string extracomment="Select a team icon file."/>
-            </property>
-            <property name="text">
-             <string>Select Team Logo Image</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLabel" name="add_team_icon_label">
-            <property name="text">
-             <string>No Icon.</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QPushButton" name="add_team_hero_button">
-            <property name="toolTip">
-             <string extracomment="Select a larger hero image for the team."/>
-            </property>
-            <property name="text">
-             <string>Select Team Hero Image</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="1">
-           <widget class="QLabel" name="add_team_hero_label">
-            <property name="text">
-             <string>No Hero Image.</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="0" column="0">
-         <widget class="QPushButton" name="add_team_button">
-          <property name="text">
-           <string>Add Team</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1" rowspan="2" colspan="3">
+        <item row="1" column="5" colspan="2">
          <layout class="QFormLayout" name="edit_team_form">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetFixedSize</enum>
+          </property>
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+          </property>
+          <property name="labelAlignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
           <item row="0" column="0">
            <widget class="QLabel" name="edit_team_name_label">
             <property name="text">
@@ -465,6 +411,12 @@
           </item>
           <item row="0" column="1">
            <widget class="QLineEdit" name="edit_team_name_field">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="placeholderText">
              <string>e.g. Team Solo Mid</string>
             </property>
@@ -480,7 +432,7 @@
           <item row="1" column="1">
            <widget class="QLineEdit" name="edit_team_tricode_field">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -499,6 +451,12 @@
           </item>
           <item row="2" column="1">
            <widget class="QLineEdit" name="edit_team_points_field">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -519,6 +477,12 @@
           </item>
           <item row="4" column="1">
            <widget class="QLabel" name="edit_team_icon_label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>No Logo.</string>
             </property>
@@ -536,6 +500,12 @@
           </item>
           <item row="6" column="1">
            <widget class="QLabel" name="edit_team_hero_label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>No Hero Image.</string>
             </property>
@@ -543,6 +513,12 @@
           </item>
           <item row="7" column="1">
            <widget class="QCheckBox" name="delete_team_confirm_checkbox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Confirm Delete</string>
             </property>
@@ -557,6 +533,193 @@
              <string>Delete</string>
             </property>
            </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="4">
+         <widget class="QPushButton" name="add_team_button">
+          <property name="text">
+           <string>Add Team</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="7" rowspan="3">
+         <widget class="QListWidget" name="team_list_widget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>1</verstretch>
+           </sizepolicy>
+          </property>
+          <item>
+           <property name="text">
+            <string/>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="1" column="4">
+         <widget class="QPushButton" name="edit_team_button">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Save Edits</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="5" colspan="2">
+         <layout class="QFormLayout" name="add_team_form">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetFixedSize</enum>
+          </property>
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+          </property>
+          <property name="labelAlignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="add_team_name_label">
+            <property name="text">
+             <string>Name</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="add_team_name_field">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="placeholderText">
+             <string>e.g. Team Solo Mid</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="add_team_tricode_label">
+            <property name="text">
+             <string>Tricode</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="add_team_tricode_field">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="placeholderText">
+             <string>e.g. TSM</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="add_team_points_label">
+            <property name="text">
+             <string>Points</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="add_team_points_field">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="placeholderText">
+             <string>e.g. 10</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QPushButton" name="add_team_icon_button">
+            <property name="toolTip">
+             <string extracomment="Select a team icon file."/>
+            </property>
+            <property name="text">
+             <string>Select Team Logo Image</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLabel" name="add_team_icon_label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>No Icon.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QPushButton" name="add_team_hero_button">
+            <property name="toolTip">
+             <string extracomment="Select a larger hero image for the team."/>
+            </property>
+            <property name="text">
+             <string>Select Team Hero Image</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QLabel" name="add_team_hero_label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>No Hero Image.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item row="2" column="5">
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Expanding</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </item>
@@ -784,6 +947,12 @@
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <widget class="QPushButton" name="save_tournament_config_button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Update Tournament Options</string>
           </property>
@@ -805,10 +974,36 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="points_on_win_spinbox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="value">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="0">
            <widget class="QLabel" name="edit_points_tie_label">
             <property name="text">
              <string>Tie</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="points_on_tie_spinbox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="value">
+             <number>0</number>
             </property>
            </widget>
           </item>
@@ -819,49 +1014,16 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QSpinBox" name="points_on_win_spinbox">
-            <property name="value">
-             <number>1</number>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QSpinBox" name="points_on_tie_spinbox">
-            <property name="value">
-             <number>0</number>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="1">
            <widget class="QSpinBox" name="points_on_loss_spinbox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="value">
              <number>0</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QFormLayout" name="edit_tbd_team">
-          <item row="0" column="0">
-           <widget class="QLabel" name="edit_tbd_team_icon_label">
-            <property name="text">
-             <string>TBD Team Icon</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QPushButton" name="edit_tbd_team_icon_select_button">
-            <property name="text">
-             <string>Select TBD Icon</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="edit_tbd_team_icon_current_icon">
-            <property name="text">
-             <string>Default Icon File</string>
             </property>
            </widget>
           </item>
@@ -875,18 +1037,74 @@
          </widget>
         </item>
         <item>
+         <widget class="QLabel" name="program_options_label">
+          <property name="text">
+           <string>Program options. Changes here will be saved in your config.cfg file and affect every tournament.</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="save_program_config_button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Save Program Options</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="program_options_label">
-          <property name="text">
-           <string>Program options. Changes here will be saved in your config.cfg file and affect every tournament.</string>
-          </property>
-         </widget>
+         <layout class="QFormLayout" name="edit_tbd_team">
+          <item row="0" column="0">
+           <widget class="QLabel" name="edit_tbd_team_icon_label">
+            <property name="text">
+             <string>TBD Team Icon</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="edit_tbd_team_icon_select_button">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Select TBD Icon</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="edit_tbd_team_icon_current_icon">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Default Icon File</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
         </item>
         <item>
          <layout class="QFormLayout" name="checkbox_options">
@@ -923,7 +1141,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1108</width>
+     <width>1049</width>
      <height>21</height>
     </rect>
    </property>
