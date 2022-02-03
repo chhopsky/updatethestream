@@ -26,6 +26,7 @@ import json
 import logging
 import os.path
 import requests
+import signal
 
 
 
@@ -1070,5 +1071,6 @@ if __name__ == "__main__":
     thread.web_swap_sides.connect(swap_red_blue)
     thread.web_refresh_stream.connect(force_refresh_stream)
     thread.start()
+    signal.signal(signal.SIGINT, signal.SIG_DFL) # Make app interruptable
     app.exec_() # Start the application
     
