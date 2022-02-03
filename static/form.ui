@@ -449,6 +449,9 @@
         </item>
         <item row="0" column="0">
          <widget class="QPushButton" name="add_team_button">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Add Team</string>
           </property>
@@ -569,6 +572,9 @@
        <layout class="QGridLayout" name="gridLayout_6">
         <item row="0" column="0">
          <widget class="QPushButton" name="add_match_button">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
           <property name="text">
            <string>Add Match</string>
           </property>
