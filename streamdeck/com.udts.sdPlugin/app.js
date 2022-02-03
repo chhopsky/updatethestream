@@ -20,6 +20,7 @@ function connected(jsn) {
     $SD.on('com.udts.swapsides.keyDown', (jsonObj) => onClick("/sideswap"));
     $SD.on('com.udts.undo.keyDown', (jsonObj) => onClick("/undo"));
     $SD.on('com.udts.forcerefreshstream.keyDown', (jsonObj) => onClick("/stream/refresh"));
+    $SD.on('applicationDidLaunch', (jsonObj) => currentmatch_call())
 };
 
 function onClick(path) {
