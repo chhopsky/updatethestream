@@ -1,14 +1,14 @@
 # Update The Stream
 A tournament scores/schedule/standings management tool for esports tournament broadcasts.
 
-<img src="https://chhopsky.github.io/UDTS-demo-0.3.png">
+<img src="https://chhopsky.github.io/static/UDTS-demo-0.3.png">
 
 # How to use:
 Download the latest release: https://github.com/chhopsky/updatethestream/releases  
 
 The program uses the teams and matches you configure to write out text files and images containing schedule, scores and standings. In OBS, or whatever broadcast program you use, add files from the "streamlabels" folder as sources, and configure them however you want in your broadcast program.
 
-<img src="https://chhopsky.github.io/udts-in-obs.png">
+<img src="https://chhopsky.github.io/static/udts-in-obs.png">
 
 # Demonstration:
 Video demo: https://www.youtube.com/watch?v=o-WJ5P9WSGo
@@ -22,7 +22,7 @@ Step by step:
 3. Hit Swap Red/Blue if you want to swap red and blue side labels for "current match" text files  
 4. "Undo last result" steps backwards through the results you recorded, and moves you back in time through the broadcast.  
 
-<img src="https://chhopsky.github.io/UDTS-screenshot-0.3.png">
+<img src="https://chhopsky.github.io/static/UDTS-screenshot-0.3.png">
 
 Notes:  
 "Force refresh stream" will rewrite the files, if you have auto-update disabled, or if you've edited a source.  
