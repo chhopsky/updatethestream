@@ -19,9 +19,9 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            asset_name: udts-macos-x86_64
+            asset_name: udts-macos-x86_64-${{ env.GITHUB_SHA }}
           - os: windows-latest
-            asset_name: udts-win64
+            asset_name: udts-win64$-{{ env.GITHUB_SHA }}
 
 
     steps:
@@ -35,8 +35,8 @@ jobs:
         python -m pip install --upgrade pip pipenv wheel
         pipenv install --deploy --dev
 
-        #- name: Test with pytest
-        #  run: pipenv run pytest tests.py
+    - name: Test with pytest
+      run: pipenv run pytest tests.py
 
     - name: Build package
       run: |
@@ -72,5 +72,5 @@ jobs:
         file: udts.zip
         asset_name: ${{ matrix.asset_name }}.zip
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ github.ref }}
+        tag: ${{ github.ref }}    
 
