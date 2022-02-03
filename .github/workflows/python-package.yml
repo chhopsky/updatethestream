@@ -19,9 +19,9 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            asset_name: udts-macos-x86_64-${{ GITHUB_SHA }}
+            asset_name: udts-macos-x86_64-${{ github.sha }}
           - os: windows-latest
-            asset_name: udts-win64-${{ GITHUB_SHA }}
+            asset_name: udts-win64-${{ github.sha }}
 
 
     steps:
