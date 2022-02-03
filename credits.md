@@ -7,6 +7,7 @@ Chris "chhopsky" Pollock
 Chris "chhopsky" Pollock  
 Matt "Nibiria" Clendaniel  
 Leothechosen
+Gia Linh Nguyen
 
 ## UI / UX
 Chris "chhopsky" Pollock  
