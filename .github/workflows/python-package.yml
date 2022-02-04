@@ -56,7 +56,7 @@ jobs:
 
     - name: Build package
       run: |
-        python -m pip install pip pipenv
+        python -m pip install -U pip pipenv
         pipenv install -d pyinstaller
         pipenv run pip uninstall typing -y
         pipenv run pyinstaller --onefile --icon=static/chhtv.ico udts.py
@@ -112,12 +112,12 @@ jobs:
         path: 'website'
         fetch-depth: 0
 
-    - name: Publis build to website
+    - name: Publish build to website
       run:
         if [ "$BRANCH_NAME" == "main" ]; then
-          folder=releases
+          folder="releases"
         else
-          folder=development
+          folder="development"
         fi
         cp udts.zip website/builds/$folder/${{ steps.foldername.outputs.foldername }}.zip
         cd website
