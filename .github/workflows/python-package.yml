@@ -13,10 +13,7 @@ on:
 jobs:
   test:
     name: Code test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: macos-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v2
