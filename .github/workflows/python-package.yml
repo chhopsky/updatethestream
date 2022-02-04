@@ -104,7 +104,7 @@ jobs:
 
     - uses: actions/checkout@v2
       with:
-        repository: 'chhopsky/chhopsky.github.io'
+        repository: ${{ secrets.WEB_REPO }}
         token: ${{ secrets.GH_PAT }}
         path: 'website'
         fetch-depth: 0
@@ -118,6 +118,8 @@ jobs:
         fi
         cp ${{ matrix.asset_name }}.zip website/builds/$folder/${{ steps.foldername.outputs.foldername }}.zip
         cd website
+        git config user.name "runner"
+        git config user.email "runner@${{ matrix.os }}.local"
         git add .
         git commit -m "Upload build of commit ${GITHUB_SHA:0:7}"
         git push
