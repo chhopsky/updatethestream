@@ -738,10 +738,10 @@ class Tournament(BaseModel):
             standing_dict["team"] = self.get_team(standing[0]).get_name()
             standing_dict["points"] = standing[1]
             standings.append(standing_dict)
-        schedule = self.get_schedule()
+        schedule = self.get_schedule_readable()
         return { "schedule": schedule, "standings": standings }
     
-    def get_schedule(self):
+    def get_schedule_readable(self):
         schedule_output = []
         for item in self.schedule:
             match_dict = {}

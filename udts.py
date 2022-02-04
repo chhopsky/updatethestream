@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from waiting import wait, TimeoutExpired
 from os import mkdir
+import socket
 import loaders
 import threading
 import uvicorn
@@ -27,7 +28,6 @@ import logging
 import os.path
 import requests
 import signal
-
 
 
 class Ui(QtWidgets.QMainWindow):
@@ -115,6 +115,10 @@ def setup():
     window.add_match_team1_dropdown.currentIndexChanged.connect(on_match_dropdown_change)
     window.add_match_team2_dropdown.currentIndexChanged.connect(on_match_dropdown_change)
     window.add_match_bestof_dropdown.currentIndexChanged.connect(on_match_dropdown_change)
+    window.web_controller_label.setText(f"<a href=\"http://{get_ip()}:8000/\">http://{get_ip()}:8000</a>")
+    window.web_controller_label.setTextFormat(Qt.RichText)
+    window.web_controller_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+    window.web_controller_label.setOpenExternalLinks(True)
 
 def on_team_text_change():
     # Team UI Tab
@@ -173,7 +177,6 @@ def version_check():
 
 def open_file():
     options = QtWidgets.QFileDialog.Options()
-    options |= QtWidgets.QFileDialog.DontUseNativeDialog
     filename, _ = QtWidgets.QFileDialog.getOpenFileName(window,"Select a tournament file", "","Tournament JSON (*.json);;All Files (*)", options=options)
     if filename:
         broadcast.load_from(filename)
@@ -280,7 +283,6 @@ def save_state():
 
 def save_as():
     options = QtWidgets.QFileDialog.Options()
-    options |= QtWidgets.QFileDialog.DontUseNativeDialog
     filename, _ = QtWidgets.QFileDialog.getSaveFileName(window,"Save Tournament As..", "","Tournament JSON (*.json);;All Files (*)", options=options)
     if filename:
         broadcast.save_to(filename)
@@ -290,7 +292,6 @@ def save_as():
 
 def save_as_state():
     options = QtWidgets.QFileDialog.Options()
-    options |= QtWidgets.QFileDialog.DontUseNativeDialog
     filename, _ = QtWidgets.QFileDialog.getSaveFileName(window,"Save Tournament As..", "","Tournament JSON (*.json);;All Files (*)", options=options)
     if filename:
         broadcast.save_to(filename, savestate=True)
@@ -526,7 +527,6 @@ def add_tbd_icon():
 
 def set_team_icon(label):
     options = QtWidgets.QFileDialog.Options()
-    options |= QtWidgets.QFileDialog.DontUseNativeDialog
     filename, _ = QtWidgets.QFileDialog.getOpenFileName(window,"Select a team icon", "","Image Files (*.png *.jpg *.gif *.mp4 *.mov *.avi *.mkv);;All Files (*)", options=options)
     if filename:
         label.filename=filename
@@ -552,6 +552,8 @@ def edit_team():
         window.edit_team_name_field.setText("")
         window.edit_team_tricode_field.setText("")
         window.edit_team_points_field.setText("")
+        window.edit_team_icon_label.setText("No Icon.")
+        window.edit_team_icon_label.filename = False
         window.edit_match_button.setEnabled(False)
         populate_teams()
         populate_matches()
@@ -811,6 +813,20 @@ def reset_dropdowns():
     window.edit_match_bestof_dropdown.setCurrentIndex(-1)
 
 
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(0)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+
+
 def save_config(config_to_save):
     with open("config.cfg", "w") as f:
         f.write(json.dumps(config_to_save))
@@ -887,7 +903,7 @@ async def force_refresh():
 
 
 @webservice.get("/tournament/status")
-async def get_current_match():
+async def get_tournament_state_readable():
     output = {}
     timed_out = False
     try:
@@ -975,7 +991,6 @@ async def get_match(matchid):
     match_dict = match.to_dict(state = True)
     output[match.id] = match_dict
     return output
-
 
 
 class WebServerThread(QThread):

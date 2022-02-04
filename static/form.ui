@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1049</width>
-    <height>734</height>
+    <width>1387</width>
+    <height>836</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="live_tab">
        <attribute name="title">
@@ -169,7 +169,21 @@
            </spacer>
           </item>
           <item>
-           <widget class="QLabel" name="label">
+           <widget class="QLabel" name="web_controller_description_label">
+            <property name="text">
+             <string>Web Controller:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="web_controller_label">
+            <property name="text">
+             <string>http://localhost:8000/</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="chhtv_logo">
             <property name="text">
              <string/>
             </property>
@@ -192,43 +206,8 @@
            <string>Tournament In Progress:</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="2" column="0" colspan="3">
-            <layout class="QFormLayout" name="info_form">
-             <property name="leftMargin">
-              <number>5</number>
-             </property>
-             <property name="topMargin">
-              <number>5</number>
-             </property>
-             <item row="1" column="0">
-              <widget class="QLabel" name="best_of_label">
-               <property name="text">
-                <string>Best of:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLabel" name="best_of_count_label">
-               <property name="text">
-                <string>-</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="up_next_label">
-               <property name="text">
-                <string>Up Next:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QLabel" name="up_next_match">
-               <property name="text">
-                <string>PGG vs IMAY</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
+           <item row="1" column="4" rowspan="2">
+            <widget class="QListWidget" name="standings_list_widget"/>
            </item>
            <item row="0" column="1">
             <widget class="QLabel" name="final_score_label">
@@ -243,14 +222,8 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="4" rowspan="2">
-            <widget class="QListWidget" name="standings_list_widget"/>
-           </item>
-           <item row="1" column="3" rowspan="2">
-            <widget class="QListWidget" name="schedule_list_widget"/>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="now_playing_label">
+           <item row="0" column="4">
+            <widget class="QLabel" name="standings_label">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -258,9 +231,12 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Who Won?</string>
+              <string>Standings</string>
              </property>
             </widget>
+           </item>
+           <item row="1" column="3" rowspan="2">
+            <widget class="QListWidget" name="schedule_list_widget"/>
            </item>
            <item row="1" column="2">
             <layout class="QVBoxLayout" name="round_score_vbox">
@@ -293,6 +269,30 @@
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="0">
+            <layout class="QVBoxLayout" name="win_controls_vbox">
+             <item>
+              <widget class="QPushButton" name="team1_win_button">
+               <property name="text">
+                <string>Team 1 Win</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="team2_win_button">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Team 2 Win</string>
                </property>
               </widget>
              </item>
@@ -331,43 +331,6 @@
              </item>
             </layout>
            </item>
-           <item row="1" column="0">
-            <layout class="QVBoxLayout" name="win_controls_vbox">
-             <item>
-              <widget class="QPushButton" name="team1_win_button">
-               <property name="text">
-                <string>Team 1 Win</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="team2_win_button">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Team 2 Win</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="0" column="4">
-            <widget class="QLabel" name="standings_label">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Standings</string>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="3">
             <widget class="QLabel" name="schedule_label">
              <property name="sizePolicy">
@@ -380,6 +343,57 @@
               <string>Schedule</string>
              </property>
             </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="now_playing_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Who Won?</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0" colspan="3">
+            <layout class="QFormLayout" name="info_form">
+             <property name="leftMargin">
+              <number>5</number>
+             </property>
+             <property name="topMargin">
+              <number>5</number>
+             </property>
+             <item row="1" column="0">
+              <widget class="QLabel" name="best_of_label">
+               <property name="text">
+                <string>Best of:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLabel" name="best_of_count_label">
+               <property name="text">
+                <string>-</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="up_next_label">
+               <property name="text">
+                <string>Up Next:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLabel" name="up_next_match">
+               <property name="text">
+                <string>PGG vs IMAY</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>
@@ -735,9 +749,9 @@
        <layout class="QGridLayout" name="gridLayout_6">
         <item row="0" column="0">
          <widget class="QPushButton" name="add_match_button">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Add Match</string>
           </property>
@@ -1147,7 +1161,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1049</width>
+     <width>1387</width>
      <height>21</height>
     </rect>
    </property>
