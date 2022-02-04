@@ -641,6 +641,7 @@ def add_match():
             set_button_states()
         populate_matches()
         refresh_team_win_labels()
+        set_button_states()
         write_to_stream_if_enabled()
 
 
@@ -1007,7 +1008,7 @@ class WebServerThread(QThread):
         run_server()
 
 if __name__ == "__main__":
-    version = "0.3"
+    version = "0.4"
     LOGLEVEL = "DEBUG"
     try:
         with open("config.cfg") as f:
