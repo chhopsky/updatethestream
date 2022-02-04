@@ -81,9 +81,9 @@ jobs:
       run: |
         if [ "$BRANCH_NAME" == "main" ]; then
           version=$(egrep -oP '"version": "\K(\d+\.?)*)')
-          foldername=udts-$version
+          foldername=udts-v$version-${{ matrix.os }}
         else
-          foldername=udts-$(date '+%Y%m%d')-${GITHUB_SHA:0:7}
+          foldername=udts-$(date '+%Y%m%d')-${GITHUB_SHA:0:7}-${{ matrix.os }}
         fi
         mv dist/ $foldername
         echo "::set-output name=foldername::$foldername"
@@ -116,7 +116,7 @@ jobs:
         else
           folder=development
         fi
-        cp udts.zip website/builds/$folder/${{ steps.foldername.outputs.foldername }}.zip
+        cp ${{ matrix.asset_name }}.zip website/builds/$folder/${{ steps.foldername.outputs.foldername }}.zip
         cd website
         git add .
         git commit -m "Upload build of commit ${GITHUB_SHA:0:7}"
