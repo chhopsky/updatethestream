@@ -6,6 +6,7 @@ name: Update the Stream
 on:
   push:
     branches: [ development ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main, development ]
 
@@ -21,7 +22,6 @@ jobs:
             asset_name: udts-macos-x86_64-${{ github.run_number }}
           - os: windows-latest
             asset_name: udts-win64-${{ github.run_number }}
-
 
     steps:
     - uses: actions/checkout@v2
@@ -59,17 +59,51 @@ jobs:
         cp *.md dist/
       shell: bash
 
+    - uses: nelonoel/branch-name@v1.0.1
+
+    - name: Change folder name
+      id: foldername
+      run: |
+        if [ "$BRANCH_NAME" == "main" ]; then
+          version=$(egrep -oP '"version": "\K(\d+\.?)*)')
+          foldername=udts-$version
+        else
+          foldername=udts-$(date '+%Y%m%d')-${GITHUB_SHA:0:7}
+        fi
+        mv dist/ $foldername
+        echo "::set-output name=foldername::$foldername"
+      shell: bash
+
     - uses: vimtor/action-zip@v1
       with:
-        files: dist/
+        files: ${{ steps.foldername.outputs.foldername }}
         recursive: false
-        dest: udts.zip
+        dest: ${{ matrix.asset_name }}.zip
 
-    - uses: svenstaro/upload-release-action@v2
-      name: Publish release
+    - uses: softprops/action-gh-release@v1
+      if: ${{ env.BRANCH_NAME == 'main' && github.ref_type == 'tag' }}
       with:
-        file: udts.zip
-        asset_name: ${{ matrix.asset_name }}.zip
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ github.ref }}    
+        draft: true
+        files: ${{ matrix.asset_name }}.zip
+        body_path: ${{ github.workspace }}/patchnotes.md
 
+    - uses: actions/checkout@v2
+      with:
+        repository: 'chhopsky/chhopsky.github.io'
+        token: ${{ secrets.GH_PAT }}
+        path: 'website'
+        fetch-depth: 0
+
+    - name: Publis build to website
+      run:
+        if [ "$BRANCH_NAME" == "main" ]; then
+          folder=releases
+        else
+          folder=development
+        fi
+        cp udts.zip website/builds/$folder/${{ steps.foldername.outputs.foldername }}.zip
+        cd website
+        git add .
+        git commit -m "Upload build of commit ${GITHUB_SHA:0:7}"
+        git push
+      shell: bash
