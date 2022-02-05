@@ -6,11 +6,31 @@ name: Update the Stream
 on:
   push:
     branches: [ development ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main, development ]
 
 jobs:
+  test:
+    name: Code test
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+          cache: 'pipenv'
+          cache-dependency-path: '**/Pipfile'
+      - name: Setup Pipenv
+        run: |
+          python -m pip install -U pip pipenv
+          pipenv install --deploy --dev
+      - name: Test
+        run: pipenv run pytest tests.py
+
   build:
+    needs: test
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -22,23 +42,18 @@ jobs:
           - os: windows-latest
             asset_name: udts-win64-${{ github.run_number }}
 
-
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
         python-version: "3.8"
-    - name: Setup Pipenv
-      run: |
-        python -m pip install --upgrade pip pipenv wheel
-        pipenv install --deploy --dev
-
-    - name: Test with pytest
-      run: pipenv run pytest tests.py
+        cache: 'pipenv'
+        cache-dependency-path: '**/Pipfile'
 
     - name: Build package
       run: |
+        python -m pip install -U pip pipenv
         pipenv install -d pyinstaller
         pipenv run pip uninstall typing -y
         pipenv run pyinstaller --onefile --icon=static/chhtv.ico udts.py
@@ -59,17 +74,53 @@ jobs:
         cp *.md dist/
       shell: bash
 
+    - uses: nelonoel/branch-name@v1.0.1
+
+    - name: Change folder name
+      id: foldername
+      run: |
+        if [ "$BRANCH_NAME" == "main" ]; then
+          version=$(egrep -oP '"version": "\K(\d+\.?)*)')
+          foldername=udts-v$version-${{ matrix.os }}
+        else
+          foldername=udts-$(date '+%Y%m%d')-${GITHUB_SHA:0:7}-${{ matrix.os }}
+        fi
+        mv dist/ $foldername
+        echo "::set-output name=foldername::$foldername"
+      shell: bash
+
     - uses: vimtor/action-zip@v1
       with:
-        files: dist/
+        files: ${{ steps.foldername.outputs.foldername }}
         recursive: false
-        dest: udts.zip
+        dest: ${{ matrix.asset_name }}.zip
 
-    - uses: svenstaro/upload-release-action@v2
-      name: Publish release
+    - uses: softprops/action-gh-release@v1
+      if: ${{ env.BRANCH_NAME == 'main' && github.ref_type == 'tag' }}
       with:
-        file: udts.zip
-        asset_name: ${{ matrix.asset_name }}.zip
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ github.ref }}    
+        draft: true
+        files: ${{ matrix.asset_name }}.zip
+        body_path: ${{ github.workspace }}/patchnotes.md
 
+    - uses: actions/checkout@v2
+      with:
+        repository: ${{ secrets.WEB_REPO }}
+        token: ${{ secrets.GH_PAT }}
+        path: 'website'
+        fetch-depth: 0
+
+    - name: Publish build to website
+      run: |
+        if [ "$BRANCH_NAME" == "main" ]; then
+          folder=releases
+        else
+          folder=development
+        fi
+        cp ${{ matrix.asset_name }}.zip website/builds/$folder/${{ steps.foldername.outputs.foldername }}.zip
+        cd website
+        git config user.name "runner"
+        git config user.email "runner@${{ matrix.os }}.local"
+        git add .
+        git commit -m "Upload build of commit ${GITHUB_SHA:0:7}"
+        git push
+      shell: bash
