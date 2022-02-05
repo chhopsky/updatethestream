@@ -392,10 +392,14 @@ def set_button_states():
     if broadcast.current_match < len(broadcast.schedule):
         set_team_win_buttons_enabled(True)
         window.swap_button.setEnabled(True)
+        current_match = broadcast.get_current_match()
+        if "666" in current_match.teams:
+            set_team_win_buttons_enabled(False)
+            window.team1_win_button.setText("Can't progress with TBD team")
+            window.team2_win_button.setText("Please select a real team")
     else:
         set_team_win_buttons_enabled(False)
         window.swap_button.setEnabled(False)
-
 
 
 def write_to_stream_if_enabled():
@@ -447,12 +451,12 @@ def team_won(team):
     logger.debug(f"team {team} won")
     match_in_progress = broadcast.current_match
     broadcast.game_complete(team)
+    refresh_team_win_labels()
     set_button_states()
     update_schedule()
     update_standings()
     if match_in_progress != broadcast.current_match:
         window.swapstate = False
-        refresh_team_win_labels()
     broadcast.write_to_stream(window.swapstate)
 
 
@@ -638,7 +642,10 @@ def add_match():
         new_match.teams.append(widget2.id)
         new_match.best_of = int(window.add_match_bestof_dropdown.currentText())
         window.add_match_button.setEnabled(False)
-        broadcast.add_match(new_match)
+        if widget1.id == widget2.id and widget1.id != "666":
+            show_error("SAME_TEAM_BOTH_SIDES")
+        else:
+            broadcast.add_match(new_match)
         if len(broadcast.matches) == 1:
             set_button_states()
         populate_matches()
@@ -658,12 +665,20 @@ def edit_match():
         widget2 = window.team_list_widget.item(team2_index)
         match_data.teams.append(widget1.id)
         match_data.teams.append(widget2.id)
+        existing_match = broadcast.get_match(match_id)
         match_data.best_of = int(window.edit_match_bestof_dropdown.currentText())
-        broadcast.edit_match(match_id, match_data)
+        if (existing_match.finished or existing_match.in_progress) and "666" in match_data.teams:
+            show_error("CANT_USE_TBD_HERE")
+        elif widget1.id == widget2.id and widget1.id != "666":
+            show_error("SAME_TEAM_BOTH_SIDES")
+        else:     
+            broadcast.edit_match(match_id, match_data)
         window.edit_match_button.setEnabled(False)
         populate_matches()
         update_schedule()
         update_standings()
+        refresh_team_win_labels()
+        set_button_states()
         write_to_stream_if_enabled()
 
 

@@ -34,6 +34,14 @@ ERRORS = {
     "CLIENT_OUT_OF_DATE" : {
         "title": "New Update Available!",
         "message": "Get new features, bugfixes, and more in our latest update, available at https://github.com/chhopsky/updatethestream/releases"
+    },
+    "CANT_USE_TBD_HERE" : {
+        "title": "TBD team not allowed.",
+        "message": "Can't set a match that's already happened or is in progress to contain a TBD team."
+    },
+    "SAME_TEAM_BOTH_SIDES" : {
+        "title": "Team vs itself?",
+        "message": "A team can't play against itself."
     }
 }
 
