@@ -853,21 +853,21 @@ class Tournament(BaseModel):
                 if game.match == match_2.id:
                     rearrange[2].append(i)
 
-                starting_game = min(rearrange[1] + rearrange[2])
+            starting_game = min(rearrange[1] + rearrange[2])
 
-                # assume arg1 is first, flip if arg2 is first
-                i1 = 1
-                i2 = 2
-                if scheduleid2 < scheduleid1:
-                    i1 = 2
-                    i2 = 1
+            # assume arg1 is first, flip if arg2 is first
+            i1 = 1
+            i2 = 2
+            if scheduleid2 < scheduleid1:
+                i1 = 2
+                i2 = 1
 
-                for game_id in rearrange[i2] + rearrange[i1]:
-                    new_games.append(self.game_history[game_id])
+            for game_id in rearrange[i2] + rearrange[i1]:
+                new_games.append(self.game_history[game_id])
 
-                while len(new_games):
-                    self.game_history[starting_game] = new_games.pop(0)
-                    starting_game += 1
+            while len(new_games):
+                self.game_history[starting_game] = new_games.pop(0)
+                starting_game += 1
 
         return True
     

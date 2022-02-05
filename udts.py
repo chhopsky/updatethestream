@@ -649,6 +649,7 @@ def add_match():
         if len(broadcast.matches) == 1:
             set_button_states()
         populate_matches()
+        update_schedule()
         refresh_team_win_labels()
         set_button_states()
         write_to_stream_if_enabled()
