@@ -1,6 +1,8 @@
 from tournament import Tournament
 from tournament_objects import Match, Team, Game
+from errors import TournamentProviderFail
 from urllib import request
+import processors
 import requests
 import json
 import pprint
@@ -22,11 +24,21 @@ def poll_challonge(tournament_id, API_KEY):
 
 def poll_faceit(tournament_id):
     teams_url = f"https://api.faceit.com/championships/v1/championship/{tournament_id}/subscription"
-    teams_response = requests.get(teams_url)
-    teams = teams_response.json()
     groups_url = f"https://api.faceit.com/championships/v1/championship/{tournament_id}"
+    teams_response = requests.get(teams_url)
     groups_response = requests.get(groups_url)
-    groups = groups_response.json()
+    if not teams_response or not groups_response:
+        raise TournamentProviderFail("access", "FACEIT", tournament_id)
+
+    try:
+        teams = teams_response.json()
+        groups = groups_response.json()
+    except json.JSONDecodeError:
+        raise TournamentProviderFail("parse", "FACEIT", tournament_id)
+    
+    if not teams or not groups_response:
+        raise TournamentProviderFail("parse", "FACEIT", tournament_id)
+
     tournament = { "teams": teams, "groups": groups}
     tricodes = []
     teams = {}
@@ -35,7 +47,7 @@ def poll_faceit(tournament_id):
         new_team = Team()
         new_team.id = current_team["id"]
         new_team.name = current_team["name"]
-        new_team.tricode = determine_tricode(current_team["name"], tricodes)
+        new_team.tricode = processors.determine_tricode(current_team["name"], tricodes)
         tricodes.append(new_team.tricode)
         teams[new_team.id] = new_team
 

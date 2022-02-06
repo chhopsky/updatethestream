@@ -140,7 +140,6 @@ class Tournament(BaseModel):
                 while game_count > 0:
                     self.game_complete(t1)
                     game_count -= 1
-        return True
 
     def update_match_history_from_challonge(self, round_match_list):
         self.game_history = []

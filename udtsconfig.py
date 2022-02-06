@@ -42,6 +42,10 @@ ERRORS = {
     "SAME_TEAM_BOTH_SIDES" : {
         "title": "Team vs itself?",
         "message": "A team can't play against itself."
+    },
+    "BACKEND_ERROR": {
+        "title": "Backend error.",
+        "message": "The tournament engine experienced an error processing your request. Please check the log file for details, and consider reloading the program."
     }
 }
 

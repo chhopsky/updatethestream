@@ -16,6 +16,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from waiting import wait, TimeoutExpired
+from errors import TournamentProviderFail, MatchScheduleDesync
 from os import mkdir
 import socket
 import loaders
@@ -51,7 +52,16 @@ class Ui(QtWidgets.QMainWindow):
         self.swapstate = False
         self.setWindowIcon(pygui.QIcon('static/chhtv.ico'))
 
+def frontend_function(func):
+    def frontend_wrapper(*args, **kwargs):
+        try:
+            func()
+        except Exception as e:
+            show_error("EXCEPTION", e)
+            logger.error(str(e))
+    return frontend_wrapper
 
+@frontend_function
 def setup():
     window.actionNew.triggered.connect(new)
     window.actionOpen.triggered.connect(open_file)
@@ -122,6 +132,7 @@ def setup():
     window.web_controller_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
     window.web_controller_label.setOpenExternalLinks(True)
 
+@frontend_function
 def on_team_text_change():
     # Team UI Tab
     if (window.add_team_name_field.text() != '') or (window.add_team_tricode_field.text() != ''):
@@ -129,12 +140,13 @@ def on_team_text_change():
     else:
         window.add_team_button.setEnabled(False)
 
+@frontend_function
 def on_match_dropdown_change():
     # Match UI Tab
     if (window.add_match_team1_dropdown.currentIndex() != -1) and (window.add_match_team2_dropdown.currentIndex() != -1) and (window.add_match_bestof_dropdown.currentIndex() != -1):
         window.add_match_button.setEnabled(True)
     
-
+@frontend_function
 def set_config_ui():
     point_config = broadcast.get_points_config_all()
     window.points_on_win_spinbox.setValue(point_config["win"])
@@ -176,7 +188,7 @@ def version_check():
                 window.config["version_checked"] = True
                 save_config(window.config)
 
-
+@frontend_function
 def open_file():
     options = QtWidgets.QFileDialog.Options()
     filename, _ = QtWidgets.QFileDialog.getOpenFileName(window,"Select a tournament file", "","Tournament JSON (*.json);;All Files (*)", options=options)
@@ -189,31 +201,24 @@ def open_file():
         force_refresh_ui()
         write_to_stream_if_enabled()
 
-
+@frontend_function
 def open_faceit():
+    window.config["tournament_provider"] = "FACEIT"
     text, ok = QtWidgets.QInputDialog.getText(window, "FACEIT Tournament ID", "Paste faceit.com tournament code")
     if text and ok:
-        found_tournament = False
-        try:
-            faceit_data = loaders.poll_faceit(text)
-            if not len(faceit_data.get("matches")) > 1 and not len(faceit_data.get["teams"]) > 1:
-                raise Exception
-            else:
-                found_tournament = True
-        except Exception as e:
-            logger.error("Could not load JSON!")
-            logger.error(e)
-            show_error("FACEIT_LOAD_FAIL")
-        if found_tournament:
-            result = broadcast.load_from_faceit(faceit_data)
-            window.config["use_faceit"] = True
-            window.config["faceit_id"] = text
-            force_refresh_ui()
-            write_to_stream_if_enabled()
-        else:
-            show_error("FACEIT_LOAD_FAIL")
+        faceit_data = loaders.poll_faceit(text)
+        if not len(faceit_data.get("matches")) > 1 and not len(faceit_data.get("teams")) > 1:
+            raise TournamentProviderFail("load", window.config["tournament_provider"], text)
 
+        broadcast.load_from_faceit(faceit_data)
+        if not len(broadcast.get_all_matches):
+            raise TournamentProviderFail("load", window.config["tournament_provider"], text)
+        window.config["use_faceit"] = True
+        window.config["faceit_id"] = text
+        force_refresh_ui()
+        write_to_stream_if_enabled()
 
+@frontend_function
 def open_challonge():
     text, ok = QtWidgets.QInputDialog.getText(window, "Challonge Tournament ID", "Paste Challonge.com tournament code")
     if text and ok and config.get("challonge_api_key"):
@@ -239,10 +244,7 @@ def open_challonge():
             else:
                 show_error("CHALLONGE_PARSE_FAIL")
 
-
 def show_error(error_code = "UNKNOWN", exception = None, additional_info = None):
-    if exception:
-        error_code = exception.error_code
     if error_code not in udtsconfig.ERRORS.keys():
         additional_info = f"The code was {error_code}."
         error_code = "BAD_UNKNOWN"
@@ -250,9 +252,11 @@ def show_error(error_code = "UNKNOWN", exception = None, additional_info = None)
     title = udtsconfig.ERRORS[error_code]["title"]
     message = udtsconfig.ERRORS[error_code]["message"]
     
-    if error_code == "BAD_UNKNOWN" and exception:
-        title = exception.__name__
-        messagetext = exception.message
+    if exception:
+        error_code = exception.__class__.__name__
+        title = "An unexpected error occurred."
+        message = str(exception)
+        additional_info = "Please check the logs for more information. Consider logging this as a bug at updatethestream.com"
 
     messagetext = f"{error_code}: {message}"
     if additional_info:
@@ -266,6 +270,7 @@ def show_error(error_code = "UNKNOWN", exception = None, additional_info = None)
     x = msg.exec_()
 
 
+@frontend_function
 def update_from_challonge():
     tournament_info = loaders.poll_challonge(window.config["challonge_id"])
     broadcast.update_match_history_from_challonge(tournament_info)
@@ -273,6 +278,7 @@ def update_from_challonge():
     write()
 
 
+@frontend_function
 def save_file():
     filename = config.get("openfile")
     if filename:
@@ -281,6 +287,7 @@ def save_file():
         broadcast.save_to()
 
 
+@frontend_function
 def save_state():
     filename = config.get("openfile")
     if filename:
@@ -289,6 +296,7 @@ def save_state():
         broadcast.save_to(savestate=True)
 
 
+@frontend_function
 def save_as():
     options = QtWidgets.QFileDialog.Options()
     filename, _ = QtWidgets.QFileDialog.getSaveFileName(window,"Save Tournament As..", "","Tournament JSON (*.json);;All Files (*)", options=options)
@@ -298,6 +306,7 @@ def save_as():
         save_config(window.config)
 
 
+@frontend_function
 def save_as_state():
     options = QtWidgets.QFileDialog.Options()
     filename, _ = QtWidgets.QFileDialog.getSaveFileName(window,"Save Tournament As..", "","Tournament JSON (*.json);;All Files (*)", options=options)
@@ -307,6 +316,7 @@ def save_as_state():
         save_config(window.config)
 
 
+@frontend_function
 def edit_tournament_config():
     new_pts_config = {
         "win": int(window.points_on_win_spinbox.text()),
@@ -331,6 +341,7 @@ def clear_matches_and_game_history():
     set_button_states()
 
 
+@frontend_function
 def edit_program_config():
     window.config["auto-write-changes-to-stream"] = window.autolive_changes_checkbox.isChecked()
     save_config(window.config)
@@ -339,6 +350,7 @@ def edit_program_config():
 
 def exit_app():
     sys.exit()
+
 
 
 def undo_button():
@@ -355,10 +367,12 @@ def disable_move_buttons():
     window.match_move_down_button.setEnabled(False)
 
 
+@frontend_function
 def match_move_up():
     match_reorder("up")
 
 
+@frontend_function
 def match_move_down():
     match_reorder("down")
 
@@ -415,6 +429,7 @@ def write_to_stream_if_enabled():
         force_refresh_stream()
 
 
+@frontend_function
 def force_refresh_stream():
     x = threading.Thread(target=broadcast.write_to_stream)
     x.start()
@@ -494,6 +509,7 @@ def swap_red_blue():
     refresh_team_win_labels()
 
 
+@frontend_function
 def add_team():
     name = window.add_team_name_field.text()
     tricode = window.add_team_tricode_field.text()
@@ -535,6 +551,7 @@ def add_team_hero():
 def add_tbd_icon():
     set_team_icon(window.edit_tbd_team_icon_current_icon)
 
+@frontend_function
 def set_team_icon(label):
     options = QtWidgets.QFileDialog.Options()
     filename, _ = QtWidgets.QFileDialog.getOpenFileName(window,"Select a team icon", "","Image Files (*.png *.jpg *.gif *.mp4 *.mov *.avi *.mkv);;All Files (*)", options=options)
@@ -543,7 +560,7 @@ def set_team_icon(label):
         head, tail = os.path.split(filename)
         label.setText(tail)
 
-
+@frontend_function
 def edit_team():
     if window.team_list_widget.selectedItems():
         update = Team()
@@ -581,6 +598,7 @@ def edit_team_hero(label):
     set_team_icon(window.edit_team_hero_label)
 
 
+@frontend_function
 def team_selected():
     if window.team_list_widget.selectedItems():
         selected_item = window.team_list_widget.selectedItems()[0]
@@ -617,7 +635,7 @@ def confirm_delete_team():
     else:
         window.delete_team_button.setEnabled(False)
 
-
+@frontend_function
 def delete_team():
     if window.team_list_widget.selectedItems():
         team_index = window.team_list_widget.currentRow()
@@ -633,7 +651,7 @@ def delete_team():
             refresh_team_win_labels()
             write_to_stream_if_enabled()
 
-
+@frontend_function
 def add_match():
     t1 = window.add_match_team1_dropdown.currentIndex()
     t2 = window.add_match_team2_dropdown.currentIndex()
@@ -660,7 +678,7 @@ def add_match():
         set_button_states()
         write_to_stream_if_enabled()
 
-
+@frontend_function
 def edit_match():
     selected_item_index = window.match_list_widget.currentRow()
     match_id = window.selected_match
@@ -695,7 +713,7 @@ def confirm_delete_match():
     else:
         window.delete_match_button.setEnabled(False)
 
-
+@frontend_function
 def delete_match():
     selected_item_index = window.match_list_widget.currentRow()
     match_id = window.selected_match
@@ -715,7 +733,7 @@ def delete_match():
         update_standings()
         write_to_stream_if_enabled()
 
-
+@frontend_function
 def match_selected():
     if window.match_list_widget.selectedItems():
         selected_item_index = window.match_list_widget.currentRow()
@@ -850,6 +868,7 @@ def get_ip():
     return IP
 
 
+@frontend_function
 def save_config(config_to_save):
     with open("config.cfg", "w") as f:
         f.write(json.dumps(config_to_save))
