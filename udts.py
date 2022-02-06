@@ -4,7 +4,8 @@ from http.client import OK
 from typing import List
 from typing_extensions import Self
 from PyQt5.uic.uiparser import DEBUG
-from tourneydefs import Tournament, Match, Team
+from tournament import Tournament
+from tournament_objects import Match, Team, Game
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt, QUrl, QThread, pyqtSignal
 from PyQt5.QtGui import QFont
@@ -115,6 +116,7 @@ def setup():
     window.add_match_team1_dropdown.currentIndexChanged.connect(on_match_dropdown_change)
     window.add_match_team2_dropdown.currentIndexChanged.connect(on_match_dropdown_change)
     window.add_match_bestof_dropdown.currentIndexChanged.connect(on_match_dropdown_change)
+    window.add_match_bestof_dropdown.setCurrentIndex(0)
     window.web_controller_label.setText(f"<a href=\"http://{get_ip()}:8000/\">http://{get_ip()}:8000</a>")
     window.web_controller_label.setTextFormat(Qt.RichText)
     window.web_controller_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
@@ -238,14 +240,20 @@ def open_challonge():
                 show_error("CHALLONGE_PARSE_FAIL")
 
 
-def show_error(error_code = "UNKNOWN", additional_info = None):
+def show_error(error_code = "UNKNOWN", exception = None, additional_info = None):
+    if exception:
+        error_code = exception.error_code
     if error_code not in udtsconfig.ERRORS.keys():
         additional_info = f"The code was {error_code}."
         error_code = "BAD_UNKNOWN"
-
+    
     title = udtsconfig.ERRORS[error_code]["title"]
     message = udtsconfig.ERRORS[error_code]["message"]
     
+    if error_code == "BAD_UNKNOWN" and exception:
+        title = exception.__name__
+        messagetext = exception.message
+
     messagetext = f"{error_code}: {message}"
     if additional_info:
         messagetext += f"\n\n{additional_info}"
@@ -429,14 +437,12 @@ def refresh_main_page():
     refresh_team_win_labels()
     set_button_states()
 
-
 def from_api(func):
     def wrapper_from_api(*args, **kwargs):
         thread.request_started(args[0])
         func()
         thread.request_finished(args[0])
     return wrapper_from_api
- 
 
 @from_api    
 def on_team1win_click():
@@ -717,9 +723,10 @@ def match_selected():
         match_id = selected_item.id
         window.selected_match = match_id
         teams = broadcast.get_teams_from_match_id(match_id)
+        match = broadcast.get_match(match_id)
         window.edit_match_team1_dropdown.setCurrentText(teams[0].get_tricode())
         window.edit_match_team2_dropdown.setCurrentText(teams[1].get_tricode())
-        window.edit_match_bestof_dropdown.setCurrentText(str(broadcast.matches[match_id].best_of))
+        window.edit_match_bestof_dropdown.setCurrentText(str(match.best_of))
         window.edit_match_button.setEnabled(True)
         if selected_item_index == 0:
             window.match_move_up_button.setEnabled(False)
@@ -756,7 +763,7 @@ def populate_teams():
 def add_team_to_ui(team, show_in_list=True):
     item = QtWidgets.QListWidgetItem(team.get_display_name())
     item.id = team.id
-    if not show_in_list:
+    if show_in_list:
         item.setFont(window.italicfont)
         item.setFlags(item.flags() & ~Qt.ItemIsSelectable)
     window.team_list_widget.addItem(item)
@@ -823,7 +830,7 @@ def update_standings():
 def reset_dropdowns():
     window.add_match_team1_dropdown.setCurrentIndex(-1)
     window.add_match_team2_dropdown.setCurrentIndex(-1)
-    window.add_match_bestof_dropdown.setCurrentIndex(-1)
+    window.add_match_bestof_dropdown.setCurrentIndex(0)
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
     window.edit_match_bestof_dropdown.setCurrentIndex(-1)
@@ -851,7 +858,7 @@ webservice = FastAPI()
 
 def run_server():
     webservice.mount("/static", StaticFiles(directory="static"), name="static")
-    uvicorn.run(webservice, host="0.0.0.0", port=8000)
+    uvicorn.run(webservice, host="0.0.0.0", port=8000, access_log=False)
 
 @webservice.get("/", response_class=HTMLResponse)
 def web_home(request: Request):

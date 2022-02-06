@@ -3,121 +3,18 @@ from typing import Text, List, Dict, Optional
 from uuid import uuid4
 from errors import MatchScheduleDesync
 from copy import deepcopy
+from tournament_objects import Match, Team, Game
 import os
 import json
-import base64
 import logging
 import errno
 import shutil
 import processors
 
-class Team(BaseModel):
-    id: str = ""
-    name: str = ""
-    tricode: str = ""
-    points: int = 0
-    logo_big: str = ""
-    logo_small: str = ""
-
-    def to_dict(self, state=False, b64images=False):
-        dict_to_return = {}
-        if state:
-            dict_to_return = self.__dict__
-        else:
-            for key, value in self.__dict__.items():
-                if key != "points":
-                    dict_to_return[key] = value
-        if b64images:
-            dict_to_return["logo_small_b64"] = self.get_logo_b64()
-        return dict_to_return
-
-    def get_name(self):
-        if self.name:
-            return self.name
-        else:
-            return self.tricode
-        
-    def get_tricode(self):
-        if self.tricode:
-            return self.tricode
-        else:
-            return self.name
-
-    def get_display_name(self):
-        if self.tricode and not self.name:
-            return self.tricode
-        elif self.name and not self.tricode:
-            return self.name
-        else:
-            return f"{self.tricode}: {self.name}"
-    
-    def get_logo_b64(self):
-        if os.path.isfile(self.logo_small):
-            with open(self.logo_small, "rb") as f:
-                file = f.read()
-                if file:
-                    return base64.b64encode(file).decode()
-
-class Match(BaseModel):
-    id: str = str(uuid4())
-    teams: List[str] = []
-    scores: List[int] = [0, 0]
-    best_of: int = 1
-    finished: bool = False
-    in_progress: bool = False
-    winner: int = 2
-
-    def to_dict(self, state=False):
-        if state:
-            return self.__dict__
-        else:
-            list_to_not_return = ["scores", "finished", "in_progress", "winner"]
-            dict_to_return = {}
-            for key, value in self.__dict__.items():
-                if key not in list_to_not_return:
-                    dict_to_return[key] = value
-            return dict_to_return
-
-    def ensure_safe_scores(self):
-        scores_invalid = False
-        t1 = 0
-        t2 = 1
-        if self.winner == 1:
-            t1 = 1
-            t2 = 0
-        if self.best_of < sum(self.scores):
-            scores_invalid = True
-
-        if self.scores[t1] != (self.best_of + 1) / 2:
-            scores_invalid = True
-
-        if self.scores[t2] >= (self.best_of + 1) / 2:
-            scores_invalid = True
-
-        if self.scores[t1] or self.scores[t2] < 0:
-            scores_invalid = True
-
-        if scores_invalid:
-            if self.best_of == 2:
-                if self.winner < 2:
-                    self.scores[t1] = 2
-                else:
-                    self.scores = [1, 1]
-            else:
-                self.scores[t1] = (self.best_of + 1) / 2
-                if (self.scores[t2] >= (self.best_of + 1) / 2) or self.scores[t2] < 0:
-                    self.scores[t2] = 0
-
-class Game(BaseModel):
-    match: str = ""
-    winner: int = 3
-    scores: List[int] = [0, 0]
-
-    def to_dict(self):
-        return self.__dict__
 
 class Tournament(BaseModel):
     placeholder_team = Team(tricode="TBD", name = "TBD", id="666", logo_small="static/tbd-team-icon.png")
+    default_placeholder_team = Team(tricode="TBD", name = "TBD", id="666", logo_small="static/tbd-team-icon.png")
     teams: Dict = {}
     matches: Dict = {}
     schedule: List[str] = []
@@ -129,15 +26,39 @@ class Tournament(BaseModel):
     default_pts_config: Dict = {"win": 1, "tie": 0, "loss": 0}
     blank_image = "static/empty-graphic.png"
     output_folder = "streamlabels/"
+    
+    def save_to(self, filename, savestate=False):
+        # do write here
+        output_dict = {}
+        output_dict["teams"] = []
 
+        for id, team in self.teams.items():
+            if team.id != "666":
+                output_dict["teams"].append(team.to_dict(savestate))
 
-    def get_placeholder_team(self):
-        placeholder = self.get_team(self.placeholder_team.id)
-        if placeholder:
-            return placeholder
-        else:
-            return self.placeholder_team
+        output_dict["matches"] = []
+        for id, match in self.matches.items():
+            output_dict["matches"].append(match.to_dict(savestate))
 
+        output_dict["schedule"] = self.schedule
+
+        output_dict["placeholder_team"] = self.placeholder_team
+
+        if savestate:
+            output_dict["current_match"] = self.current_match
+            output_dict["game_history"] = []
+            for game in self.game_history:
+                output_dict["game_history"].append(game.to_dict())
+
+        output_dict["pts_config"] = self.pts_config
+        
+        if not filename.endswith('.json'):
+            filename = filename + '.json'   
+        with open(filename, "w") as f:
+            json.dump(output_dict, f)
+        return
+
+    ## Tournament loaders
 
     def load_from(self, filename="tournament-config.json"):
         try:
@@ -151,9 +72,11 @@ class Tournament(BaseModel):
                 if teams:
                     for team in teams:
                         team = Team(**team)
-                        if team != self.placeholder_team:
+                        if team.id != self.placeholder_team.id:
                             id = self.add_team(team)
                             self.mapping[team.tricode] = id
+
+                self.placeholder_team = data.get("placeholder_team", self.default_placeholder_team)
 
                 matches = data.get("matches")
                 if matches:
@@ -364,37 +287,8 @@ class Tournament(BaseModel):
 
         self.write_to_stream()
         return True
-    
 
-    def save_to(self, filename, savestate=False):
-        # do write here
-        output_dict = {}
-        output_dict["teams"] = []
-
-        for id, team in self.teams.items():
-            if team.id != "666":
-                output_dict["teams"].append(team.to_dict(savestate))
-
-        output_dict["matches"] = []
-        for id, match in self.matches.items():
-            output_dict["matches"].append(match.to_dict(savestate))
-
-        output_dict["schedule"] = self.schedule
-
-        if savestate:
-            output_dict["current_match"] = self.current_match
-            output_dict["game_history"] = []
-            for game in self.game_history:
-                output_dict["game_history"].append(game.to_dict())
-
-        output_dict["pts_config"] = self.pts_config
-        
-        if not filename.endswith('.json'):
-            filename = filename + '.json'   
-        with open(filename, "w") as f:
-            json.dump(output_dict, f)
-        return
-
+    ## Program outputs
 
     def write_to_stream(self, swap=False):
         # do text write here
@@ -600,6 +494,8 @@ class Tournament(BaseModel):
              #   return False MATT FIX
                 
         return
+
+    ## Tournament operation functions
     
     def update_match_scores(self):
         self.current_match = 0
@@ -630,7 +526,6 @@ class Tournament(BaseModel):
             # self.teams[match.teams[winner_index]].points += 1
             self.current_match += 1
 
-
     def game_complete(self, winner_index):
         if self.current_match < len(self.schedule):
             scheduleid = self.current_match
@@ -639,191 +534,9 @@ class Tournament(BaseModel):
             finished_game = Game(match = match_id, winner=winner_index)
             self.game_history.append(finished_game)
 
-
     def undo(self):
         self.game_history.pop()
         self.update_match_scores()
-
-    def get_standings(self):
-        standings = []
-        standing_data = {}
-        for team in self.teams.values():
-            if team.id != "666":
-                standing_data[team.id] = 0
-                standing_data[team.id] += int(team.points)
-
-        for match in self.matches.values():
-            if match.winner not in [2, 3]:
-                winner = match.teams[match.winner]
-                loser = match.teams[0] if winner == match.teams[1] else match.teams[1]
-                standing_data[winner] += self.get_points_config("win")
-                standing_data[loser] += self.get_points_config("loss")
-            elif match.winner == 3:  # Tie
-                pts_on_tie = self.get_points_config("tie")
-                standing_data[match.teams[0]] += pts_on_tie
-                standing_data[match.teams[1]] += pts_on_tie
-
-        for team_id, points in standing_data.items():
-            if team.id != "666":
-                standings.append((team_id, points))
-        actual_standings = sorted(standings, key=lambda y:y[1], reverse=True)
-        return actual_standings
-
-
-    ## TEAM READ/WRITE/EDIT
-    def add_team(self, team_to_add, callback = None):
-        if not team_to_add.id:
-            new_team_id = str(uuid4())
-            team_to_add.id = new_team_id
-        self.teams[team_to_add.id] = team_to_add
-        return team_to_add.id
-
-
-    def edit_team(self, update):
-        self.teams[update.id] = update
-
-
-    def delete_team(self, id):
-        # delete any matches they have
-
-        for i, schedule_item in reversed(list(enumerate(self.schedule))):
-            match = self.get_match(schedule_item)
-            if id in match.teams:
-                self.delete_match(match.id)
-        self.teams.pop(id)
-
-
-    ## MATCH READ/WRITE/EDIT
-    def add_match(self, match, schedule=True):
-        self.matches[match.id] = match
-        if schedule:
-            self.schedule.append(match.id)
-        if len(self.schedule) != len(self.matches):
-            raise MatchScheduleDesync(self.matches, self.schedule)
-
-
-    def delete_match(self, match_id):
-        scheduleid = self.get_scheduleid_from_match_id(match_id)
-        del(self.schedule[scheduleid])
-        for i, game in reversed(list(enumerate(self.game_history))):
-            if game.match == match_id:
-                del(self.game_history[i])
-        self.matches.pop(match_id)
-        if scheduleid <= self.current_match:
-            self.current_match -= 1
-
-
-    def edit_match(self, match_id, match):
-        self.matches[match_id].teams = match.teams
-        self.matches[match_id].best_of = match.best_of
-
-
-    def get_team_id_by_tricode(self, tricode):
-        for key, team in self.teams.items():
-            if team.tricode == tricode:
-                return key
-        return None
-
-    def get_current_match_data_json(self):
-        match_to_use = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
-        teams = self.get_teams_from_scheduleid(match_to_use)
-        match = self.get_match_from_scheduleid(match_to_use)
-        return { "match": match.to_dict(state=True), "teams": [team.to_dict(state=True) for team in teams] }
-
-    def get_schedule_standings_json(self):
-        standings_original = self.get_standings()
-        standings = []
-        for standing in standings_original:
-            standing_dict = {}
-            standing_dict["team"] = self.get_team(standing[0]).get_name()
-            standing_dict["points"] = standing[1]
-            standings.append(standing_dict)
-        schedule = self.get_schedule_readable()
-        return { "schedule": schedule, "standings": standings }
-    
-    def get_schedule_readable(self):
-        schedule_output = []
-        for item in self.schedule:
-            match_dict = {}
-            teams = self.get_teams_from_match_id(item)
-            match = self.get_match(item)
-            match_dict["teams"] = f"{teams[0].get_name()} vs {teams[1].get_name()}"
-            match_dict["scores"] = f"{match.scores[0]} - {match.scores[1]}"
-            match_dict["status"] = "Not Started"
-            match_dict["winner"] = ""
-            if match.finished:
-                match_dict["status"] = "Finished"
-                if match.winner < 2:
-                    match_dict["winner"] = teams[match.winner].get_name()
-                else:
-                    match_dict["winner"] = "Tie"
-            elif match.in_progress:
-                match_dict["status"] = "In Progress"
-            schedule_output.append(match_dict)
-        return schedule_output
-
-    ## POINTS GETTER/SETTER
-    def get_points_config(self, result):
-        if result in self.pts_config.keys():
-            return self.pts_config.get(result)
-        else:
-            return self.default_pts_config.get(result)
-
-
-    def get_points_config_all(self):
-        if len(self.pts_config) == 3:
-            return self.pts_config
-        else:
-            return self.default_pts_config
-
-
-    def edit_points(self, new_pts_config):
-        self.pts_config = new_pts_config
-
-    ## HELPER FUNCTIONS
-
-    def get_team(self, team_id):
-        if team_id in self.teams.keys():
-            return self.teams[team_id]
-        else:
-            return None
-
-    def get_all_teams(self):
-        return self.teams
-
-    def get_teams_from_scheduleid(self, id):
-        try:    
-            match_id = self.schedule[id]
-            team1 = self.teams[self.matches[match_id].teams[0]]
-            team2 = self.teams[self.matches[match_id].teams[1]]
-            return [team1, team2]
-        except IndexError:
-            return None
-
-
-    def get_teams_from_match_id(self, match_id):
-        try:    
-            team1 = self.teams[self.matches[match_id].teams[0]]
-            team2 = self.teams[self.matches[match_id].teams[1]]
-            return [team1, team2]
-        except IndexError:
-            return None
-
-
-    def get_all_matches(self):
-        return self.matches
-
-    
-    def get_schedule(self, item = None):
-        if not item:
-            return self.schedule
-        elif int(item) < len(self.schedule):
-            return self.schedule[item]
-
-
-    def get_scheduleid_from_match_id(self, match_id):
-        return self.schedule.index(match_id)
-
 
     def swap_matches(self, scheduleid1, scheduleid2):
         # flip the match ids in the relevant schedule indexes
@@ -870,23 +583,212 @@ class Tournament(BaseModel):
                 starting_game += 1
 
         return True
-    
 
-    def get_current_match(self):
-        return self.get_match_from_scheduleid(self.current_match)
+
+    ## TEAM READ/WRITE/EDIT
+
+    def get_team(self, team_id):
+        if team_id == "666":
+            return self.placeholder_team
+        elif team_id in self.teams.keys():
+            return self.teams[team_id]
+        else:
+            return None
+
+    def add_team(self, team_to_add, callback = None):
+        if not team_to_add.id:
+            new_team_id = str(uuid4())
+            team_to_add.id = new_team_id
+        self.teams[team_to_add.id] = team_to_add
+        return team_to_add.id
+
+    def edit_team(self, update):
+        self.teams[update.id] = update
+
+    def delete_team(self, id):
+        for i, schedule_item in reversed(list(enumerate(self.schedule))):
+            match = self.get_match(schedule_item)
+            if id in match.teams:
+                self.delete_match(match.id)
+        self.teams.pop(id)
+
+    ## MATCH READ/WRITE/EDIT
 
     def get_match(self, id):
         return self.matches.get(id)
 
-    def get_match_id_from_scheduleid(self, scheduleid):
-        match_id = self.schedule[scheduleid]
-        return self.matches[match_id].id
+    def add_match(self, match, schedule=True):
+        self.matches[match.id] = match
+        if schedule:
+            self.schedule.append(match.id)
+        if len(self.schedule) != len(self.matches):
+            raise MatchScheduleDesync(self.matches, self.schedule)
 
+    def delete_match(self, match_id):
+        """ Deletes a match, removes it from the match history, and schedule"""
+        scheduleid = self.get_scheduleid_from_match_id(match_id)
+        del(self.schedule[scheduleid])
+        for i, game in reversed(list(enumerate(self.game_history))):
+            if game.match == match_id:
+                del(self.game_history[i])
+        self.matches.pop(match_id)
+        if scheduleid <= self.current_match:
+            self.current_match -= 1
+
+    def edit_match(self, match_id, match):
+        self.matches[match_id].teams = match.teams
+        self.matches[match_id].best_of = match.best_of
+
+    ## Tournament data retrievers
+
+    def get_current_match_data_json(self):
+        match_to_use = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
+        teams = self.get_teams_from_scheduleid(match_to_use)
+        match = self.get_match_from_scheduleid(match_to_use)
+        return { "match": match.to_dict(state=True), "teams": [team.to_dict(state=True) for team in teams] }
+
+    def get_schedule_standings_json(self):
+        standings_original = self.get_standings()
+        standings = []
+        for standing in standings_original:
+            standing_dict = {}
+            standing_dict["team"] = self.get_team(standing[0]).get_name()
+            standing_dict["points"] = standing[1]
+            standings.append(standing_dict)
+        schedule = self.get_schedule_readable()
+        return { "schedule": schedule, "standings": standings }
+    
+    def get_schedule_readable(self):
+        schedule_output = []
+        for item in self.schedule:
+            match_dict = {}
+            teams = self.get_teams_from_match_id(item)
+            match = self.get_match(item)
+            match_dict["teams"] = f"{teams[0].get_name()} vs {teams[1].get_name()}"
+            match_dict["scores"] = f"{match.scores[0]} - {match.scores[1]}"
+            match_dict["status"] = "Not Started"
+            match_dict["winner"] = ""
+            if match.finished:
+                match_dict["status"] = "Finished"
+                if match.winner < 2:
+                    match_dict["winner"] = teams[match.winner].get_name()
+                else:
+                    match_dict["winner"] = "Tie"
+            elif match.in_progress:
+                match_dict["status"] = "In Progress"
+            schedule_output.append(match_dict)
+        return schedule_output
+
+    def get_standings(self):
+        standings = []
+        standing_data = {}
+        for team in self.teams.values():
+            if team.id != "666":
+                standing_data[team.id] = 0
+                standing_data[team.id] += int(team.points)
+
+        for match in self.matches.values():
+            if match.winner not in [2, 3]:
+                winner = match.teams[match.winner]
+                loser = match.teams[0] if winner == match.teams[1] else match.teams[1]
+                standing_data[winner] += self.get_points_config("win")
+                standing_data[loser] += self.get_points_config("loss")
+            elif match.winner == 3:  # Tie
+                pts_on_tie = self.get_points_config("tie")
+                standing_data[match.teams[0]] += pts_on_tie
+                standing_data[match.teams[1]] += pts_on_tie
+
+        for team_id, points in standing_data.items():
+            if team.id != "666":
+                standings.append((team_id, points))
+        actual_standings = sorted(standings, key=lambda y:y[1], reverse=True)
+        return actual_standings
+
+    ## POINTS GETTER/SETTER
+    def get_points_config(self, result):
+        if result in self.pts_config.keys():
+            return self.pts_config.get(result)
+        else:
+            return self.default_pts_config.get(result)
+
+
+    def get_points_config_all(self):
+        if len(self.pts_config) == 3:
+            return self.pts_config
+        else:
+            return self.default_pts_config
+
+
+    def edit_points(self, new_pts_config):
+        self.pts_config = new_pts_config
+
+    ## HELPER FUNCTIONS
+    # TBD override included here
+
+    def get_placeholder_team(self):
+        placeholder = self.get_team(self.placeholder_team.id)
+        if placeholder:
+            return placeholder
+        else:
+            return self.placeholder_team
+
+    def get_all_teams(self, with_placeholder = False):
+        placeholder = {}
+        if with_placeholder:
+            placeholder = { self.placeholder_team.id: self.placeholder_team}
+        return {**self.teams, **placeholder}
+
+    def get_teams_from_scheduleid(self, id):
+        try:    
+            match_id = self.get_match_id_from_scheduleid(id)
+            return self.get_teams_from_match_id(match_id)
+        except IndexError:
+            return None
+
+    def get_teams_from_match_id(self, match_id):
+        try:
+            match = self.get_match(match_id)
+            team_ids = match.get_team_ids()
+            return self.get_teams_from_ids(team_ids)
+        except IndexError:
+            return None
+
+    def get_teams_from_ids(self, teamlist):
+        output = []
+        for team in teamlist:
+            output.append(self.get_team(team))
+        return output
+
+    def get_all_matches(self):
+        return self.matches
+
+    def get_schedule(self, item = None):
+        if not item:
+            return self.schedule
+        elif int(item) < len(self.schedule):
+            return self.schedule[item]
+
+    def get_scheduleid_from_match_id(self, match_id):
+        return self.schedule.index(match_id)
+
+    def get_match_id_from_scheduleid(self, schedule_id):
+        if schedule_id < len(self.schedule) and len(self.schedule):
+            return self.schedule[schedule_id]
+
+    def get_current_match(self):
+        return self.get_match_from_scheduleid(self.current_match)
 
     def get_match_from_scheduleid(self, scheduleid):
-        match_id = self.schedule[scheduleid]
-        return self.matches[match_id]
+        match_id = self.get_match_id_from_scheduleid(scheduleid)
+        return self.get_match(match_id)
 
+    def get_team_id_by_tricode(self, tricode):
+        for key, team in self.teams.items():
+            if team.tricode == tricode:
+                return key
+        return None
+
+    ## Reset Zone
 
     def clear_matches_and_game_history(self):
         self.matches = {}

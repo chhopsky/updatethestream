@@ -1,7 +1,8 @@
 from email.policy import default
 import pytest
 from os import walk
-from tourneydefs import Match, Team, Game, Tournament
+from tournament import Tournament
+from tournament_objects import Match, Team, Game
 import filecmp
 import json
 import pprint

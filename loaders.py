@@ -1,4 +1,5 @@
-from tourneydefs import Tournament, Match, Team
+from tournament import Tournament
+from tournament_objects import Match, Team, Game
 from urllib import request
 import requests
 import json
