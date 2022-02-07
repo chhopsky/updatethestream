@@ -6,8 +6,9 @@ Chris "chhopsky" Pollock
 ## Programming
 Chris "chhopsky" Pollock  
 Matt "Nibiria" Clendaniel  
-Leothechosen
-Gia Linh Nguyen
+Leothechosen  
+Gia Linh Nguyen  
+CubicFoxxx
 
 ## UI / UX
 Chris "chhopsky" Pollock  
