@@ -8,7 +8,7 @@ on:
     branches: [ development ]
     tags: [ 'v*' ]
   pull_request:
-    branches: [ main, development ]
+    branches: [ development ]
 
 jobs:
   test:
@@ -25,7 +25,7 @@ jobs:
       - name: Setup Pipenv
         run: |
           python -m pip install -U pip pipenv
-          pipenv install --deploy --dev
+          pipenv install --deploy -d
       - name: Test
         run: pipenv run pytest tests.py
 
@@ -55,7 +55,6 @@ jobs:
       run: |
         python -m pip install -U pip pipenv
         pipenv install -d pyinstaller
-        pipenv run pip uninstall typing -y
         pipenv run pyinstaller --onefile --icon=static/chhtv.ico udts.py
 
     - name: Package Streamdeck plugin
