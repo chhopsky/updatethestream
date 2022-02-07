@@ -63,6 +63,12 @@ def frontend_function(func):
 
 @frontend_function
 def setup():
+    if os.path.isfile(config.get("openfile")):
+        broadcast.load_from(config["openfile"])
+    else:
+        save_file()
+    logger.debug(broadcast.__dict__)
+    force_refresh_stream()
     window.actionNew.triggered.connect(new)
     window.actionOpen.triggered.connect(open_file)
     window.actionOpenFromChallonge.triggered.connect(open_challonge)
@@ -1082,15 +1088,6 @@ if __name__ == "__main__":
 
     logger.info("====init====")
     broadcast = Tournament(version = version)
-    loadfail = False
-    foundfile = False
-    if os.path.isfile(config.get("openfile")):
-        foundfile = True
-        result = broadcast.load_from(config["openfile"])
-        if not result:
-            loadfail = True
-    else:
-        save_file()
 
     challonge_api_key_path = config.get("challonge_api_key_location", "creds/challonge-api-key")
 
@@ -1102,14 +1099,10 @@ if __name__ == "__main__":
     if not config.get("challonge_api_key"):
         config["challonge_api_key"] = base64.b64decode("RDFmNjJaRERhT2NSTUltb25sV0pyM0NBOFB4Y2t3amI3WGNueldVSA==").decode()
 
-    logger.debug(broadcast.__dict__)
-    broadcast.write_to_stream()
-    current_match = 0
+    
     QtWidgets.QApplication.setStyle("fusion") # Standardize UI graphics
     app = QtWidgets.QApplication(sys.argv) # Create an instance of QtWidgets.QApplication
     window = Ui(loaded_config = config) # Create an instance of our class
-    if loadfail:
-        show_error("SAVE_FILE_ERROR", config["openfile"])
 
     setup()
     templates = Jinja2Templates(directory="templates")

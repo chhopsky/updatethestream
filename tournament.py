@@ -61,48 +61,44 @@ class Tournament(BaseModel):
     ## Tournament loaders
 
     def load_from(self, filename="tournament-config.json"):
-        try:
-            with open(filename) as f:
-                data = json.load(f)
+        with open(filename) as f:
+            data = json.load(f)
 
-                self.mapping = {}
-                self.clear_everything()
+            self.mapping = {}
+            self.clear_everything()
 
-                teams = data.get("teams")
-                if teams:
-                    for team in teams:
-                        team = Team(**team)
-                        if team.id != self.placeholder_team.id:
-                            id = self.add_team(team)
-                            self.mapping[team.tricode] = id
+            teams = data.get("teams")
+            if teams:
+                for team in teams:
+                    team = Team(**team)
+                    if team.id != self.placeholder_team.id:
+                        id = self.add_team(team)
+                        self.mapping[team.tricode] = id
 
-                self.placeholder_team = data.get("placeholder_team", self.default_placeholder_team)
+            self.placeholder_team = data.get("placeholder_team", self.default_placeholder_team)
 
-                matches = data.get("matches")
-                if matches:
-                    for current_match in data["matches"]:
-                        match = Match(**current_match)
-                        self.add_match(match)
+            matches = data.get("matches")
+            if matches:
+                for current_match in data["matches"]:
+                    match = Match(**current_match)
+                    self.add_match(match)
 
-                self.schedule = data.get("schedule", [])
+            self.schedule = data.get("schedule", [])
 
-                game_history = data.get("game_history")
-                if game_history is not None:
-                    for game in game_history:
-                        game = Game(**game)
-                        self.game_history.append(game)
+            game_history = data.get("game_history")
+            if game_history is not None:
+                for game in game_history:
+                    game = Game(**game)
+                    self.game_history.append(game)
 
-                current_match = data.get("current_match")
-                if current_match is not None:
-                    self.current_match = current_match
-                
-                pts_config = data.get("pts_config")
-                if pts_config:
-                    self.pts_config = pts_config
+            current_match = data.get("current_match")
+            if current_match is not None:
+                self.current_match = current_match
+            
+            pts_config = data.get("pts_config")
+            if pts_config:
+                self.pts_config = pts_config
 
-        except:
-            return False
-        return True
 
     def load_from_faceit(self, tournament_data):
         self.mapping = {}
@@ -461,7 +457,6 @@ class Tournament(BaseModel):
             for i, scheduleid in enumerate([current_match, last_match]):
                 match = self.get_match_from_scheduleid(scheduleid)
                 current_teams = self.get_teams_from_scheduleid(scheduleid)
-                print(current_teams, scheduleid)
                 if current_teams:
                     t0 = 0
                     t1 = 1
@@ -471,8 +466,6 @@ class Tournament(BaseModel):
                         t1 = 0
                     
                     sides = ["blue", "red"]
-
-                    print(match)
 
                     with open(f"{self.output_folder}{labels[i]}-match-teams.txt", "w") as f_current:
                         for i2, team in enumerate(current_teams):

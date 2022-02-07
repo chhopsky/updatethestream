@@ -113,3 +113,4 @@ def poll_faceit(tournament_id):
     matches = sorted(match_list, key=lambda x: (x.finished, x.in_progress), reverse=True)
     tournament = {"matches": matches, "teams": teams}
     return tournament
+    

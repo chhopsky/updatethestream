@@ -144,3 +144,4 @@ def determine_tricode(teamname, tricodelist):
         if i > 100:
             return "ERR"
         i += 1
+        
