@@ -203,18 +203,18 @@ def open_file():
 
 @frontend_function
 def open_faceit():
-    window.config["tournament_provider"] = "FACEIT"
     text, ok = QtWidgets.QInputDialog.getText(window, "FACEIT Tournament ID", "Paste faceit.com tournament code")
     if text and ok:
         faceit_data = loaders.poll_faceit(text)
-        if not len(faceit_data.get("matches")) > 1 and not len(faceit_data.get("teams")) > 1:
-            raise TournamentProviderFail("load", window.config["tournament_provider"], text)
+        if not len(faceit_data.get("matches")) and not len(faceit_data.get("teams")):
+            raise TournamentProviderFail("load", "faceit", text)
 
         broadcast.load_from_faceit(faceit_data)
-        if not len(broadcast.get_all_matches):
-            raise TournamentProviderFail("load", window.config["tournament_provider"], text)
+        if not len(broadcast.get_all_matches) and len(broadcast.get_all_teams()):
+            raise TournamentProviderFail("load", "faceit", text)
         window.config["use_faceit"] = True
         window.config["faceit_id"] = text
+        window.config["tournament_provider"] = "faceit"
         force_refresh_ui()
         write_to_stream_if_enabled()
 
@@ -222,27 +222,19 @@ def open_faceit():
 def open_challonge():
     text, ok = QtWidgets.QInputDialog.getText(window, "Challonge Tournament ID", "Paste Challonge.com tournament code")
     if text and ok and config.get("challonge_api_key"):
-        found_tournament = False
-        try:
-            tournament_info = loaders.poll_challonge(text, config.get("challonge_api_key"))
-            if not len(tournament_info["matches"]) > 1 or not len(tournament_info["participants"]) > 1:
-                raise Exception
-            else:
-                found_tournament = True
-        except Exception as e:
-            logger.error("Could not load JSON!")
-            logger.error(e)
-            show_error("CHALLONGE_LOAD_FAIL")
-        if found_tournament:
-            result = broadcast.load_from_challonge(tournament_info)
-            if result:                
-                window.config["use_challonge"] = True
-                window.config["challonge_id"] = text
-                force_refresh_ui()
-                write_to_stream_if_enabled()
-                show_error("CHALLONGE_WARNING")
-            else:
-                show_error("CHALLONGE_PARSE_FAIL")
+        challonge_data = loaders.poll_challonge(text, config.get("challonge_api_key"))
+        if not len(challonge_data.get("matches")) > 1 or not len(challonge_data("participants")) > 1:
+            raise TournamentProviderFail("load", "challonge", text)
+
+        broadcast.load_from_challonge(challonge_data)
+        if not len(broadcast.get_all_matches()) and not len(broadcast.get_all_teams()):
+            raise TournamentProviderFail("load", "challonge", text)
+        window.config["use_challonge"] = True
+        window.config["challonge_id"] = text
+        force_refresh_ui()
+        write_to_stream_if_enabled()
+        show_error("CHALLONGE_WARNING")
+
 
 def show_error(error_code = "UNKNOWN", exception = None, additional_info = None):
     if error_code not in udtsconfig.ERRORS.keys():
@@ -781,7 +773,7 @@ def populate_teams():
 def add_team_to_ui(team, show_in_list=True):
     item = QtWidgets.QListWidgetItem(team.get_display_name())
     item.id = team.id
-    if show_in_list:
+    if not show_in_list:
         item.setFont(window.italicfont)
         item.setFlags(item.flags() & ~Qt.ItemIsSelectable)
     window.team_list_widget.addItem(item)
@@ -1009,7 +1001,7 @@ async def get_schedule_all():
 
 @webservice.get("/schedule/{item}")
 async def get_schedule(item: int):
-    schedule = broadcast.get_schedule(item)
+    schedule = broadcast.get_match_id_from_scheduleid(item)
     output = {"schedule": []}
     if len(schedule):
         output["schedule"] = schedule

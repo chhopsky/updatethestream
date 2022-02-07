@@ -1,7 +1,7 @@
+from errors import MatchScheduleDesync, ResourceNotFound, AllResourcesNotFound, TournamentProviderFail, ScheduleError, MatchNotInSchedule
 from pydantic import BaseModel, Field
 from typing import Text, List, Dict, Optional
 from uuid import uuid4
-from errors import MatchScheduleDesync
 from copy import deepcopy
 from tournament_objects import Match, Team, Game
 import os
@@ -291,6 +291,7 @@ class Tournament(BaseModel):
 
     def write_to_stream(self, swap=False):
         # do text write here
+        video_extensions = [".mkv",".mov",".mp4", ".avi"]
         filename = f"{self.output_folder}start.txt"
         if not os.path.exists(os.path.dirname(filename)):
             try:
@@ -300,158 +301,248 @@ class Tournament(BaseModel):
                     raise
         
         if len(self.schedule):
-            #try: MATT FIX
-                # This section is for things that are written out for every scheduled match
+            for index, schedule_item in enumerate(self.schedule):
+                match = self.get_match(schedule_item)
+                teams = match.get_team_ids()
+                teamlist = self.get_teams_from_ids(teams)
+
+                with open(f"{self.output_folder}match-{index + 1}-teams.txt", "w") as f_teams:
+                    for team in teamlist:
+                        f_teams.write(f"{team.get_name()}\n")
+        
+                for i, team in enumerate(teamlist):
+                    sourcefile = self.blank_image
+                    extension = ".png"
+                    if team.logo_small and os.path.isfile(team.logo_small):
+                        sourcefile = team.logo_small
+                        if team.logo_small.rsplit('.',1) in video_extensions:
+                            extension = ".mp4"
+                    shutil.copy(sourcefile, f"{self.output_folder}match-{index + 1}-team{i + 1}-icon{extension}")
+                    
+                    sourcefile = self.blank_image
+                    extension = ".png"
+                    if team.logo_big and os.path.isfile(team.logo_big):
+                        sourcefile = team.logo_big
+                        if team.logo_big.rsplit('.', 1) in video_extensions:
+                            extension = ".mp4"
+                    shutil.copy(sourcefile, f"{self.output_folder}match-{index + 1}-team{i + 1}-hero{extension}")
+
+                with open(f"{self.output_folder}match-{index + 1}-teams-horizontal.txt", "w") as f_teams:
+                    for i, team in enumerate(teamlist):
+                        if i < len(teamlist) - 1:
+                            suffix = " vs "
+                        else:
+                            suffix = "\n"
+                        f_teams.write(f"{team.get_name()}{suffix}")
+
+                with open(f"{self.output_folder}match-{index + 1}-tricodes.txt", "w") as f_teams:
+                    for team in teamlist:
+                        f_teams.write(f"{team.get_tricode()}\n")
+
+                with open(f"{self.output_folder}match-{index + 1}-tricodes-horizontal.txt", "w") as f_teams:
+                    for i, team in enumerate(teamlist):
+                        if i < len(teamlist) - 1:
+                            suffix = " vs "
+                        else:
+                            suffix = "\n"
+                        f_teams.write(f"{team.get_tricode()}{suffix}")
+
+                ## TODO: figure out how to handle scores in 2+participant matches
+                with open(f"{self.output_folder}match-{index + 1}-scores.txt", "w") as f_scores:
+                    for score in match.scores:
+                        f_scores.write(f"{score}\n")
+
+                with open(f"{self.output_folder}match-{index + 1}-scores-horizontal.txt", "w") as f_scores:
+                    for i, score in enumerate(match.scores):
+                        if i < len(match.scores) - 1:
+                            suffix = " - "
+                        else:
+                            suffix = "\n"
+                        f_scores.write(f"{score}{suffix}")
+
+            # This section is for things that are written out once for the entire schedule
+            with open(f"{self.output_folder}schedule-teams.txt", "w") as f_schedule:
                 for index, schedule_item in enumerate(self.schedule):
-                    match = self.matches[schedule_item]
-                    team1 = self.teams.get(match.teams[0])
-                    team2 = self.teams.get(match.teams[1])
+                    match = self.get_match(schedule_item)
+                    teams = match.get_team_ids()
+                    teamlist = self.get_teams_from_ids(teams)
+                    for team in teamlist:
+                        f_schedule.write(f"{team.get_name()}\n")
+            
+            with open(f"{self.output_folder}schedule-tricodes.txt", "w") as f_schedule:
+                for index, schedule_item in enumerate(self.schedule):
+                    match = self.get_match(schedule_item)
+                    teams = match.get_team_ids()
+                    teamlist = self.get_teams_from_ids(teams)
+                    for i, team in enumerate(teamlist):
+                        if i < len(teamlist) - 1:
+                            suffix = " vs "
+                        else:
+                            suffix = "\n"
+                        f_schedule.write(f"{team.get_tricode()}{suffix}")
 
-                    with open(f"{self.output_folder}match-{index + 1}-teams.txt", "w") as f_teams:
-                        f_teams.write(f"{team1.get_name()}\n")
-                        f_teams.write(f"{team2.get_name()}\n")
-         
-                    for i, team in enumerate([team1,team2]):
-                        video_extensions = [".mkv",".mov",".mp4", ".avi"]
-                        sourcefile = self.blank_image
-                        extension = ".png"
-                        if team.logo_small and os.path.isfile(team.logo_small):
-                            sourcefile = team.logo_small
-                            if team.logo_small.rsplit('.',1) in video_extensions:
-                                extension = ".mp4"
-                        shutil.copy(sourcefile, f"{self.output_folder}match-{index + 1}-team{i + 1}-icon{extension}")
-                        
-                        sourcefile = self.blank_image
-                        extension = ".png"
-                        if team.logo_big and os.path.isfile(team.logo_big):
-                            sourcefile = team.logo_big
-                            if team.logo_big.rsplit('.', 1) in video_extensions:
-                                extension = ".mp4"
-                        shutil.copy(sourcefile, f"{self.output_folder}match-{index + 1}-team{i + 1}-hero{extension}")
+            with open(f"{self.output_folder}schedule-scores.txt", "w") as f_schedule:
+                for index, schedule_item in enumerate(self.schedule):
+                    match = self.get_match(schedule_item)
+                    for i, score in enumerate(match.scores):
+                        if i < len(match.scores) - 1:
+                            suffix = " - "
+                        else:
+                            suffix = "\n"
+                        f_schedule.write(f"{score}{suffix}")
+            
+            with open(f"{self.output_folder}schedule-teams-combined.txt", "w") as f_schedule:
+                for index, schedule_item in enumerate(self.schedule):
+                    match = self.get_match(schedule_item)
+                    teams = match.get_team_ids()
+                    teamlist = self.get_teams_from_ids(teams)
+                    for team in teamlist:
+                        f_schedule.write(f"{team.get_name()}\n")
+                    f_schedule.write("\n")
 
-                    with open(f"{self.output_folder}match-{index + 1}-teams-horizontal.txt", "w") as f_teams:
-                        team1 = self.teams.get(match.teams[0])
-                        team2 = self.teams.get(match.teams[1])
-                        f_teams.write(f"{team1.get_name()} vs {team2.get_name()}\n")
+            with open(f"{self.output_folder}schedule-scores-combined.txt", "w") as f_schedule:
+                for index, schedule_item in enumerate(self.schedule):
+                    match = self.get_match(schedule_item)
+                    for i, score in enumerate(match.scores):
+                        f_schedule.write(f"{score}\n")
+                    f_schedule.write("\n")
 
-                    with open(f"{self.output_folder}match-{index + 1}-tricodes.txt", "w") as f_teams:
-                        team1 = self.teams.get(match.teams[0])
-                        team2 = self.teams.get(match.teams[1])
-                        f_teams.write(f"{team1.get_tricode()}\n")
-                        f_teams.write(f"{team2.get_tricode()}\n")
+            with open(f"{self.output_folder}schedule-tricodes-combined.txt", "w") as f_schedule:
+                for index, schedule_item in enumerate(self.schedule):
+                    match = self.get_match(schedule_item)
+                    teams = match.get_team_ids()
+                    teamlist = self.get_teams_from_ids(teams)
+                    for team in teamlist:
+                        f_schedule.write(f"{team.get_tricode()}\n")
+                    f_schedule.write("\n")
+                    
 
-                    with open(f"{self.output_folder}match-{index + 1}-tricodes-horizontal.txt", "w") as f_teams:
-                        team1 = self.teams.get(match.teams[0])
-                        team2 = self.teams.get(match.teams[1])
-                        f_teams.write(f"{team1.get_tricode()} vs {team2.get_tricode()}\n")
+            with open(f"{self.output_folder}schedule-full-name.txt", "w") as f_schedule:
+                for index, schedule_item in enumerate(self.schedule):
+                    match = self.get_match(schedule_item)
+                    teams = match.get_team_ids()
+                    teamlist = self.get_teams_from_ids(teams)
+                    for i, team in enumerate(teamlist):
+                        if i < len(teamlist) - 1:
+                            suffix = " vs "
+                        else:
+                            suffix = " ("
+                        f_schedule.write(f"{team.get_name()}{suffix}")
+                    for i, score in enumerate(match.scores):
+                        if i < len(match.scores) - 1:
+                            suffix = " - "
+                        else:
+                            suffix = ")\n"
+                        f_schedule.write(f"{score}{suffix}")
 
-                    with open(f"{self.output_folder}match-{index + 1}-scores.txt", "w") as f_scores:
-                        f_scores.write(f"{match.scores[0]}\n")
-                        f_scores.write(f"{match.scores[1]}\n")
+            with open(f"{self.output_folder}schedule-full-tricode.txt", "w") as f_schedule:
+                for index, schedule_item in enumerate(self.schedule):
+                    match = self.get_match(schedule_item)
+                    teams = match.get_team_ids()
+                    teamlist = self.get_teams_from_ids(teams)
+                    for i, team in enumerate(teamlist):
+                        if i < len(teamlist) - 1:
+                            suffix = " vs "
+                        else:
+                            suffix = " ("
+                        f_schedule.write(f"{team.get_tricode()}{suffix}")
+                    for i, score in enumerate(match.scores):
+                        if i < len(match.scores) - 1:
+                            suffix = " - "
+                        else:
+                            suffix = ")\n"
+                        f_schedule.write(f"{score}{suffix}")
 
-                    with open(f"{self.output_folder}match-{index + 1}-scores-horizontal.txt", "w") as f_scores:
-                        f_scores.write(f"{match.scores[0]} - {match.scores[1]}\n")
-
-                # This section is for things that are written out once for the entire schedule
-                with open(f"{self.output_folder}schedule-teams.txt", "w") as f_schedule:
-                    for index, schedule_item in enumerate(self.schedule):
-                        match = self.matches[schedule_item]
-                        team1 = self.teams.get(match.teams[0])
-                        team2 = self.teams.get(match.teams[1])
-                        f_schedule.write(f"{team1.get_name()} vs {team2.get_name()}\n")
-                
-                with open(f"{self.output_folder}schedule-tricodes.txt", "w") as f_schedule:
-                    for index, schedule_item in enumerate(self.schedule):
-                        match = self.matches[schedule_item]
-                        team1 = self.teams.get(match.teams[0])
-                        team2 = self.teams.get(match.teams[1])
-                        f_schedule.write(f"{team1.get_tricode()} vs {team2.get_tricode()}\n")
-
-                with open(f"{self.output_folder}schedule-scores.txt", "w") as f_schedule:
-                    for index, schedule_item in enumerate(self.schedule):
-                        match = self.matches[schedule_item]
-                        f_schedule.write(f"{match.scores[0]} - {match.scores[1]}\n")
-                
-                with open(f"{self.output_folder}schedule-teams-combined.txt", "w") as f_schedule:
-                    for index, schedule_item in enumerate(self.schedule):
-                        match = self.matches[schedule_item]
-                        team1 = self.teams.get(match.teams[0])
-                        team2 = self.teams.get(match.teams[1])
-                        f_schedule.write(f"{team1.get_name()}\n{team2.get_name()}\n\n")
-
-                with open(f"{self.output_folder}schedule-scores-combined.txt", "w") as f_schedule:
-                    for index, schedule_item in enumerate(self.schedule):
-                        match = self.matches[schedule_item]
-                        f_schedule.write(f"{match.scores[0]}\n{match.scores[1]}\n\n")
-
-                with open(f"{self.output_folder}schedule-tricodes-combined.txt", "w") as f_schedule:
-                    for index, schedule_item in enumerate(self.schedule):
-                        match = self.matches[schedule_item]
-                        team1 = self.teams.get(match.teams[0])
-                        team2 = self.teams.get(match.teams[1])
-                        f_schedule.write(f"{team1.get_tricode()}\n{team2.get_tricode()}\n\n")
-
-                with open(f"{self.output_folder}schedule-full-name.txt", "w") as f_schedule:
-                    for index, schedule_item in enumerate(self.schedule):
-                        match = self.matches[schedule_item]
-                        team1 = self.teams.get(match.teams[0])
-                        team2 = self.teams.get(match.teams[1])
-                        f_schedule.write(f"{team1.get_name()} vs {team2.get_name()} ")
-                        f_schedule.write(f"({match.scores[0]} - {match.scores[1]})\n")
-
-                with open(f"{self.output_folder}schedule-full-tricode.txt", "w") as f_schedule:
-                    for index, schedule_item in enumerate(self.schedule):
-                        match = self.matches[schedule_item]
-                        team1 = self.teams.get(match.teams[0])
-                        team2 = self.teams.get(match.teams[1])
-                        f_schedule.write(f"{team1.get_tricode()} vs {team2.get_tricode()} ")
-                        f_schedule.write(f"({match.scores[0]} - {match.scores[1]})\n")
-
-                # This section is for things that are written out about the current match    
-                current_match = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
-                current_teams = self.get_teams_from_scheduleid(current_match)
-                match = self.get_match_from_scheduleid(current_match)
-                if current_teams is not None:
+            # This section is for things that are written out about the current match    
+            current_match = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
+            last_match = current_match - 1 if current_match != 0 else 0
+                 
+            labels = ["current", "last"]
+            for i, scheduleid in enumerate([current_match, last_match]):
+                match = self.get_match_from_scheduleid(scheduleid)
+                current_teams = self.get_teams_from_scheduleid(scheduleid)
+                print(current_teams, scheduleid)
+                if current_teams:
                     t0 = 0
                     t1 = 1
 
                     if swap:
                         t0 = 1
                         t1 = 0
-                    with open(f"{self.output_folder}current-match-teams.txt", "w") as f_current:
-                        f_current.write(f"{current_teams[0].get_name()} vs {current_teams[1].get_name()}\n")
                     
-                    with open(f"{self.output_folder}current-match-tricodes.txt", "w") as f_current:
-                        f_current.write(f"{current_teams[0].get_tricode()} vs {current_teams[1].get_tricode()}\n")
+                    sides = ["blue", "red"]
 
-                    with open(f"{self.output_folder}current-match-team1-tricode.txt", "w") as f_current:
+                    print(match)
+
+                    with open(f"{self.output_folder}{labels[i]}-match-teams.txt", "w") as f_current:
+                        for i2, team in enumerate(current_teams):
+                            if i2 < len(current_teams) - 1:
+                                suffix = " vs "
+                            else:
+                                suffix = "\n"
+                            f_current.write(f"{team.get_name()}{suffix}")
+                        f_current.close()
+                    
+                    with open(f"{self.output_folder}{labels[i]}-match-teams-vertical.txt", "w") as f_current2:
+                        for i2, team in enumerate(current_teams):
+                            f_current2.write(f"{team.get_name()}\n")
+                        f_current2.close()
+                    
+                    with open(f"{self.output_folder}{labels[i]}-match-tricodes.txt", "w") as f_current:
+                        for i2, team in enumerate(current_teams):
+                            if i2 < len(current_teams) - 1:
+                                suffix = " vs "
+                            else:
+                                suffix = "\n"
+                            f_current.write(f"{team.get_tricode()}{suffix}")
+                        f_current.close()
+
+                    with open(f"{self.output_folder}{labels[i]}-match-scores.txt", "w") as f_current:
+                        for score in match.scores:
+                            f_current.write(f"{score}\n")
+                        f_current.close()
+
+                    with open(f"{self.output_folder}{labels[i]}-match-scores-horizontal.txt", "w") as f_current:
+                        for i2, score in enumerate(match.scores):
+                            if i < len(match.scores) - 1:
+                                suffix = " - "
+                            else:
+                                suffix = ""
+                        f_current.write(f"{score}{suffix}")
+
+                    with open(f"{self.output_folder}{labels[i]}-match-blue-tricode.txt", "w") as f_current:
                         f_current.write(f"{current_teams[t0].get_tricode()}\n")
+                        f_current.close()
 
-                    with open(f"{self.output_folder}current-match-team2-tricode.txt", "w") as f_current:
+                    with open(f"{self.output_folder}{labels[i]}-match-red-tricode.txt", "w") as f_current:
                         f_current.write(f"{current_teams[t1].get_tricode()}\n")
+                        f_current.close()
                     
-                    with open(f"{self.output_folder}current-match-team1-name.txt", "w") as f_current:
+                    with open(f"{self.output_folder}{labels[i]}-match-blue-name.txt", "w") as f_current:
                         f_current.write(f"{current_teams[t0].get_name()}\n")
+                        f_current.close()
 
-                    with open(f"{self.output_folder}current-match-team2-name.txt", "w") as f_current:
+                    with open(f"{self.output_folder}{labels[i]}-match-red-name.txt", "w") as f_current:
                         f_current.write(f"{current_teams[t1].get_name()}\n")
+                        f_current.close()
 
-                    with open(f"{self.output_folder}current-match-team1-score.txt", "w") as f_current:
+                    with open(f"{self.output_folder}{labels[i]}-match-blue-score.txt", "w") as f_current:
                         f_current.write(f"{match.scores[t0]}\n")
+                        f_current.close()
 
-                    with open(f"{self.output_folder}current-match-team2-score.txt", "w") as f_current:
+                    with open(f"{self.output_folder}{labels[i]}-match-red-score.txt", "w") as f_current:
                         f_current.write(f"{match.scores[t1]}\n")
+                        f_current.close()
                     
 
-                    for i, team in enumerate([current_teams[t0],current_teams[t1]]):
-                        video_extensions = [".mkv",".mov",".mp4", ".avi"]
+                    for i2, team in enumerate([current_teams[t0],current_teams[t1]]):
                         sourcefile = self.blank_image
                         extension = ".png"
                         if team.logo_small and os.path.isfile(team.logo_small):
                             sourcefile = team.logo_small
                             if team.logo_small.rsplit('.',1) in video_extensions:
                                 extension = ".mp4"    
-                        shutil.copy(sourcefile, f"{self.output_folder}current-match-team{i + 1}-icon{extension}")
+                        shutil.copy(sourcefile, f"{self.output_folder}{labels[i]}-match-{sides[i2]}-icon{extension}")
 
                         sourcefile = self.blank_image
                         extension = ".png"
@@ -459,40 +550,52 @@ class Tournament(BaseModel):
                             sourcefile = team.logo_big
                             if team.logo_big.rsplit('.', 1) in video_extensions:
                                 extension = ".mp4"
-                        shutil.copy(sourcefile, f"{self.output_folder}current-match-team{i + 1}-hero{extension}")
-                
-                # This section is for the standings / match history win/loss
-                standings = self.get_standings()
-                if standings:
-                    with open(f"{self.output_folder}standings-complete.txt", "w") as f_current:
-                        for result in standings:
-                            team = self.teams[result[0]]
-                            f_current.write(f"{team.get_name()}: {result[1]}\n")
+                        shutil.copy(sourcefile, f"{self.output_folder}{labels[i]}-match-{sides[i2]}-hero{extension}")
 
-                    with open(f"{self.output_folder}standings-teams-names.txt", "w") as f_current:
-                        for result in standings:
-                            team = self.teams[result[0]]
-                            f_current.write(f"{team.get_name()}\n")
+                    for i2, team in enumerate(teamlist):
+                        sourcefile = self.blank_image
+                        extension = ".png"
+                        if team.logo_small and os.path.isfile(team.logo_small):
+                            sourcefile = team.logo_small
+                            if team.logo_small.rsplit('.',1) in video_extensions:
+                                extension = ".mp4"    
+                        shutil.copy(sourcefile, f"{self.output_folder}current-match-team{i2 + 1}-icon{extension}")
 
-                    with open(f"{self.output_folder}standings-teams-tricodes.txt", "w") as f_current:
-                        for result in standings:
-                            team = self.teams[result[0]]
-                            f_current.write(f"{team.get_tricode()}\n")
+                        sourcefile = self.blank_image
+                        extension = ".png"
+                        if team.logo_big and os.path.isfile(team.logo_big):
+                            sourcefile = team.logo_big
+                            if team.logo_big.rsplit('.', 1) in video_extensions:
+                                extension = ".mp4"
+                        shutil.copy(sourcefile, f"{self.output_folder}current-match-team{i2 + 1}-hero{extension}")
+            
+            # This section is for the standings / match history win/loss
+            standings = self.get_standings()
+            if standings:
+                with open(f"{self.output_folder}standings-complete.txt", "w") as f_current:
+                    for result in standings:
+                        team = self.get_team(result[0])
+                        f_current.write(f"{team.get_name()}: {result[1]}\n")
 
-                    with open(f"{self.output_folder}standings-teams-points.txt", "w") as f_current:
-                        for result in standings:
-                            team = self.teams[result[0]]
-                            f_current.write(f"{result[1]}\n")
+                with open(f"{self.output_folder}standings-teams-names.txt", "w") as f_current:
+                    for result in standings:
+                        team = self.get_team(result[0])
+                        f_current.write(f"{team.get_name()}\n")
 
-                    with open(f"{self.output_folder}standings-teams-leader.txt", "w") as f_current:
-                        result = standings[0]
-                        team = self.teams[result[0]]
-                        f_current.write(f"{team.get_name()}")
-            #except: MATT FIX
-                # TODO: return an error to the UI and have it display
-             #   return False MATT FIX
-                
-        return
+                with open(f"{self.output_folder}standings-teams-tricodes.txt", "w") as f_current:
+                    for result in standings:
+                        team = self.get_team(result[0])
+                        f_current.write(f"{team.get_tricode()}\n")
+
+                with open(f"{self.output_folder}standings-teams-points.txt", "w") as f_current:
+                    for result in standings:
+                        f_current.write(f"{result[1]}\n")
+
+                with open(f"{self.output_folder}standings-teams-leader.txt", "w") as f_current:
+                    result = standings[0]
+                    team = self.get_team(result[0])
+                    f_current.write(f"{team.get_name()}")
+
 
     ## Tournament operation functions
     
@@ -589,10 +692,11 @@ class Tournament(BaseModel):
     def get_team(self, team_id):
         if team_id == "666":
             return self.placeholder_team
-        elif team_id in self.teams.keys():
-            return self.teams[team_id]
+        team = self.teams.get(team_id)
+        if team:
+            return team
         else:
-            return None
+            raise ResourceNotFound("team", team_id)
 
     def add_team(self, team_to_add, callback = None):
         if not team_to_add.id:
@@ -613,15 +717,19 @@ class Tournament(BaseModel):
 
     ## MATCH READ/WRITE/EDIT
 
-    def get_match(self, id):
-        return self.matches.get(id)
+    def get_match(self, match_id):
+        match = self.matches.get(match_id)
+        if match:
+            return match
+        else:
+            return ResourceNotFound(match_id)
 
     def add_match(self, match, schedule=True):
         self.matches[match.id] = match
         if schedule:
             self.schedule.append(match.id)
         if len(self.schedule) != len(self.matches):
-            raise MatchScheduleDesync(self.matches, self.schedule)
+            raise MatchScheduleDesync(self)
 
     def delete_match(self, match_id):
         """ Deletes a match, removes it from the match history, and schedule"""
@@ -742,15 +850,16 @@ class Tournament(BaseModel):
             match_id = self.get_match_id_from_scheduleid(id)
             return self.get_teams_from_match_id(match_id)
         except IndexError:
-            return None
+            raise ScheduleError(id)
 
     def get_teams_from_match_id(self, match_id):
-        try:
-            match = self.get_match(match_id)
-            team_ids = match.get_team_ids()
-            return self.get_teams_from_ids(team_ids)
-        except IndexError:
-            return None
+        match = self.get_match(match_id)
+        team_ids = match.get_team_ids()
+        teams = self.get_teams_from_ids(team_ids)
+        if len(team_ids) == len(teams):
+            return teams
+        else:
+            raise AllResourcesNotFound(len(team_ids), len(teams))
 
     def get_teams_from_ids(self, teamlist):
         output = []
@@ -761,18 +870,22 @@ class Tournament(BaseModel):
     def get_all_matches(self):
         return self.matches
 
-    def get_schedule(self, item = None):
-        if not item:
-            return self.schedule
-        elif int(item) < len(self.schedule):
-            return self.schedule[item]
+    def get_schedule(self):
+        return self.schedule
 
     def get_scheduleid_from_match_id(self, match_id):
-        return self.schedule.index(match_id)
+        try:
+            scheduleid = self.schedule.index(match_id)
+            return scheduleid
+        except IndexError:
+            raise MatchNotInSchedule(match_id)
 
     def get_match_id_from_scheduleid(self, schedule_id):
-        if schedule_id < len(self.schedule) and len(self.schedule):
-            return self.schedule[schedule_id]
+        try:
+            match_id = self.schedule[schedule_id]
+            return match_id
+        except IndexError:
+            raise ScheduleError(schedule_id)
 
     def get_current_match(self):
         return self.get_match_from_scheduleid(self.current_match)

@@ -2,6 +2,8 @@ from tournament import Tournament
 from tournament_objects import Match, Team, Game
 from errors import TournamentProviderFail
 from urllib import request
+from urllib.error import HTTPError, URLError
+from http import HTTPStatus
 import processors
 import requests
 import json
@@ -10,16 +12,22 @@ import random
 import string
 
 def poll_challonge(tournament_id, API_KEY):
-    url = f"https://api.challonge.com/v1/tournaments/{tournament_id}/matches.json?api_key={API_KEY}"
-    page = request.urlopen(url)
-    response_matches = page.read()
-    url = f"https://api.challonge.com/v1/tournaments/{tournament_id}/participants.json?api_key={API_KEY}"
-    page = request.urlopen(url)
-    response_participants = page.read()
-    response = {
-        "matches": json.loads(response_matches.decode()),
-        "participants": json.loads(response_participants.decode())
-    }
+    matches_url = f"https://api.challonge.com/v1/tournaments/{tournament_id}/matches.json?api_key={API_KEY}"
+    teams_url = f"https://api.challonge.com/v1/tournaments/{tournament_id}/participants.json?api_key={API_KEY}"
+    try:
+        matches_page = request.urlopen(matches_url)
+        teams_page = request.urlopen(teams_url)
+    except HTTPError:
+        raise TournamentProviderFail("access", "challonge", tournament_id)
+    response_matches = matches_page.read()
+    response_participants = teams_page.read()
+    try:
+        response = {
+            "matches": json.loads(response_matches.decode()),
+            "participants": json.loads(response_participants.decode())
+        }
+    except json.JSONDecodeError:
+        raise TournamentProviderFail("parse", "challonge", tournament_id)
     return response    
 
 def poll_faceit(tournament_id):
@@ -27,7 +35,7 @@ def poll_faceit(tournament_id):
     groups_url = f"https://api.faceit.com/championships/v1/championship/{tournament_id}"
     teams_response = requests.get(teams_url)
     groups_response = requests.get(groups_url)
-    if not teams_response or not groups_response:
+    if not teams_response.ok or not groups_response.ok:
         raise TournamentProviderFail("access", "FACEIT", tournament_id)
 
     try:
@@ -36,7 +44,7 @@ def poll_faceit(tournament_id):
     except json.JSONDecodeError:
         raise TournamentProviderFail("parse", "FACEIT", tournament_id)
     
-    if not teams or not groups_response:
+    if not teams or not groups:
         raise TournamentProviderFail("parse", "FACEIT", tournament_id)
 
     tournament = { "teams": teams, "groups": groups}
@@ -56,7 +64,14 @@ def poll_faceit(tournament_id):
     for group in list(group_config.keys()):
         group_url = f"https://api.faceit.com/championships/v1/championship/{tournament_id}/group/{group}/bracket"
         response = requests.get(group_url)
-        group_json = response.json()
+        if not response:
+            raise TournamentProviderFail("access", "FACEIT", tournament_id)
+
+        try:
+            group_json = response.json()
+        except json.JSONDecodeError:
+            raise TournamentProviderFail("parse", "FACEIT", tournament_id)
+        
         for match in group_json["payload"]["matches"].values():
             new_match = Match()
             new_match.best_of = match.get("bestOf")
@@ -74,19 +89,14 @@ def poll_faceit(tournament_id):
                 if team.get("entity"):
                     new_match.teams[i] = team["entity"].get("id")
                     if teams.get(new_match.teams[i]) is None:
-                        try:
-                            new_team = Team()
-                            new_team.id = team["entity"].get("id")
-                            if new_team.id != "bye":
-                                new_team.name = team["entity"].get("name")
-                                new_team.tricode = determine_tricode(new_team.name, tricodes)
-                                tricodes.append(new_team.tricode)
-                                if new_team.name != "bye":
-                                    teams[new_team.id] = new_team
-                        except TypeError:
-                            pprint.pprint(team)
-                        except AttributeError:
-                            pprint.pprint(team)
+                        new_team = Team()
+                        new_team.id = team["entity"].get("id")
+                        if new_team.id != "bye":
+                            new_team.name = team["entity"].get("name")
+                            new_team.tricode = processors.determine_tricode(new_team.name, tricodes)
+                            tricodes.append(new_team.tricode)
+                            if new_team.name != "bye":
+                                teams[new_team.id] = new_team
                 else:
                     new_match.teams[i] = "666"
 
