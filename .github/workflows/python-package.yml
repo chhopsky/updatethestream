@@ -25,7 +25,7 @@ jobs:
       - name: Setup Pipenv
         run: |
           python -m pip install -U pip pipenv
-          pipenv install --deploy --dev
+          pipenv install --deploy -d
       - name: Test
         run: pipenv run pytest tests.py
 
@@ -55,8 +55,7 @@ jobs:
       run: |
         python -m pip install -U pip pipenv
         pipenv install -d pyinstaller
-        pipenv run pip uninstall typing -y
-        pipenv run pyinstaller --onefile --icon=static/chhtv.ico udts.py
+        pipenv run pyinstaller -y udts.spec
 
     - name: Package Streamdeck plugin
       run: |
@@ -68,10 +67,8 @@ jobs:
         fi
       shell: bash
 
-    - name: Copy data files
-      run: |
-        cp -R static dist/
-        cp *.md dist/
+    - name: Copy readme files
+      run: cp *.md dist/
       shell: bash
 
     - uses: nelonoel/branch-name@v1.0.1
@@ -85,6 +82,7 @@ jobs:
         else
           foldername=udts-$(date '+%Y%m%d')-${GITHUB_SHA:0:7}-${{ matrix.os }}
         fi
+        rm dist/udts?(.exe)
         mv dist/ $foldername
         echo "::set-output name=foldername::$foldername"
       shell: bash

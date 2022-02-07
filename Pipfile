@@ -8,7 +8,6 @@ verify_ssl = true
 [packages]
 pyqt5 = "*"
 pydantic = "*"
-typing = "*"
 pyinstaller = "*"
 bs4 = "*"
 validators = "*"
