@@ -35,7 +35,7 @@ import signal
 class Ui(QtWidgets.QMainWindow):
     def __init__(self, loaded_config):
         super(Ui, self).__init__() # Call the inherited classes __init__ method
-        uic.loadUi('static/form.ui', self) # Load the .ui file
+        uic.loadUi(os.path.abspath(os.path.join(os.path.dirname(__file__), 'static/form.ui')), self) # Load the .ui file
         self.show() # Show the GUI
         self.normalfont = QFont()
         self.boldfont = QFont()
@@ -874,7 +874,7 @@ def save_config(config_to_save):
 webservice = FastAPI()
 
 def run_server():
-    webservice.mount("/static", StaticFiles(directory="static"), name="static")
+    webservice.mount("/static", StaticFiles(directory=os.path.abspath(os.path.join(os.path.dirname(__file__), "static"))), name="static")
     uvicorn.run(webservice, host="0.0.0.0", port=8000, access_log=False)
 
 @webservice.get("/", response_class=HTMLResponse)
