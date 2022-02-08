@@ -42,7 +42,7 @@ class Tournament(BaseModel):
 
         output_dict["schedule"] = self.schedule
 
-        output_dict["placeholder_team"] = self.placeholder_team
+        output_dict["placeholder_team"] = self.placeholder_team.to_dict()
 
         if savestate:
             output_dict["current_match"] = self.current_match

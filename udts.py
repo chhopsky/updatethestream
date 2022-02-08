@@ -1078,8 +1078,7 @@ if __name__ == "__main__":
         with open(os.path.join(exec_dir, 'config.cfg')) as f:
             config = json.load(f)
             config["version"] = "0.4"
-            # if config.get("version") == version:
-            #     TODO: config version mismatch
+            
     except (json.JSONDecodeError, FileNotFoundError):
         config = { "openfile": "default-tournament.json",
             "use_challonge": False,
