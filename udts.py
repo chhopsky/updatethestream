@@ -30,12 +30,13 @@ import logging
 import os.path
 import requests
 import signal
+from pathlib import Path
 
 
 class Ui(QtWidgets.QMainWindow):
     def __init__(self, loaded_config):
         super(Ui, self).__init__() # Call the inherited classes __init__ method
-        uic.loadUi(os.path.join(bundle_dir,'static/form.ui'), self) # Load the .ui file
+        uic.loadUi(bundle_dir / 'static/form.ui', self) # Load the .ui file
         self.show() # Show the GUI
         self.normalfont = QFont()
         self.boldfont = QFont()
@@ -50,7 +51,7 @@ class Ui(QtWidgets.QMainWindow):
         self.lock_teams = False
         self.config = loaded_config
         self.swapstate = False
-        self.setWindowIcon(pygui.QIcon('static/chhtv.ico'))
+        self.setWindowIcon(pygui.QIcon(str(bundle_dir / 'static/chhtv.ico')))
 
 def frontend_function(func):
     def frontend_wrapper(*args, **kwargs):
@@ -187,7 +188,7 @@ def version_check():
     cdict = response.json()
 
     if response.ok:
-        with open(os.path.join(exec_dir, "config.cfg")) as f:
+        with open(exec_dir / "config.cfg") as f:
             config = json.load(f)
             if not config.get("version_checked") and config.get("version") != cdict["version"]:
                 show_error("CLIENT_OUT_OF_DATE")
@@ -871,14 +872,14 @@ def get_ip():
 
 
 def save_config(config_to_save):
-    with open(os.path.join(exec_dir, "config.cfg"), "w") as f:
+    with open(exec_dir / "config.cfg", "w") as f:
         f.write(json.dumps(config_to_save))
 
 webservice = FastAPI()
 
 def run_server():
-    webservice.mount("/static", StaticFiles(directory=os.path.join(bundle_dir, "static")), name="static")
-    uvicorn.run(webservice, host="0.0.0.0", port=8000)
+    webservice.mount("/static", StaticFiles(directory=bundle_dir / "static"), name="static")
+    uvicorn.run(webservice, host="0.0.0.0", port=8000, access_log=False)
 
 @webservice.exception_handler(ResourceNotFound)
 async def validation_exception_handler(request, exc):
@@ -1077,18 +1078,18 @@ class WebServerThread(QThread):
 if __name__ == "__main__":
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         # we are running inside a bundle, so all bundled files will be here.
-        exec_dir = os.path.dirname(sys.executable)
-        bundle_dir = sys._MEIPASS
+        exec_dir = Path(sys.executable).parent.resolve()
+        bundle_dir = Path(sys._MEIPASS)
     else:
         # we are running inside the default Python interpreter, so the bundle
         # dir is the same as the current file's folder.
-        bundle_dir = os.path.abspath(os.path.dirname(__file__))
+        bundle_dir = Path(__file__).parent.resolve()
         exec_dir = bundle_dir
 
     version = "0.4"
     LOGLEVEL = "DEBUG"
     try:
-        with open(os.path.join(exec_dir, 'config.cfg')) as f:
+        with open(exec_dir / 'config.cfg') as f:
             config = json.load(f)
             config["version"] = "0.4"
 
@@ -1102,15 +1103,15 @@ if __name__ == "__main__":
         }
         save_config(config)
 
-    if not os.path.isdir(os.path.join(exec_dir, "logs")):
-        mkdir(os.path.join(exec_dir, "logs"))
+    if not os.path.isdir(exec_dir / "logs"):
+        mkdir(exec_dir / "logs")
     logger = logging.getLogger("udts_main")
-    logging.basicConfig(filename=os.path.join(exec_dir, "logs/udts.log"), filemode='a', level=LOGLEVEL, format='%(name)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename=exec_dir/"logs/udts.log", filemode='a', level=LOGLEVEL, format='%(name)s - %(levelname)s - %(message)s')
 
     logger.info("====init====")
     broadcast = Tournament(version = version)
 
-    challonge_api_key_path = config.get("challonge_api_key_location", os.path.join(exec_dir, "creds/challonge-api-key"))
+    challonge_api_key_path = config.get("challonge_api_key_location", exec_dir/"creds/challonge-api-key")
 
     if os.path.isfile(challonge_api_key_path) and not config.get("challonge_api_key"):
         with open(challonge_api_key_path) as file:
@@ -1126,7 +1127,7 @@ if __name__ == "__main__":
     window = Ui(loaded_config = config) # Create an instance of our class
 
     setup()
-    templates = Jinja2Templates(directory=os.path.join(exec_dir, "templates"))
+    templates = Jinja2Templates(directory=exec_dir/"templates")
     thread = WebServerThread()
     thread.web_update_ui.connect(force_refresh_ui)
     thread.web_undo.connect(undo_button)
