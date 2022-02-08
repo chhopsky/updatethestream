@@ -91,12 +91,11 @@ jobs:
       id: foldername
       run: |
         if [ "$BRANCH_NAME" == "main" ]; then
-          version=0.4
+          version=$(egrep -oP '"version": "\K(\d+\.?)*)')
           foldername=udts-v$version-${{ matrix.os }}
         else
           foldername=udts-$(date '+%Y%m%d')-${GITHUB_SHA:0:7}-${{ matrix.os }}
         fi
-        rm dist/udts?(.exe)
         mv dist/ $foldername
         echo "::set-output name=foldername::$foldername"
       shell: bash
