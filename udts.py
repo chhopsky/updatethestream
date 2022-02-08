@@ -12,11 +12,11 @@ from PyQt5.QtGui import QFont
 from urllib import request, response
 from uuid import uuid4
 from fastapi import FastAPI, Request, Response, status
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from waiting import wait, TimeoutExpired
-from errors import TournamentProviderFail, MatchScheduleDesync
+from errors import MatchNotInSchedule, TournamentProviderFail, MatchScheduleDesync, ResourceNotFound
 from os import mkdir
 import socket
 import loaders
@@ -874,7 +874,11 @@ webservice = FastAPI()
 
 def run_server():
     webservice.mount("/static", StaticFiles(directory=os.path.join(bundle_dir, "static")), name="static")
-    uvicorn.run(webservice, host="0.0.0.0", port=8000, access_log=False)
+    uvicorn.run(webservice, host="0.0.0.0", port=8000)
+
+@webservice.exception_handler(ResourceNotFound)
+async def validation_exception_handler(request, exc):
+    return JSONResponse({"message": str(exc)}, status_code=404)
 
 @webservice.get("/", response_class=HTMLResponse)
 def web_home(request: Request):
@@ -987,7 +991,7 @@ async def get_all_teams():
     return output
 
 
-@webservice.get("/teams/{teamid}")
+@webservice.get("/team/{teamid}")
 async def get_team(teamid):
     team = broadcast.get_team(teamid)
     output = {}
@@ -1078,7 +1082,7 @@ if __name__ == "__main__":
         with open(os.path.join(exec_dir, 'config.cfg')) as f:
             config = json.load(f)
             config["version"] = "0.4"
-            
+
     except (json.JSONDecodeError, FileNotFoundError):
         config = { "openfile": "default-tournament.json",
             "use_challonge": False,

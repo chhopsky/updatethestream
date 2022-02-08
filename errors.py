@@ -48,7 +48,7 @@ class MatchNotInSchedule(Exception):
 
 class ResourceNotFound(Exception):
     def __init__(self, type, id):
-        self.team_id = id
+        self.id = id
         self.type = type
 
     def __str__(self):

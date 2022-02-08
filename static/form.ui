@@ -10,6 +10,12 @@
     <height>836</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
    <string>Someone, Update The Stream!</string>
   </property>
@@ -857,6 +863,11 @@
               <string>9</string>
              </property>
             </item>
+            <item>
+             <property name="text">
+              <string>31</string>
+             </property>
+            </item>
            </widget>
           </item>
          </layout>
@@ -940,6 +951,11 @@
               <string>9</string>
              </property>
             </item>
+            <item>
+             <property name="text">
+              <string>31</string>
+             </property>
+            </item>
            </widget>
           </item>
          </layout>
@@ -990,7 +1006,7 @@
           <item row="0" column="0">
            <widget class="QLabel" name="edit_points_on_win_label">
             <property name="text">
-             <string>Win</string>
+             <string>Points per win</string>
             </property>
            </widget>
           </item>
@@ -1010,7 +1026,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="edit_points_tie_label">
             <property name="text">
-             <string>Tie</string>
+             <string>Points per tie</string>
             </property>
            </widget>
           </item>
@@ -1030,7 +1046,7 @@
           <item row="2" column="0">
            <widget class="QLabel" name="edit_points_loss_label">
             <property name="text">
-             <string>Loss</string>
+             <string>Points per loss</string>
             </property>
            </widget>
           </item>
@@ -1045,6 +1061,58 @@
             <property name="value">
              <number>0</number>
             </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Default best-of</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QComboBox" name="comboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <item>
+             <property name="text">
+              <string>1</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>2</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>3</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>5</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>7</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>9</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>31</string>
+             </property>
+            </item>
            </widget>
           </item>
          </layout>

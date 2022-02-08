@@ -715,7 +715,7 @@ class Tournament(BaseModel):
         if match:
             return match
         else:
-            return ResourceNotFound(match_id)
+            return ResourceNotFound("match", match_id)
 
     def add_match(self, match, schedule=True):
         self.matches[match.id] = match
