@@ -911,7 +911,12 @@ def web_sideswap(response: Response):
     if window.swap_button.isEnabled():
         thread.web_swap_sides.emit(request_id)
         thread.web_update_ui.emit()
-        return {}
+        if thread.requests_incomplete():
+            try:
+                wait(lambda: thread.requests_incomplete(), timeout_seconds=2, sleep_seconds=0.1, waiting_for="outstanding requests to be processed")
+            except TimeoutExpired:
+                return {"swap_state": window.swapstate}
+        return {"swap_state": window.swapstate}
     response.status_code = 400
     return response
 
