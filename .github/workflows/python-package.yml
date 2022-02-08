@@ -66,6 +66,23 @@ jobs:
           $GITHUB_WORKSPACE/DistributionTool -b -i streamdeck/com.udts.sdPlugin -o dist/plugins
         fi
       shell: bash
+      
+    - name: Setup MSbuild
+      uses: microsoft/setup-msbuild@v1.0.2
+        
+    - name: Setup Nuget.exe
+      if: ${{ matrix.os }} == windows-latest
+      uses: nuget/setup-nuget@v1
+        
+    - name: Code Signing Windows
+      if: ${{ matrix.os }} == windows-latest
+      shell: pwsh
+      run: |
+            nuget restore
+            New-Item -ItemType directory -Path certificate
+            Set-Content -Path certificate\certificate.txt -Value '${{ secrets.CHH_CSC }}'
+            certutil -decode certificate\certificate.txt certificate\certificate.pfx
+            'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f certificate\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist/udts.exe
 
     - name: Copy readme files
       run: cp *.md dist/
