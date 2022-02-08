@@ -1074,7 +1074,7 @@ class WebServerThread(QThread):
 if __name__ == "__main__":
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         # we are running inside a bundle, so all bundled files will be here.
-        exec_dir = Path(sys.executable)
+        exec_dir = Path(sys.executable).parent.resolve()
         bundle_dir = Path(sys._MEIPASS)
     else:
         # we are running inside the default Python interpreter, so the bundle
