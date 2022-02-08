@@ -883,6 +883,9 @@ class Tournament(BaseModel):
     def get_current_match(self):
         return self.get_match_from_scheduleid(self.current_match)
 
+    def get_current_match_scheduleid(self):
+        return self.current_match
+
     def get_match_from_scheduleid(self, scheduleid):
         match_id = self.get_match_id_from_scheduleid(scheduleid)
         return self.get_match(match_id)

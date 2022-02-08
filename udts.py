@@ -352,7 +352,11 @@ def exit_app():
 
 
 def undo_button():
+    match = broadcast.get_current_match_scheduleid()
     broadcast.undo()
+    new_match = broadcast.get_current_match_scheduleid()
+    if match != new_match:
+        window.swapstate = False
     write_to_stream_if_enabled()
     update_schedule()
     update_standings()
