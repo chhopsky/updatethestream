@@ -83,7 +83,7 @@ jobs:
         cd "$SEARCHFOLDER"
         RIGHTFOLDER=`ls -d1 10.* | tail -n 1`
         SIGNTOOLPATH="${SEARCHFOLDER}${RIGHTFOLDER}/x86/signtool.exe"
-        & "${SIGNTOOLPATH}" sign /f certificate\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist/udts.exe
+        "${SIGNTOOLPATH}" sign /f certificate\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist/udts.exe
 
     - name: Copy readme files
       run: cp *.md dist/
