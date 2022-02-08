@@ -66,20 +66,7 @@ jobs:
           $GITHUB_WORKSPACE/DistributionTool -b -i streamdeck/com.udts.sdPlugin -o dist/plugins
         fi
       shell: bash
-      
-    - name: Setup MSbuild
-      if: ${{ matrix.os }} == windows-latest
-      uses: microsoft/setup-msbuild@v1.0.2
-        
-    - name: Setup Nuget.exe
-      if: ${{ matrix.os }} == windows-latest
-      uses: nuget/setup-nuget@v1
-        
-    - name: Install nuget
-      if: ${{ matrix.os }} == windows-latest
-      shell: pwsh
-      run: nuget restore
-      
+           
     - name: Code Signing Windows
       if: ${{ matrix.os }} == windows-latest
       shell: pwsh
