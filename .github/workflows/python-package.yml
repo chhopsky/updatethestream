@@ -91,7 +91,7 @@ jobs:
       id: foldername
       run: |
         if [ "$BRANCH_NAME" == "main" ]; then
-          version=$(egrep -oP '"version": "\K(\d+\.?)*)')
+          version=0.4
           foldername=udts-v$version-${{ matrix.os }}
         else
           foldername=udts-$(date '+%Y%m%d')-${GITHUB_SHA:0:7}-${{ matrix.os }}
