@@ -81,7 +81,7 @@ jobs:
       run: |
         SEARCHFOLDER='C:/Program Files (x86)/Windows Kits/10/bin/'
         cd "$SEARCHFOLDER"
-        SIGNTOOLLOCATION=`find -name "signtool.exe" | grep x86 | head -n 1`
+        SIGNTOOLLOCATION=`find -name "signtool.exe" | grep x86 | head -n 2 | tail -n 1`
         "$SIGNTOOLLOCATION" sign /f D:\a\updatethestream\updatethestream\certificate\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist/udts.exe
         cd D:\a\updatethestream\updatethestream
 
