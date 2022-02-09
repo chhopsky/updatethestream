@@ -81,7 +81,7 @@ jobs:
       run: |
         $SEARCHFOLDER='C:\\Program Files (x86)\\Windows Kits\\10\\bin'
         $SIGNTOOL=(Get-ChildItem $SEARCHFOLDER -Include signtool.exe -Recurse -File -ErrorAction SilentlyContinue).FullName
-        & '$SIGNTOOL' sign /f certificate\\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist\\udts.exe
+        & $SIGNTOOL sign /f certificate\\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist\\udts.exe
         cd ${{ github.workspace }}
 
     - name: Copy readme files
