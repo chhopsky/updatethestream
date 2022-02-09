@@ -46,7 +46,7 @@
       "States": [
         {
           "Image": "action/images/forcerefreshstream",
-          "Title": "Force\nRefresh\nStream"
+          "Title": "Refresh\nStream"
         }
       ],
       "Tootip": "Force Refresh Stream",
