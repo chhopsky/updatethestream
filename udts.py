@@ -31,6 +31,8 @@ import os.path
 import requests
 import signal
 from pathlib import Path
+from inspect import signature
+from functools import wraps
 
 
 class Ui(QtWidgets.QMainWindow):
@@ -54,9 +56,14 @@ class Ui(QtWidgets.QMainWindow):
         self.setWindowIcon(pygui.QIcon(str(bundle_dir / 'static/chhtv.ico')))
 
 def frontend_function(func):
+    sig = signature(func)
+    @wraps(func)
     def frontend_wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            if len(sig.parameters):
+                func(*args, **kwargs)
+            else:
+                func()
         except Exception as e:
             show_error("EXCEPTION", e)
             logger.error(str(e))
