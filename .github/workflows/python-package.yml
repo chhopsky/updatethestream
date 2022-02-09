@@ -81,8 +81,8 @@ jobs:
       run: |
         $SEARCHFOLDER='C:\\Program Files (x86)\\Windows Kits\\10\\bin'
         $SIGNTOOL=(Get-ChildItem $SEARCHFOLDER -Include signtool.exe -Recurse -File -ErrorAction SilentlyContinue).FullName
-        & "$SIGNTOOLLOCATION" sign /f certificate\\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist\\udts.exe
-        cd D:\\a\\updatethestream\\updatethestream
+        & '$SIGNTOOL' sign /f certificate\\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist\\udts.exe
+        cd ${{ github.workspace }}
 
     - name: Copy readme files
       run: cp *.md dist/
