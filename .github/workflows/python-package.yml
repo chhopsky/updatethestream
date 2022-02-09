@@ -80,9 +80,9 @@ jobs:
       shell: bash
       run: |
         SEARCHFOLDER='C:/Program Files (x86)/Windows Kits/10/bin/'
-        cd "$SEARCHFOLDER"
-        SIGNTOOLLOCATION=`find -name "signtool.exe" | grep x86 | head -n 2 | tail -n 1`
-        "$SIGNTOOLLOCATION" sign /f D:\a\updatethestream\updatethestream\certificate\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist/udts.exe
+        SIGNTOOLSUBFOLDER=`find $SEARCHFOLDER -name "signtool.exe" | grep x86 | head -n 1
+        SIGNTOOLLOCATION="${SIGNTOOLSUBFOLDER:1}${SEARCHFOLDER}"
+        "$SIGNTOOLLOCATION" sign /f certificate\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist/udts.exe
         cd D:\a\updatethestream\updatethestream
 
     - name: Copy readme files
