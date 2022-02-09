@@ -39,7 +39,7 @@ jobs:
         include:
           - os: macos-latest
             asset_name: udts-macos-x86_64-${{ github.run_number }}
-          - os: windows-2022
+          - os: windows-latest
             asset_name: udts-win64-${{ github.run_number }}
 
     steps:
