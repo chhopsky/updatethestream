@@ -82,6 +82,8 @@ jobs:
         SEARCHFOLDER='C:/Program Files (x86)/Windows Kits/10/bin/'
         cd "$SEARCHFOLDER"
         RIGHTFOLDER=`ls -d1 10.* | tail -n 1`
+        ALLFOLDERS=``ls -d1 10.*`
+        echo $ALLFOLDERS
         SIGNTOOLPATH="${SEARCHFOLDER}${RIGHTFOLDER}/x86/signtool.exe"
         "${SIGNTOOLPATH}" sign /f certificate\certificate.pfx /p '${{ secrets.CSC_P }}' /fd sha1 /t http://timestamp.comodoca.com/authenticode /td sha1 dist/udts.exe
 
