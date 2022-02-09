@@ -81,9 +81,8 @@ jobs:
       run: |
         SEARCHFOLDER='C:/Program Files (x86)/Windows Kits/10/bin/'
         cd "$SEARCHFOLDER"
-        RIGHTFOLDER=`ls -d1 10.* | tail -n 1`
-        SIGNTOOLPATH="${SEARCHFOLDER}${RIGHTFOLDER}/x86/signtool.exe"
-        "${SIGNTOOLPATH}" sign /f certificate\certificate.pfx /p '${{ secrets.CSC_P }}' /fd sha1 /t http://timestamp.comodoca.com/authenticode /td sha1 dist/udts.exe
+        SIGNTOOLLOCATION=`find -name "signtool.exe" | grep x86 | head -n 1`
+        "{$SIGNTOOLLOCATION}" sign /f certificate\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist/udts.exe
 
     - name: Copy readme files
       run: cp *.md dist/
