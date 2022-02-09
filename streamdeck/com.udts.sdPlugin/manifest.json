@@ -5,7 +5,8 @@
       "Name": "Team 1",
       "States": [
         {
-          "Image": "action/images/win"
+          "Image": "action/images/win",
+          "Title": "Team 1\nWin"
         }
       ],
       "Tooltip": "Team 1 Win",
@@ -16,7 +17,8 @@
       "Name": "Team 2",
       "States": [
         {
-          "Image": "action/images/win"
+          "Image": "action/images/win",
+          "Title": "Team 2\nWin"
         }
       ],
       "Tooltip": "Team 2 Win",
@@ -27,7 +29,12 @@
       "Name": "Swap Teams",
       "States": [
         {
-          "Image": "action/images/sideswap"
+          "Image": "action/images/sideswap",
+          "Title": "Swap\nBlue/Red"
+        },
+        {
+          "Image": "action/images/sideswap-swapped",
+          "Title": "Swap\nRed/Blue"
         }
       ],
       "Tooltip": "Swap Teams",
@@ -38,7 +45,8 @@
       "Name": "Force Refresh Stream",
       "States": [
         {
-          "Image": "action/images/forcerefreshstream"
+          "Image": "action/images/forcerefreshstream",
+          "Title": "Force\nRefresh\nStream"
         }
       ],
       "Tootip": "Force Refresh Stream",
@@ -49,7 +57,8 @@
       "Name": "Undo Last Result",
       "States": [
         {
-          "Image": "action/images/undo"
+          "Image": "action/images/undo",
+          "Title": "Undo"
         }
       ],
       "Tooltip": "Undo Last Result",
