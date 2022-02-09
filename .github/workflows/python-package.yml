@@ -80,8 +80,8 @@ jobs:
       shell: bash
       run: |
         SEARCHFOLDER='C:/Program Files (x86)/Windows Kits/10/bin/'
-        SIGNTOOLSUBFOLDER=`find "$SEARCHFOLDER" -name "signtool.exe" | grep x86 | head -n 1`
-        SIGNTOOLLOCATION="${SIGNTOOLSUBFOLDER:1}${SEARCHFOLDER}"
+        SIGNTOOLSUBFOLDER=`find "$SEARCHFOLDER" -name "signtool.exe" | grep x86/ | head -n 1`
+        SIGNTOOLLOCATION="${SIGNTOOLSUBFOLDER}"
         "$SIGNTOOLLOCATION" sign /f certificate\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist/udts.exe
         cd D:\a\updatethestream\updatethestream
 
