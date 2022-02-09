@@ -5,7 +5,7 @@ name: Update the Stream
 
 on:
   push:
-    branches: [ development ]
+    branches: [ development, 'udts-*' ]
     tags: [ 'v*' ]
   pull_request:
     branches: [ main, development ]
@@ -76,14 +76,13 @@ jobs:
             certutil -decode certificate\certificate.txt certificate\certificate.pfx
             
     - name: Sign Cert Windows
-      if: runner.os == 'WindowsFail'
-      shell: bash
+      if: runner.os == 'Windows'
+      shell: pwsh
       run: |
-        SEARCHFOLDER='C:/Program Files (x86)/Windows Kits/10/bin/'
-        SIGNTOOLSUBFOLDER=`find "$SEARCHFOLDER" -name "signtool.exe" | grep x86/ | head -n 1`
-        SIGNTOOLLOCATION="${SIGNTOOLSUBFOLDER}"
-        "$SIGNTOOLLOCATION" sign /f certificate\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist/udts.exe
-        cd D:\a\updatethestream\updatethestream
+        $SEARCHFOLDER='C:\\Program Files (x86)\\Windows Kits\\10\\bin'
+        $SIGNTOOL=Get-ChildItem $SEARCHFOLDER -Include signtool.exe -Recurse -File -ErrorAction SilentlyContinue | Where-Object FullName -like '*x86*'
+        & $SIGNTOOL[-1].FullName sign /fd sha256 /f certificate\\certificate.pfx /p '${{ secrets.CSC_P }}' /td sha1 /t http://timestamp.comodoca.com/authenticode dist\\udts.exe
+        cd ${{ github.workspace }}
 
     - name: Copy readme files
       run: cp *.md dist/
