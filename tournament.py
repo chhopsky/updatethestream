@@ -746,9 +746,12 @@ class Tournament(BaseModel):
     ## Tournament data retrievers
 
     def get_current_match_data_json(self):
-        match_to_use = self.current_match if self.current_match < len(self.schedule) else self.current_match - 1
-        teams = self.get_teams_from_scheduleid(match_to_use)
-        match = self.get_match_from_scheduleid(match_to_use)
+        try:
+            match_to_use = self.current_match if self.current_match < len(self.schedule) and self.current_match >= 0 else self.current_match - 1
+            teams = self.get_teams_from_scheduleid(match_to_use)
+            match = self.get_match_from_scheduleid(match_to_use)
+        except ScheduleError as e:
+            return { "match": {}, "teams": [] }
         return { "match": match.to_dict(state=True), "teams": [team.to_dict(state=True) for team in teams] }
 
     def get_schedule_standings_json(self):
