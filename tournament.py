@@ -75,7 +75,11 @@ class Tournament(BaseModel):
                         id = self.add_team(team)
                         self.mapping[team.tricode] = id
 
-            self.placeholder_team = data.get("placeholder_team", self.default_placeholder_team)
+            placeholder_dict = data.get("placeholder_team")
+            if placeholder_dict:
+                self.placeholder_team = Team(**placeholder_dict)
+            else:
+                self.placeholder_team = self.default_placeholder_team
 
             matches = data.get("matches")
             if matches:
