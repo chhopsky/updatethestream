@@ -56,7 +56,7 @@ class Ui(QtWidgets.QMainWindow):
 def frontend_function(func):
     def frontend_wrapper(*args, **kwargs):
         try:
-            func()
+            func(*args, **kwargs)
         except Exception as e:
             show_error("EXCEPTION", e)
             logger.error(str(e))
