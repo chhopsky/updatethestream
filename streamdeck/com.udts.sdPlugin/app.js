@@ -17,7 +17,7 @@ function connected(jsn) {
     $SD.on('com.udts.undo.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
     $SD.on('com.udts.team1win.keyDown', (jsonObj) => onClick("/win/team1"));
     $SD.on('com.udts.team2win.keyDown', (jsonObj) => onClick("/win/team2"));
-    $SD.on('com.udts.swapsides.keyDown', (jsonObj) => onClick("/sideswap"));
+    $SD.on('com.udts.swapsides.keyUp', (jsonObj) => onClick("/sideswap"));
     $SD.on('com.udts.undo.keyDown', (jsonObj) => onClick("/undo"));
     $SD.on('com.udts.forcerefreshstream.keyDown', (jsonObj) => onClick("/stream/refresh"));
     $SD.on('applicationDidLaunch', (jsonObj) => currentmatch_call())
@@ -29,7 +29,7 @@ function onClick(path) {
     .then(function (response) {
         return response.json();
       })
-      .then(function(){
+      .then(function(){ 
         currentmatch_call()
       })
       .catch(function (error) {
@@ -96,7 +96,7 @@ function get_team_uuid(team) {
 }
 
 function set_team_logo(team_uuid, team_index) {
-  let url = baseUrl + "/teams/all"
+  let url = baseUrl + "/teams"
   let fmt_to_b64 = {
     "png": "data:image/png;base64,",
     "jpg": "data:image/jpg;base64,",
@@ -112,12 +112,10 @@ function set_team_logo(team_uuid, team_index) {
       let logo = null
       let team = data["teams"][team_uuid]
       let logo_url = team["logo_small"].toString()
-      console.log(team, logo_url)
       if (logo_url) {
         let logo_fmt = logo_url.split(".").slice(-1)[0]  // This is so cursed.
         logo = fmt_to_b64[logo_fmt] + team["logo_small_b64"]
       }
-      console.log(logo)
       if (team_index == 0) {
         setImage(knownButtons["com.udts.team1win"], logo)
       }
@@ -141,12 +139,21 @@ function updateSides(data) {
     if (team_2_tricode == "") {
         team_2_tricode = "Team 2"
     } 
+    setTitle(knownButtons["com.udts.team1win"], team_1_tricode + "\nWin")
+    setTitle(knownButtons["com.udts.team2win"], team_2_tricode + "\nWin")
+
     let team_1_uuid = get_team_uuid(team_1)
     let team_2_uuid = get_team_uuid(team_2)
     set_team_logo(team_1_uuid, 0)
     set_team_logo(team_2_uuid, 1)
-    setTitle(knownButtons["com.udts.team1win"], team_1_tricode + "\nWin")
-    setTitle(knownButtons["com.udts.team2win"], team_2_tricode + "\nWin")
+    
+    let swapped = data["swap_state"]
+    if (swapped) {
+      setState(knownButtons["com.udts.swapsides"], 1)
+    }
+    else {
+      setState(knownButtons["com.udts.swapsides"], 0)
+    }
 }
 
 function setTitle(jsn, new_name) {
@@ -156,24 +163,16 @@ function setTitle(jsn, new_name) {
 function setImage(jsn, image) {
     $SD.api.setImage(jsn.context, image)
 }
+
+function setState(jsn, state) {
+    $SD.api.setState(jsn.context, state)
+}
+
 const action = {
     onWillAppear: function (jsn) {
         knownButtons[jsn.action] = jsn
         if (jsn.action == "com.udts.swapsides") {
-            setTitle(jsn, "Swap\nRed/Blue");
             currentmatch_call()
-        }
-        else if (jsn.action == "com.udts.forcerefreshstream") {
-            setTitle(jsn, "Force\nRefresh\nStream");
-        }
-        else if (jsn.action == "com.udts.undo") {
-            setTitle(jsn, "Undo")
-        }
-        else if (jsn.action == "com.udts.team1win") {
-            setTitle(jsn, "Team 1\nWin")
-        }
-        else if (jsn.action == "com.udts.team1win") {
-            setTitle(jsn, "Team 2\nWin")
         }
     },
 
