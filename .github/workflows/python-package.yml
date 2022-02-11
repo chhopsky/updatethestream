@@ -79,9 +79,7 @@ jobs:
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
-        $SEARCHFOLDER='C:\\Program Files (x86)\\Windows Kits\\10\\bin'
-        $SIGNTOOL=Get-ChildItem $SEARCHFOLDER -Include signtool.exe -Recurse -File -ErrorAction SilentlyContinue | Where-Object FullName -like '*x86*'
-        & $SIGNTOOL[-1].FullName sign /fd sha256 /f certificate\\certificate.pfx /p '${{ secrets.CSC_P }}' /td sha1 /t http://timestamp.comodoca.com/authenticode dist\\udts.exe
+        & 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe' sign /fd sha256 /f certificate\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist\udts.exe
         cd ${{ github.workspace }}
 
     - name: Copy readme files
