@@ -14,18 +14,23 @@ class MatchScheduleDesync(Exception):
         #return f'Matches: {self.matches}\nSchedule{self.schedule}\n{self.message}'
 
 class TournamentProviderFail(Exception):
-    def __init__(self, actiontype, tournament_provider, tournament_id):
+    def __init__(self, actiontype, tournament_provider, tournament_id, message=None):
         self.tournament_provider = tournament_provider
         self.tournament_id = tournament_id
         self.actiontype = actiontype
+        self.message = message
         self.descriptions = {
             "access": "Unable to contact the tournament server.",
+            "retrieve": "The tournament exists but the server returned an error.",
             "parse": "The data was downloaded but wasn't in a format we were expecting.",
             "load": "The data was downloaded and was in the correct format but did not contain matches or teams."
         }
 
     def __str__(self):
-        return f"Error attempting to {self.actiontype} {self.tournament_id} from {self.tournament_provider}.\n\n{self.descriptions[self.actiontype]}"
+        errorstring = f"Error attempting to {self.actiontype} {self.tournament_id} from {self.tournament_provider}.\n\n{self.descriptions[self.actiontype]}"
+        if self.message:
+            errorstring = errorstring + f"\n\n{self.message}"
+        return errorstring
 
 class ScheduleError(Exception):
     def __init__(self, scheduleid, schedule_entry = None):

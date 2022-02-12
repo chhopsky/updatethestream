@@ -35,6 +35,10 @@ def poll_faceit(tournament_id):
     groups_url = f"https://api.faceit.com/championships/v1/championship/{tournament_id}"
     teams_response = requests.get(teams_url)
     groups_response = requests.get(groups_url)
+    if teams_response.status_code == 400:
+        raise TournamentProviderFail("retrieve", "FACEIT", tournament_id, teams_response.text)
+    if groups_response.status_code == 400:
+        raise TournamentProviderFail("retrieve", "FACEIT", tournament_id, groups_response.text)
     if not teams_response.ok or not groups_response.ok:
         raise TournamentProviderFail("access", "FACEIT", tournament_id)
 
@@ -64,7 +68,11 @@ def poll_faceit(tournament_id):
     for group in list(group_config.keys()):
         group_url = f"https://api.faceit.com/championships/v1/championship/{tournament_id}/group/{group}/bracket"
         response = requests.get(group_url)
-        if not response:
+
+        if response.status_code == 400:
+            error_message = response.json()["errors"][0]["message"]
+            raise TournamentProviderFail("retrieve", "FACEIT", tournament_id, error_message)
+        elif not response.ok:
             raise TournamentProviderFail("access", "FACEIT", tournament_id)
 
         try:

@@ -46,6 +46,10 @@ ERRORS = {
     "BACKEND_ERROR": {
         "title": "Backend error.",
         "message": "The tournament engine experienced an error processing your request. Please check the log file for details, and consider reloading the program."
+    },
+        "FACEIT_STATUS": {
+        "title": "Tournament Error.",
+        "message": "Loaded teams, but unable to load matches from FACEIT. There may not be any configured, or the tournament setup may be incomplete."
     }
 }
 

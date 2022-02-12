@@ -31,6 +31,10 @@ def generate_random_tricode_from_name(teamname, anything=False):
     new_tricode = source_string[i[0]] + source_string[i[1]] + source_string[i[2]]
     return new_tricode
 
+def strip_bad(string):
+    for letter in ["'", '"', "(", ")", "{", "}", "[", "]"]:
+        string = string.replace(letter, "")
+    return string
 
 def determine_tricode(teamname, tricodelist):
     tn = teamname.upper()
@@ -40,6 +44,9 @@ def determine_tricode(teamname, tricodelist):
     if tn.find("[") > -1 and tn.find("]") > -1 and (tn.find("]") - tn.find("[") < 6):
         if is_tricode_unique(tn[tn.find("[")+1:tn.find("]")], tricodelist):
             return tn[tn.find("[")+1:tn.find("]")]
+
+    # then get rid of '""(){}
+    tn = strip_bad(tn)
 
     # First, if it's a two or three word name, people expect the first letters
     if " " in tn or "_" in tn or "-" in tn:
@@ -53,13 +60,13 @@ def determine_tricode(teamname, tricodelist):
                         return f"{tn_s[0][0:1]}{tn_s[1][0:1]}{tn_s[2][0:1]}"
             # if it's a two word name
             if len(tn_s) == 2:
-                # if the first word is three characters, try that
-                if len(tn_s[0]) == 3:
+                # if the first word is three characters, try that, unless it's "the"
+                if len(tn_s[0]) == 3 and tn_s[0] != "THE":
                     if is_tricode_unique(f"{tn_s[0]}", tricodelist):
                         return f"{tn_s[0]}"
                   
                     # if that's taken, check if the second part of the split exists and try first/last of first word and first of second
-                    if len(tn_s[1]):
+                    if len(tn_s[1])  and tn_s[0] != "THE":
                         if is_tricode_unique(f"{tn_s[0][0:1]}{tn_s[0][2:3]}{tn_s[1][0:1]}", tricodelist):
                             return f"{tn_s[0][0:1]}{tn_s[0][2:3]}{tn_s[1][0:1]}"
 
@@ -107,7 +114,7 @@ def determine_tricode(teamname, tricodelist):
         if tn.startswith("TEAM") and is_tricode_unique(attempt, tricodelist) and len(attempt) > 1:
             return attempt
     # just take the first three. single word names will fall through to here
-    if is_tricode_unique(tn[0:3], tricodelist):
+    if is_tricode_unique(tn[0:3], tricodelist) and tn[1:3] not in ["EE", "OO"]:
         return tn[0:3]
     # ditch the spaces. 
     tn = f"{tn}".replace(" ", "")

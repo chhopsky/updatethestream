@@ -224,7 +224,7 @@ def open_faceit():
             raise TournamentProviderFail("load", "faceit", text)
 
         broadcast.load_from_faceit(faceit_data)
-        if not len(broadcast.get_all_matches) and len(broadcast.get_all_teams()):
+        if not len(broadcast.get_all_matches()) and len(broadcast.get_all_teams()):
             raise TournamentProviderFail("load", "faceit", text)
         window.config["use_faceit"] = True
         window.config["faceit_id"] = text
@@ -237,7 +237,7 @@ def open_challonge():
     text, ok = QtWidgets.QInputDialog.getText(window, "Challonge Tournament ID", "Paste Challonge.com tournament code")
     if text and ok and config.get("challonge_api_key"):
         challonge_data = loaders.poll_challonge(text, config.get("challonge_api_key"))
-        if not len(challonge_data.get("matches")) > 1 or not len(challonge_data("participants")) > 1:
+        if not len(challonge_data.get("matches")) > 1 or not len(challonge_data.get("participants")) > 1:
             raise TournamentProviderFail("load", "challonge", text)
 
         broadcast.load_from_challonge(challonge_data)
@@ -262,7 +262,10 @@ def show_error(error_code = "UNKNOWN", exception = None, additional_info = None)
         error_code = exception.__class__.__name__
         title = "An unexpected error occurred."
         message = str(exception)
-        additional_info = "Please check the logs for more information. Consider logging this as a bug at updatethestream.com"
+        if isinstance(exception, TournamentProviderFail):
+            additional_info = "Please check your tournament code, or tournament configuration."
+        else:
+            additional_info = "Please check the logs for more information. Consider logging this as a bug at updatethestream.com"
 
     messagetext = f"{error_code}: {message}"
     if additional_info:
@@ -886,7 +889,7 @@ webservice = FastAPI()
 
 def run_server():
     webservice.mount("/static", StaticFiles(directory=bundle_dir / "static"), name="static")
-    uvicorn.run(webservice, host="0.0.0.0", port=8000, access_log=False)
+    uvicorn.run(webservice, host="0.0.0.0", port=8000, access_log=True)
 
 @webservice.exception_handler(ResourceNotFound)
 async def validation_exception_handler(request, exc):
@@ -1134,7 +1137,7 @@ if __name__ == "__main__":
     window = Ui(loaded_config = config) # Create an instance of our class
 
     setup()
-    templates = Jinja2Templates(directory=exec_dir/"templates")
+    templates = Jinja2Templates(directory=bundle_dir/"templates")
     thread = WebServerThread()
     thread.web_update_ui.connect(force_refresh_ui)
     thread.web_undo.connect(undo_button)
