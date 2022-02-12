@@ -85,6 +85,12 @@ jobs:
     - name: Copy readme files
       run: cp *.md dist/
       shell: bash
+      
+    - name: Copy static folder for streamlabels
+      run: |
+        mkdir dist/static
+        cp static/* dist/static
+      shell: bash
 
     - uses: nelonoel/branch-name@v1.0.1
 
