@@ -183,6 +183,15 @@ function get_team_tricode(team){
 function get_team_tricode(team){
 
 }
+
+var refresh_interval = window.setInterval(function(){
+  try {
+    update()
+  } catch(error) {
+    console.log("Error: " + error);
+  }
+}, 5000);
+
 </script>
 </head>
 
