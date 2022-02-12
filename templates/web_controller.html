@@ -183,6 +183,15 @@ function get_team_tricode(team){
 function get_team_tricode(team){
 
 }
+
+var refresh_interval = window.setInterval(function(){
+  try {
+    update()
+  } catch(error) {
+    console.log("Error: " + error);
+  }
+}, 5000);
+
 </script>
 </head>
 
@@ -190,7 +199,7 @@ function get_team_tricode(team){
     <div class="container">
       <div class="row">
         <h1>Update The Stream Web Controller</h1>
-        <p>This page will not reflect changes made on the app until it is reloaded. <br />Please refresh this window if there is a chance someone has registered a win on the app. </p>
+        <p>This page will update every five seconds.</p>
         <p>
           <button class="btn btn-dark" id=team_1_win onclick="register_click('/win/team1')">Team 1 Win</button>
           <button class="btn btn-dark" id=team_2_win onclick="register_click('/win/team2')">Team 2 Win</button>
