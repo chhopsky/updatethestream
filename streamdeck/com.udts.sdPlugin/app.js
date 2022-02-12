@@ -181,3 +181,10 @@ const action = {
     },
 };
 
+var refresh_interval = setInterval(function() {
+  try {
+    currentmatch_call()
+  } catch(error) {
+    console.log("Error: " + error);
+  }
+}, 5000);
