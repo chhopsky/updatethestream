@@ -14,6 +14,8 @@ jobs:
   test:
     name: Code test
     runs-on: macos-latest
+    outputs:
+      build_time: ${{ steps.build_vars.outputs.build_time }}
 
     steps:
       - uses: actions/checkout@v2
@@ -22,12 +24,17 @@ jobs:
           python-version: "3.8"
           cache: 'pipenv'
           cache-dependency-path: '**/Pipfile'
+          
       - name: Setup Pipenv
         run: |
           python -m pip install -U pip pipenv
           pipenv install --deploy -d
       - name: Test
         run: pipenv run pytest tests.py
+
+      - id: build_vars
+        run: echo "::set-output name=build_time::$(date '+%Y%m%d')-$(date '+%H%M%S')"
+
 
   build:
     needs: test
@@ -101,7 +108,7 @@ jobs:
           version=$(egrep -oP '"version": "\K(\d+\.?)*)')
           foldername=udts-v$version-${{ matrix.os }}
         else
-          foldername=udts-$(date '+%Y%m%d')-$(date '+%H%M%S')-${{ matrix.os }}
+          foldername=udts-${{needs.test.outputs.build_time}}-${{ matrix.os }}
         fi
         mv dist/ $foldername
         echo "::set-output name=foldername::$foldername"
@@ -141,4 +148,9 @@ jobs:
         git add .
         git commit -m "Upload build of commit ${GITHUB_SHA:0:7}"
         git push
+      shell: bash
+    
+    - name: Trigger rebuild of web site
+      run: |
+        curl -XPOST -u "${{ secrets.GH_USERNAME}}:${{secrets.GH_PAT}}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/chhopsky/udts-readthedocs/dispatches --data '{"event_type": "build_application"}'
       shell: bash
