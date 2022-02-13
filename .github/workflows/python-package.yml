@@ -142,3 +142,8 @@ jobs:
         git commit -m "Upload build of commit ${GITHUB_SHA:0:7}"
         git push
       shell: bash
+    
+    - name: Trigger rebuild of web site
+      run: |
+        curl -XPOST -u "${{ secrets.GH_USERNAME}}:${{secrets.GH_PAT}}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/chhopsky/udts-readthedocs/dispatches --data '{"event_type": "build_application"}'
+      shell: bash
