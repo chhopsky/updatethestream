@@ -101,7 +101,7 @@ jobs:
           version=$(egrep -oP '"version": "\K(\d+\.?)*)')
           foldername=udts-v$version-${{ matrix.os }}
         else
-          foldername=udts-$(date '+%Y%m%d')-${GITHUB_SHA:0:7}-${{ matrix.os }}
+          foldername=udts-$(date '+%Y%m%d')-$(date '+%H%M%S')-${{ matrix.os }}
         fi
         mv dist/ $foldername
         echo "::set-output name=foldername::$foldername"
