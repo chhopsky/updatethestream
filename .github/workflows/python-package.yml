@@ -28,6 +28,9 @@ jobs:
           pipenv install --deploy -d
       - name: Test
         run: pipenv run pytest tests.py
+      - name: Set build time
+        run: |
+          echo "build_time=$(date '+%Y%m%d')-$(date '+%H%M%S')" >> $GITHUB_ENV
 
   build:
     needs: test
@@ -101,7 +104,7 @@ jobs:
           version=$(egrep -oP '"version": "\K(\d+\.?)*)')
           foldername=udts-v$version-${{ matrix.os }}
         else
-          foldername=udts-$(date '+%Y%m%d')-$(date '+%H%M%S')-${{ matrix.os }}
+          foldername=udts-${{ env.build_time }}-${{ matrix.os }}
         fi
         mv dist/ $foldername
         echo "::set-output name=foldername::$foldername"
