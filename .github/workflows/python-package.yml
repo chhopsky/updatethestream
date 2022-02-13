@@ -165,8 +165,8 @@ jobs:
           osxname=udts-${{needs.test.outputs.build_time}}-macos-latest
           folder=development
         fi
-        cp udts-win64-${{ github.run_number }}.zip website/builds/$folder/
-        cp udts-macos-x86_64-${{ github.run_number }}.zip website/builds/$folder/
+        cp udts-win64-${{ github.run_number }}.zip website/builds/$folder/$windowsname.zip
+        cp udts-macos-x86_64-${{ github.run_number }}.zip website/builds/$folder/$osxname.zip
         cd website
         git config user.name "runner"
         git config user.email "runner@${{ matrix.os }}.local"
