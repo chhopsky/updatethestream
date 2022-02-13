@@ -14,7 +14,6 @@ import processors
 
 class Tournament(BaseModel):
     placeholder_team = Team(tricode="TBD", name = "TBD", id="666", logo_small="static/tbd-team-icon.png")
-    default_placeholder_team = Team(tricode="TBD", name = "TBD", id="666", logo_small="static/tbd-team-icon.png")
     teams: Dict = {}
     matches: Dict = {}
     schedule: List[str] = []
@@ -23,9 +22,11 @@ class Tournament(BaseModel):
     mapping: Dict = {}
     version : str = "0.3"
     pts_config: Dict = {"win": 1, "tie": 0, "loss": 0}
-    default_pts_config: Dict = {"win": 1, "tie": 0, "loss": 0}
     blank_image = "static/empty-graphic.png"
     output_folder = "streamlabels/"
+    default_placeholder_team = Team(tricode="TBD", name = "TBD", id="666", logo_small="static/tbd-team-icon.png")
+    default_pts_config: Dict = {"win": 1, "tie": 0, "loss": 0}
+    default_best_of = 3
     
     def save_to(self, filename, savestate=False):
         # do write here
@@ -41,6 +42,8 @@ class Tournament(BaseModel):
             output_dict["matches"].append(match.to_dict(savestate))
 
         output_dict["schedule"] = self.schedule
+
+        output_dict["default_best_of"] = self.default_best_of
 
         output_dict["placeholder_team"] = self.placeholder_team.to_dict()
 
@@ -88,6 +91,8 @@ class Tournament(BaseModel):
                     self.add_match(match)
 
             self.schedule = data.get("schedule", [])
+
+            self.default_best_of = data.get("default_best_of", 3)
 
             game_history = data.get("game_history")
             if game_history is not None:
@@ -264,6 +269,7 @@ class Tournament(BaseModel):
                     new_match.id = str(match["id"])
                     new_match.teams.append(match["player1_id"])
                     new_match.teams.append(match["player2_id"])
+                    new_match.best_of = self.default_best_of
                     self.add_match(new_match)
 
             # add the upcoming matches where teams are not locked in
@@ -273,6 +279,7 @@ class Tournament(BaseModel):
                     new_match.id = str(match["id"])
                     new_match.teams.append(match["player1_id"])
                     new_match.teams.append(match["player2_id"])
+                    new_match.best_of = self.default_best_of
                     self.add_match(new_match)
 
             # run the match history for the completed matches
@@ -828,6 +835,12 @@ class Tournament(BaseModel):
 
     def edit_points(self, new_pts_config):
         self.pts_config = new_pts_config
+
+    def set_default_best_of(self, default_best_of):
+        self.default_best_of = default_best_of
+
+    def get_default_best_of(self):
+        return self.default_best_of
 
     ## HELPER FUNCTIONS
     # TBD override included here

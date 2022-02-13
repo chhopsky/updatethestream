@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1387</width>
-    <height>836</height>
+    <width>813</width>
+    <height>516</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -92,7 +92,7 @@
                <string>Update with configuration changes. Use this at your own risk.</string>
               </property>
               <property name="text">
-               <string>Force Refresh UI</string>
+               <string>Refresh UI</string>
               </property>
              </widget>
             </item>
@@ -102,7 +102,7 @@
                <string>Forcibly rewrites the stream labels to disk.</string>
               </property>
               <property name="text">
-               <string>Force Refresh Stream</string>
+               <string>Refresh Stream</string>
               </property>
              </widget>
             </item>
@@ -982,19 +982,6 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QPushButton" name="save_tournament_config_button">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Update Tournament Options</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QLabel" name="tournament_options_label">
           <property name="text">
            <string>Tournament options. Changes here affect the live tournament, but are only saved to disk when the tournament is saved.</string>
@@ -1003,14 +990,33 @@
         </item>
         <item>
          <layout class="QFormLayout" name="edit_points_form_layout">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMinimumSize</enum>
+          </property>
+          <property name="labelAlignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
           <item row="0" column="0">
+           <widget class="QPushButton" name="save_tournament_config_button">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Save Tournament Options</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
            <widget class="QLabel" name="edit_points_on_win_label">
             <property name="text">
              <string>Points per win</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="1" column="1">
            <widget class="QSpinBox" name="points_on_win_spinbox">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1023,14 +1029,14 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="2" column="0">
            <widget class="QLabel" name="edit_points_tie_label">
             <property name="text">
              <string>Points per tie</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
+          <item row="2" column="1">
            <widget class="QSpinBox" name="points_on_tie_spinbox">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1043,14 +1049,14 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
+          <item row="3" column="0">
            <widget class="QLabel" name="edit_points_loss_label">
             <property name="text">
              <string>Points per loss</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
+          <item row="3" column="1">
            <widget class="QSpinBox" name="points_on_loss_spinbox">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1063,15 +1069,15 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label">
+          <item row="4" column="0">
+           <widget class="QLabel" name="default_best_of_label">
             <property name="text">
              <string>Default best-of</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="QComboBox" name="comboBox">
+          <item row="4" column="1">
+           <widget class="QComboBox" name="default_best_of_combobox">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -1115,45 +1121,14 @@
             </item>
            </widget>
           </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="Line" name="options_screen_line">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="program_options_label">
-          <property name="text">
-           <string>Program options. Changes here will be saved in your config.cfg file and affect every tournament.</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="save_program_config_button">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Save Program Options</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QFormLayout" name="edit_tbd_team">
-          <item row="0" column="0">
+          <item row="5" column="0">
            <widget class="QLabel" name="edit_tbd_team_icon_label">
             <property name="text">
              <string>TBD Team Icon</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="5" column="1">
            <widget class="QPushButton" name="edit_tbd_team_icon_select_button">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1166,7 +1141,7 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
+          <item row="6" column="1">
            <widget class="QLabel" name="edit_tbd_team_icon_current_icon">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1179,7 +1154,57 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
+          <item row="7" column="0">
+           <widget class="Line" name="line">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="program_options_label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Program options. (All tournaments)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0">
+           <widget class="QPushButton" name="save_program_config_button">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Save Program Options</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="0">
+           <widget class="QLabel" name="autolive_changes_label">
+            <property name="text">
+             <string>Automatically write changes to stream</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="1">
+           <widget class="QCheckBox" name="autolive_changes_checkbox">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="1">
            <spacer name="verticalSpacer_3">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -1195,28 +1220,11 @@
          </layout>
         </item>
         <item>
-         <layout class="QFormLayout" name="checkbox_options">
-          <property name="formAlignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+         <widget class="Line" name="options_screen_line">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
           </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="autolive_changes_label">
-            <property name="text">
-             <string>Automatically write changes to stream</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="autolive_changes_checkbox">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -1229,7 +1237,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1387</width>
+     <width>813</width>
      <height>21</height>
     </rect>
    </property>
@@ -1241,10 +1249,10 @@
     <addaction name="actionOpen"/>
     <addaction name="actionOpenFromChallonge"/>
     <addaction name="actionOpenfromFACEIT"/>
-    <addaction name="actionSave"/>
-    <addaction name="actionSaveAs"/>
     <addaction name="actionSaveState"/>
     <addaction name="actionSaveAsState"/>
+    <addaction name="actionSave"/>
+    <addaction name="actionSaveAs"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -1284,7 +1292,7 @@
   </action>
   <action name="actionSaveAs">
    <property name="text">
-    <string>Save As</string>
+    <string>Save As, teams and matches only</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
@@ -1292,7 +1300,7 @@
   </action>
   <action name="actionSave">
    <property name="text">
-    <string>Save</string>
+    <string>Save, teams and matches only</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -1308,12 +1316,12 @@
   </action>
   <action name="actionSaveState">
    <property name="text">
-    <string>Save Tournament In Current State</string>
+    <string>Save</string>
    </property>
   </action>
   <action name="actionSaveAsState">
    <property name="text">
-    <string>Save Tournament In Current State As..</string>
+    <string>Save As..</string>
    </property>
   </action>
   <action name="actionHelp">

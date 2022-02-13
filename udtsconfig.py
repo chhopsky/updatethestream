@@ -21,7 +21,7 @@ ERRORS = {
         "message": "The default tournament configuration file could not be found. Loading empty tournament."},
     "CHALLONGE_WARNING" : {
         "title": "Please read!",
-        "message": "Challonge does NOT inform us as to how many games are in a match. Please double check your imported matches, and be sure to adjust the best-ofs appropriately."
+        "message": "Challonge does NOT tell us how many games are in a match. Incomplete matches will be assigned the default, please be sure your default best-of is set correctly, or adjust them by hand."
     },
     "FACEIT_LOAD_FAIL" : {
         "title": "FACEIT load error!",

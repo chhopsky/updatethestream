@@ -111,7 +111,8 @@ def setup():
     window.swap_button.clicked.connect(swap_red_blue)
     window.undo_button.clicked.connect(undo_button)
     window.undo_button.setEnabled(False)
-    window.update_from_challonge.clicked.connect(update_from_challonge)
+    # TODO: enable this when challonge updating is better
+    # window.update_from_challonge.clicked.connect(update_from_challonge)
     window.save_tournament_config_button.clicked.connect(edit_tournament_config)
     window.save_program_config_button.clicked.connect(edit_program_config)
     window.edit_tbd_team_icon_select_button.clicked.connect(add_tbd_icon)
@@ -140,7 +141,6 @@ def setup():
     window.add_match_team1_dropdown.currentIndexChanged.connect(on_match_dropdown_change)
     window.add_match_team2_dropdown.currentIndexChanged.connect(on_match_dropdown_change)
     window.add_match_bestof_dropdown.currentIndexChanged.connect(on_match_dropdown_change)
-    window.add_match_bestof_dropdown.setCurrentIndex(0)
     window.web_controller_label.setText(f"<a href=\"http://{get_ip()}:8000/\">http://{get_ip()}:8000</a>")
     window.web_controller_label.setTextFormat(Qt.RichText)
     window.web_controller_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
@@ -166,6 +166,8 @@ def set_config_ui():
     window.points_on_win_spinbox.setValue(point_config["win"])
     window.points_on_tie_spinbox.setValue(point_config["tie"])
     window.points_on_loss_spinbox.setValue(point_config["loss"])
+    default_best_of = broadcast.get_default_best_of()
+    window.default_best_of_combobox.setCurrentText(str(default_best_of))
     placeholder = broadcast.get_placeholder_team()
     if placeholder.logo_small:
         head, tail = os.path.split(placeholder.logo_small)
@@ -333,6 +335,7 @@ def edit_tournament_config():
         "loss": int(window.points_on_loss_spinbox.text())
     }
     broadcast.edit_points(new_pts_config)
+    broadcast.set_default_best_of(int(window.default_best_of_combobox.currentText()))
     placeholder = broadcast.get_team(broadcast.placeholder_team.id)
     if window.edit_tbd_team_icon_current_icon.filename:
         placeholder.logo_small = window.edit_tbd_team_icon_current_icon.filename
@@ -449,7 +452,8 @@ def force_refresh_stream():
 
 
 def force_refresh_ui():
-    window.update_from_challonge.setEnabled(config["use_challonge"])
+    # TODO: enable this when challonge updating is better
+    # window.update_from_challonge.setEnabled(config["use_challonge"])
     populate_teams()
     populate_matches()
     update_schedule()
@@ -779,22 +783,18 @@ def populate_teams():
     window.add_match_team2_dropdown.clear()
     window.edit_match_team1_dropdown.clear()
     window.edit_match_team2_dropdown.clear()
-    window.team_dropdown_map = []
     add_tbd = False
     for id, team in broadcast.teams.items():
         if team.id != "666":
             add_team_to_ui(team)
-        else:
-            add_tbd = True
-    if add_tbd:
-        add_team_to_ui(broadcast.placeholder_team, show_in_list=False)
+    add_team_to_ui(broadcast.placeholder_team, selectable=False)
     reset_dropdowns()
 
 
-def add_team_to_ui(team, show_in_list=True):
+def add_team_to_ui(team, selectable=True):
     item = QtWidgets.QListWidgetItem(team.get_display_name())
     item.id = team.id
-    if not show_in_list:
+    if not selectable:
         item.setFont(window.italicfont)
         item.setFlags(item.flags() & ~Qt.ItemIsSelectable)
     window.team_list_widget.addItem(item)
@@ -858,13 +858,15 @@ def update_standings():
             item.setFlags(item.flags() & ~Qt.ItemIsSelectable)
             window.standings_list_widget.addItem(item)
 
+
 def reset_dropdowns():
+    default_best_of = broadcast.get_default_best_of()
     window.add_match_team1_dropdown.setCurrentIndex(-1)
     window.add_match_team2_dropdown.setCurrentIndex(-1)
-    window.add_match_bestof_dropdown.setCurrentIndex(0)
+    window.add_match_bestof_dropdown.setCurrentText(str(default_best_of))
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
-    window.edit_match_bestof_dropdown.setCurrentIndex(-1)
+    window.edit_match_bestof_dropdown.setCurrentText(str(default_best_of))
 
 
 def get_ip():
