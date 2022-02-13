@@ -151,7 +151,7 @@ jobs:
     - name: Download osx build
       uses: actions/download-artifact@v2
       with:
-        name: build-windows-latest
+        name: build-macos-latest
         
     - name: Move builds to web site
       run: |
@@ -165,8 +165,8 @@ jobs:
           osxname=udts-${{needs.test.outputs.build_time}}-macos-latest
           folder=development
         fi
-        cp $windowsname.zip website/builds/$folder/
-        cp $osxname.zip website/builds/$folder/
+        cp udts-win64-${{ github.run_number }}.zip website/builds/$folder/
+        cp udts-macos-x86_64-${{ github.run_number }}.zip website/builds/$folder/
         cd website
         git config user.name "runner"
         git config user.email "runner@${{ matrix.os }}.local"
