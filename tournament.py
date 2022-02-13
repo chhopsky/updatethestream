@@ -26,7 +26,8 @@ class Tournament(BaseModel):
     output_folder = "streamlabels/"
     default_placeholder_team = Team(tricode="TBD", name = "TBD", id="666", logo_small="static/tbd-team-icon.png")
     default_pts_config: Dict = {"win": 1, "tie": 0, "loss": 0}
-    default_best_of = 3
+    default_best_of = 1
+    default_default_best_of = 1
     
     def save_to(self, filename, savestate=False):
         # do write here
@@ -92,7 +93,7 @@ class Tournament(BaseModel):
 
             self.schedule = data.get("schedule", [])
 
-            self.default_best_of = data.get("default_best_of", 3)
+            self.default_best_of = data.get("default_best_of", self.default_default_best_of)
 
             game_history = data.get("game_history")
             if game_history is not None:
