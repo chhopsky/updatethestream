@@ -126,22 +126,47 @@ jobs:
         draft: true
         files: ${{ matrix.asset_name }}.zip
         body_path: ${{ github.workspace }}/patchnotes.md
+        
+    - uses: actions/upload-artifact@v2
+      with:
+        name: build-${{ matrix.os }}
+        path: ${{ matrix.asset_name }}.zip
 
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:       
     - uses: actions/checkout@v2
       with:
         repository: ${{ secrets.WEB_REPO }}
         token: ${{ secrets.GH_PAT }}
         path: 'website'
         fetch-depth: 0
-
-    - name: Publish build to website
+            
+    - name: Download windows build
+      uses: actions/download-artifact@v2
+      with:
+        name: build-windows-latest
+    
+    - name: Download osx build
+      uses: actions/download-artifact@v2
+      with:
+        name: build-windows-latest
+        
+    - name: Move builds to web site
       run: |
         if [ "$BRANCH_NAME" == "main" ]; then
+          version=$(egrep -oP '"version": "\K(\d+\.?)*)')
+          windowsname=udts-v$version-windows-latest
+          osxname=udts-v$version-macos-latest
           folder=releases
         else
+          windowsname=udts-${{needs.test.outputs.build_time}}-windows-latest
+          osxname=udts-${{needs.test.outputs.build_time}}-macos-latest
           folder=development
         fi
-        cp ${{ matrix.asset_name }}.zip website/builds/$folder/${{ steps.foldername.outputs.foldername }}.zip
+        cp $windowsname.zip website/builds/$folder/
+        cp $osxname.zip website/builds/$folder/
         cd website
         git config user.name "runner"
         git config user.email "runner@${{ matrix.os }}.local"
