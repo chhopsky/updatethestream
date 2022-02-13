@@ -133,7 +133,7 @@ jobs:
         path: ${{ matrix.asset_name }}.zip
 
   publish:
-    needs: build
+    needs: [build, test]
     runs-on: ubuntu-latest
     steps:       
     - uses: actions/checkout@v2
