@@ -824,9 +824,9 @@ def populate_matches():
 
 def update_schedule():
     for i, scheduleitem in enumerate(broadcast.schedule):
-        match = broadcast.matches[scheduleitem]
-        team1 = broadcast.teams[match.teams[0]]
-        team2 = broadcast.teams[match.teams[1]]
+        match = broadcast.get_match(scheduleitem)
+        team1 = broadcast.get_team(match.teams[0])
+        team2 = broadcast.get_team(match.teams[1])
         scores = f"{match.scores[0]}-{match.scores[1]}"
         current_item = window.schedule_list_widget.item(i)
         current_item.setText(f"{team1.get_name()} vs {team2.get_name()}, {scores}, BO{match.best_of}")
@@ -853,7 +853,7 @@ def update_standings():
     standings = broadcast.get_standings()
     if standings is not None:
         for result in standings:
-            team = broadcast.teams[result[0]]
+            team = broadcast.teams.get(result[0])
             item = QtWidgets.QListWidgetItem(f"{team.get_name()}: {result[1]}")
             item.setFlags(item.flags() & ~Qt.ItemIsSelectable)
             window.standings_list_widget.addItem(item)
