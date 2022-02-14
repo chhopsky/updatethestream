@@ -1,6 +1,7 @@
 from asyncore import write
 import base64
 from http.client import OK
+from turtle import home
 from typing import List
 from typing_extensions import Self
 from PyQt5.uic.uiparser import DEBUG
@@ -1097,6 +1098,13 @@ if __name__ == "__main__":
         # dir is the same as the current file's folder.
         bundle_dir = Path(__file__).parent.resolve()
         exec_dir = bundle_dir
+
+    if sys.platform.startswith("darwin"):
+        home_dir = Path.home()
+        if not os.path.isdir(home_dir / "udts"):
+            mkdir(home_dir / "udts")
+            mkdir(home_dir / "static")
+        exec_dir = Path.joinpath(home_dir, "udts")
 
     version = "0.4"
     LOGLEVEL = "DEBUG"

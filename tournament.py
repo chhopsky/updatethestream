@@ -44,6 +44,9 @@ class Tournament(BaseModel):
             bundle_dir = Path(__file__).parent.resolve()
             exec_dir = bundle_dir
         self.base_dir = exec_dir
+        if sys.platform.startswith("darwin"):
+            home_dir = Path.home()
+            self.base_dir = Path.joinpath(home_dir, "udts")
         self.output_folder = str(Path.joinpath(self.base_dir, self.output_folder) ) + "/"
         self.placeholder_team.logo_small = str(Path.joinpath(self.base_dir, self.placeholder_team.logo_small))
         self.default_placeholder_team.logo_small = str(Path.joinpath(self.base_dir, self.default_placeholder_team.logo_small))
