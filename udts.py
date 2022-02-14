@@ -2,15 +2,12 @@ from asyncore import write
 import base64
 from http.client import OK
 from turtle import home
-from typing import List
-from typing_extensions import Self
 from PyQt5.uic.uiparser import DEBUG
 from tournament import Tournament
 from tournament_objects import Match, Team, Game
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt, QUrl, QThread, pyqtSignal
 from PyQt5.QtGui import QFont
-from urllib import request, response
 from uuid import uuid4
 from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -31,6 +28,7 @@ import logging
 import os.path
 import requests
 import signal
+import shutil
 from pathlib import Path
 from inspect import signature
 from functools import wraps
@@ -1093,19 +1091,24 @@ if __name__ == "__main__":
         # we are running inside a bundle, so all bundled files will be here.
         exec_dir = Path(sys.executable).parent.resolve()
         bundle_dir = Path(sys._MEIPASS)
+        in_bundle = True
     else:
         # we are running inside the default Python interpreter, so the bundle
         # dir is the same as the current file's folder.
         bundle_dir = Path(__file__).parent.resolve()
         exec_dir = bundle_dir
+        in_bundle = False
 
-    if sys.platform.startswith("darwin"):
+    if sys.platform.startswith("darwin") and in_bundle:
         home_dir = Path.home()
-        if not os.path.isdir(home_dir / "udts"):
-            mkdir(home_dir / "udts")
-            mkdir(home_dir / "static")
-        exec_dir = Path.joinpath(home_dir, "udts")
-
+        exec_dir = Path.joinpath(home_dir, "Documents/udts")
+        if not os.path.isdir(exec_dir):
+            mkdir(exec_dir)
+            mkdir(exec_dir / "logs")
+            mkdir(exec_dir / "streamlabels")
+        if not os.path.isdir(exec_dir / "static"):
+            shutil.copytree(bundle_dir / "static", exec_dir / "static")
+            
     version = "0.4"
     LOGLEVEL = "DEBUG"
     try:
@@ -1114,7 +1117,7 @@ if __name__ == "__main__":
             config["version"] = "0.4"
 
     except (json.JSONDecodeError, FileNotFoundError):
-        config = { "openfile": "default-tournament.json",
+        config = { "openfile": str(exec_dir / "default-tournament.json"),
             "use_challonge": False,
             "challonge_id": False,
             "challonge_api_key": None,

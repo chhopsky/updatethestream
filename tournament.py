@@ -38,15 +38,20 @@ class Tournament(BaseModel):
             # we are running inside a bundle, so all bundled files will be here.
             exec_dir = Path(sys.executable).parent.resolve()
             bundle_dir = Path(sys._MEIPASS)
+            in_bundle = True
         else:
             # we are running inside the default Python interpreter, so the bundle
             # dir is the same as the current file's folder.
             bundle_dir = Path(__file__).parent.resolve()
             exec_dir = bundle_dir
+            in_bundle = False
+
         self.base_dir = exec_dir
-        if sys.platform.startswith("darwin"):
+        
+        if sys.platform.startswith("darwin") and in_bundle:
             home_dir = Path.home()
-            self.base_dir = Path.joinpath(home_dir, "udts")
+            self.base_dir = Path.joinpath(home_dir, "Documents/udts")
+
         self.output_folder = str(Path.joinpath(self.base_dir, self.output_folder) ) + "/"
         self.placeholder_team.logo_small = str(Path.joinpath(self.base_dir, self.placeholder_team.logo_small))
         self.default_placeholder_team.logo_small = str(Path.joinpath(self.base_dir, self.default_placeholder_team.logo_small))
