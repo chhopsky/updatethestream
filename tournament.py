@@ -4,12 +4,15 @@ from typing import Text, List, Dict, Optional
 from uuid import uuid4
 from copy import deepcopy
 from tournament_objects import Match, Team, Game
+from pathlib import Path
+import sys
 import os
 import json
 import logging
 import errno
 import shutil
 import processors
+
 
 
 class Tournament(BaseModel):
@@ -28,6 +31,23 @@ class Tournament(BaseModel):
     default_pts_config: Dict = {"win": 1, "tie": 0, "loss": 0}
     default_best_of = 1
     default_default_best_of = 1
+    base_dir = ""
+
+    def setup(self):
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+            # we are running inside a bundle, so all bundled files will be here.
+            exec_dir = Path(sys.executable).parent.resolve()
+            bundle_dir = Path(sys._MEIPASS)
+        else:
+            # we are running inside the default Python interpreter, so the bundle
+            # dir is the same as the current file's folder.
+            bundle_dir = Path(__file__).parent.resolve()
+            exec_dir = bundle_dir
+        self.base_dir = exec_dir
+        self.output_folder = str(Path.joinpath(self.base_dir, self.output_folder) ) + "/"
+        self.placeholder_team.logo_small = str(Path.joinpath(self.base_dir, self.placeholder_team.logo_small))
+        self.default_placeholder_team.logo_small = str(Path.joinpath(self.base_dir, self.default_placeholder_team.logo_small))
+        self.blank_image = str(Path.joinpath(self.base_dir, self.blank_image))
     
     def save_to(self, filename, savestate=False):
         # do write here
@@ -81,6 +101,8 @@ class Tournament(BaseModel):
 
             placeholder_dict = data.get("placeholder_team")
             if placeholder_dict:
+                if placeholder_dict.get("logo_small").startswith("static"):
+                    placeholder_dict["logo_small"] = str(Path.joinpath(self.base_dir, placeholder_dict["logo_small"])) 
                 self.placeholder_team = Team(**placeholder_dict)
             else:
                 self.placeholder_team = self.default_placeholder_team
@@ -300,6 +322,7 @@ class Tournament(BaseModel):
     def write_to_stream(self, swap=False):
         # do text write here
         video_extensions = [".mkv",".mov",".mp4", ".avi"]
+        
         filename = f"{self.output_folder}start.txt"
         if not os.path.exists(os.path.dirname(filename)):
             try:

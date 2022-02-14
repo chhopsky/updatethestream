@@ -1121,7 +1121,8 @@ if __name__ == "__main__":
     logging.basicConfig(filename=exec_dir/"logs/udts.log", filemode='a', level=LOGLEVEL, format='%(name)s - %(levelname)s - %(message)s')
 
     logger.info("====init====")
-    broadcast = Tournament(version = version)
+    broadcast = Tournament()
+    broadcast.setup()
 
     challonge_api_key_path = config.get("challonge_api_key_location", exec_dir/"creds/challonge-api-key")
 
