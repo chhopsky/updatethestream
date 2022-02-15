@@ -128,7 +128,8 @@ jobs:
       run: | 
         tar -czvf ${{ steps.foldername.outputs.foldername }}.tgz ${{ steps.foldername.outputs.foldername }}/
         
-    - name: set_extension
+    - name: Set file extension
+      id: set_extension
       run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
             echo "::set-output name=extension::zip"
