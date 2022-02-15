@@ -130,7 +130,7 @@ jobs:
         echo "::set-output name=extension::tgz"
         
     - name: set extension
-      run: "::set-output name=extension::zip"
+      run: echo "::set-output name=extension::zip"
 
     - id: 'auth'
       uses: 'google-github-actions/auth@v0'
