@@ -120,61 +120,21 @@ jobs:
         recursive: false
         dest: ${{ matrix.asset_name }}.zip
 
-    - uses: softprops/action-gh-release@v1
-      if: ${{ env.BRANCH_NAME == 'main' && github.ref_type == 'tag' }}
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v0'
       with:
-        draft: true
-        files: ${{ matrix.asset_name }}.zip
-        body_path: ${{ github.workspace }}/patchnotes.md
+        credentials_json: '${{ secrets.GCS_SERVICE_ACCT }}'
         
-    - uses: actions/upload-artifact@v2
+    - id: 'upload-file'
+      uses: 'google-github-actions/upload-cloud-storage@v0'
       with:
-        name: build-${{ matrix.os }}
         path: ${{ matrix.asset_name }}.zip
+        destination: 'chh-builds/udts/${{ steps.foldername.outputs.foldername }}.zip'
 
   publish:
     needs: [build, test]
     runs-on: ubuntu-latest
-    steps:       
-    - uses: actions/checkout@v2
-      with:
-        repository: ${{ secrets.WEB_REPO }}
-        token: ${{ secrets.GH_PAT }}
-        path: 'website'
-        fetch-depth: 0
-            
-    - name: Download windows build
-      uses: actions/download-artifact@v2
-      with:
-        name: build-windows-latest
-    
-    - name: Download osx build
-      uses: actions/download-artifact@v2
-      with:
-        name: build-macos-latest
-        
-    - name: Move builds to web site
-      run: |
-        if [ "$BRANCH_NAME" == "main" ]; then
-          version=$(egrep -oP '"version": "\K(\d+\.?)*)')
-          windowsname=udts-v$version-windows-latest
-          osxname=udts-v$version-macos-latest
-          folder=releases
-        else
-          windowsname=udts-${{needs.test.outputs.build_time}}-windows-latest
-          osxname=udts-${{needs.test.outputs.build_time}}-macos-latest
-          folder=development
-        fi
-        cp udts-win64-${{ github.run_number }}.zip website/builds/$folder/$windowsname.zip
-        cp udts-macos-x86_64-${{ github.run_number }}.zip website/builds/$folder/$osxname.zip
-        cd website
-        git config user.name "runner"
-        git config user.email "runner@${{ matrix.os }}.local"
-        git add .
-        git commit -m "Upload build of commit ${GITHUB_SHA:0:7}"
-        git push
-      shell: bash
-    
+    steps:  
     - name: Trigger rebuild of web site
       run: |
         curl -XPOST -u "${{ secrets.GH_USERNAME}}:${{secrets.GH_PAT}}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/chhopsky/udts-readthedocs/dispatches --data '{"event_type": "build_application"}'
