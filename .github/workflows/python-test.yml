@@ -8,7 +8,7 @@ on:
 
 jobs:
   basictests:
-    name: Code Tests Only
+    name: pytest tests
     runs-on: ubuntu-latest
 
     steps:
