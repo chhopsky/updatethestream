@@ -1,5 +1,4 @@
-name: UDTS-test
-
+name: Pre-Merge Tests
 on:
   pull_request:
     branches: [ main, development ]
@@ -8,8 +7,6 @@ jobs:
   test:
     name: Code Tests Only
     runs-on: ubuntu-latest
-    outputs:
-      build_time: ${{ steps.build_vars.outputs.build_time }}
 
     steps:
       - uses: actions/checkout@v2
