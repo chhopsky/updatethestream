@@ -6,7 +6,7 @@ on:
 
 jobs:
   test:
-    name: linux-on-pr-test
+    name: Code Tests Only
     runs-on: ubuntu-latest
     outputs:
       build_time: ${{ steps.build_vars.outputs.build_time }}
