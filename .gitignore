@@ -4,5 +4,9 @@ dist/
 .vscode/
 .qt_for_python/
 __pycache__/
+tests/output_tests
+old-tests/
+logs/
+tools/
 Pipfile.lock
 udts.spec

@@ -1,0 +1,95 @@
+{
+  "Actions": [
+    {
+      "Icon": "action/images/win",
+      "Name": "Team 1",
+      "States": [
+        {
+          "Image": "action/images/win",
+          "Title": "Team 1\nWin"
+        }
+      ],
+      "Tooltip": "Team 1 Win",
+      "UUID": "com.udts.team1win"
+    },
+    {
+      "Icon": "action/images/win",
+      "Name": "Team 2",
+      "States": [
+        {
+          "Image": "action/images/win",
+          "Title": "Team 2\nWin"
+        }
+      ],
+      "Tooltip": "Team 2 Win",
+      "UUID": "com.udts.team2win"
+    },
+    {
+      "Icon": "action/images/sideswap",
+      "Name": "Swap Teams",
+      "States": [
+        {
+          "Image": "action/images/sideswap",
+          "Title": "Swap\nBlue/Red"
+        },
+        {
+          "Image": "action/images/sideswap-swapped",
+          "Title": "Swap\nRed/Blue"
+        }
+      ],
+      "Tooltip": "Swap Teams",
+      "UUID": "com.udts.swapsides"
+    },
+    {
+      "Icon": "action/images/forcerefreshstream",
+      "Name": "Force Refresh Stream",
+      "States": [
+        {
+          "Image": "action/images/forcerefreshstream",
+          "Title": "Refresh\nStream"
+        }
+      ],
+      "Tootip": "Force Refresh Stream",
+      "UUID": "com.udts.forcerefreshstream"
+    },
+    {
+      "Icon": "action/images/undo",
+      "Name": "Undo Last Result",
+      "States": [
+        {
+          "Image": "action/images/undo",
+          "Title": "Undo"
+        }
+      ],
+      "Tooltip": "Undo Last Result",
+      "UUID": "com.udts.undo"
+    }
+  ],
+  "SDKVersion": 2,
+  "Author": "UDTS Team", 
+  "CodePath": "index.html", 
+  "Description": "Someone, Update The Stream!", 
+  "Name": "UDTS", 
+  "Icon": "action/images/chhtv", 
+  "URL": "https://github.com/chhopsky/updatethestream", 
+  "Version": "0.0.1",
+  "OS": [
+    {
+        "Platform": "mac", 
+        "MinimumVersion" : "10.11"
+    },
+    {
+        "Platform": "windows", 
+        "MinimumVersion" : "10"
+    }
+  ],
+  "Software": 
+    {
+        "MinimumVersion" : "4.1"
+    },
+  "ApplicationsToMonitor": {
+    "windows": [
+      "udts.exe"
+    ]
+  }
+}

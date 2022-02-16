@@ -21,10 +21,36 @@ ERRORS = {
         "message": "The default tournament configuration file could not be found. Loading empty tournament."},
     "CHALLONGE_WARNING" : {
         "title": "Please read!",
-        "message": "Challonge does NOT inform us as to how many games are in a match. Please double check your imported matches, and be sure to adjust the best-ofs appropriately."
+        "message": "Challonge does NOT tell us how many games are in a match. Incomplete matches will be assigned the default, please be sure your default best-of is set correctly, or adjust them by hand."
+    },
+    "FACEIT_LOAD_FAIL" : {
+        "title": "FACEIT load error!",
+        "message": "Something went wrong trying to load data from FACEIT. Please try again later, or send us a copy of your log file if the error persists."
     },
     "REARRANGE_MIXED_FINISH_STATE" : {
         "title": "Can't swap mixed match states!",
         "message": "Cannot swap a match that's finished with one that's not, or one that's in progress with one that's not started. Consider undoing your results first."
+    },
+    "CLIENT_OUT_OF_DATE" : {
+        "title": "New Update Available!",
+        "message": "Get new features, bugfixes, and more in our latest update, available at https://github.com/chhopsky/updatethestream/releases"
+    },
+    "CANT_USE_TBD_HERE" : {
+        "title": "TBD team not allowed.",
+        "message": "Can't set a match that's already happened or is in progress to contain a TBD team."
+    },
+    "SAME_TEAM_BOTH_SIDES" : {
+        "title": "Team vs itself?",
+        "message": "A team can't play against itself."
+    },
+    "BACKEND_ERROR": {
+        "title": "Backend error.",
+        "message": "The tournament engine experienced an error processing your request. Please check the log file for details, and consider reloading the program."
+    },
+        "FACEIT_STATUS": {
+        "title": "Tournament Error.",
+        "message": "Loaded teams, but unable to load matches from FACEIT. There may not be any configured, or the tournament setup may be incomplete."
     }
 }
+
+BLANK_IMAGE_B64 = "iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAACXBIWXMAAAsTAAALEwEAmpwYAAADHUlEQVR4nO3UMQEAIAzAMMC/5yFjRxMFvXpn5gBNbzsA2GMAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEGYAEPYB58oE/VhFU1IAAAAASUVORK5CYII="

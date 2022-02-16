@@ -1,7 +1,7 @@
-from email.policy import default
 import pytest
 from os import walk
-from tourneydefs import Match, Team, Game, Tournament
+from tournament import Tournament
+from tournament_objects import Match, Team, Game
 import filecmp
 import json
 import pprint
@@ -13,10 +13,11 @@ def test_load(default_broadcast):
     assert str(broadcast) == str(default_broadcast)
 
 def test_output(default_broadcast):
+    default_broadcast.output_folder = "tests/output_tests/"
     default_broadcast.write_to_stream()
-    for (dirpath, dirnames, filenames) in walk("tests/testlabels"):
+    for (dirpath, dirnames, filenames) in walk("tests/test_labels"):
         for filename in filenames:
-            assert filecmp.cmp(f"{dirpath}/{filename}", f"{default_broadcast.output_folder}/{filename}", shallow=False)
+            assert filecmp.cmp(f"{dirpath}/{filename}", f"{default_broadcast.output_folder}{filename}", shallow=False)
 
 def test_data_functions(default_broadcast):
     num_matches = len(default_broadcast.matches)

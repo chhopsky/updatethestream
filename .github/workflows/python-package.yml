@@ -1,0 +1,157 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Update the Stream
+
+on:
+  push:
+    branches: [ development, 'udts-*' ]
+    tags: [ 'v*' ]
+
+jobs:
+  test:
+    name: Code test
+    runs-on: macos-latest
+    outputs:
+      build_time: ${{ steps.build_vars.outputs.build_time }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+          cache: 'pipenv'
+          cache-dependency-path: '**/Pipfile'
+          
+      - name: Setup Pipenv
+        run: |
+          python -m pip install -U pip pipenv
+          pipenv install --deploy -d
+      - name: Test
+        run: pipenv run pytest tests.py
+
+      - id: build_vars
+        run: echo "::set-output name=build_time::$(date '+%Y%m%d')-$(date '+%H%M%S')"
+
+
+  build:
+    needs: test
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            asset_name: udts-macos-x86_64-${{ github.run_number }}
+          - os: windows-latest
+            asset_name: udts-win64-${{ github.run_number }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.8"
+        cache: 'pipenv'
+        cache-dependency-path: '**/Pipfile'
+
+    - name: Build package
+      run: |
+        python -m pip install -U pip pipenv
+        pipenv install -d pyinstaller
+        pipenv run pyinstaller -y udts.spec
+
+    - name: Package Streamdeck plugin
+      run: |
+        mkdir dist/plugins
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          $GITHUB_WORKSPACE/DistributionTool.exe -b -i streamdeck/com.udts.sdPlugin -o dist/plugins
+        else
+          $GITHUB_WORKSPACE/DistributionTool -b -i streamdeck/com.udts.sdPlugin -o dist/plugins
+        fi
+      shell: bash
+           
+    - name: Code Signing Windows
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+            New-Item -ItemType directory -Path certificate
+            Set-Content -Path certificate\certificate.txt -Value '${{ secrets.CHH_CSC }}'
+            certutil -decode certificate\certificate.txt certificate\certificate.pfx
+            
+    - name: Sign Cert Windows
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        & 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe' sign /fd sha256 /f certificate\certificate.pfx /p '${{ secrets.CSC_P }}' /t http://timestamp.comodoca.com/authenticode dist\udts.exe
+        cd ${{ github.workspace }}
+
+    - name: Copy readme files
+      run: cp *.md dist/
+      shell: bash
+      
+    - name: Copy static folder for streamlabels
+      run: |
+        mkdir dist/static
+        cp static/* dist/static
+      shell: bash
+
+    - uses: nelonoel/branch-name@v1.0.1
+
+    - name: Change folder name
+      id: foldername
+      run: |
+        if [ "$BRANCH_NAME" == "main" ]; then
+          version=$(egrep -oP '"version": "\K(\d+\.?)*)')
+          foldername=udts-v$version-${{ matrix.os }}
+          echo "::set-output name=type::release"
+        else
+          foldername=udts-${{needs.test.outputs.build_time}}-${{ matrix.os }}
+          echo "::set-output name=type::development"
+        fi
+        mv dist/ $foldername
+        echo "::set-output name=foldername::$foldername"
+      shell: bash
+
+    - uses: vimtor/action-zip@v1
+      if: runner.os == 'Windows'
+      with:
+        files: ${{ steps.foldername.outputs.foldername }}
+        recursive: false
+        dest: ${{ steps.foldername.outputs.foldername }}.zip
+        
+    - name: compress for mac
+      if: runner.os != 'Windows'
+      run: | 
+        tar -czvf ${{ steps.foldername.outputs.foldername }}.tgz ${{ steps.foldername.outputs.foldername }}/
+        
+    - name: Set file extension
+      id: set_extension
+      run: |
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            echo "::set-output name=extension::zip"
+          else
+            echo "::set-output name=extension::tgz"
+          fi
+      shell: bash
+
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v0'
+      with:
+        credentials_json: '${{ secrets.GCS_SERVICE_ACCT }}'
+        
+    - id: 'upload-file'
+      uses: 'google-github-actions/upload-cloud-storage@v0'
+      with:
+        path: ${{ steps.foldername.outputs.foldername }}.${{ steps.set_extension.outputs.extension }}
+        destination: 'downloads.chhopsky.tv/updatethestream/${{ steps.foldername.outputs.type }}/'
+
+  publish:
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    steps:  
+    - name: Trigger rebuild of web site
+      run: |
+        curl -XPOST -u "${{ secrets.GH_USERNAME}}:${{secrets.GH_PAT}}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/chhopsky/udts-readthedocs/dispatches --data '{"event_type": "build_application"}'
+      shell: bash
