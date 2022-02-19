@@ -15,8 +15,8 @@ function connected(jsn) {
     $SD.on('com.chhtv.udts.swapsides.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
     $SD.on('com.chhtv.udts.forcerefreshstream.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
     $SD.on('com.chhtv.udts.undo.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
-    $SD.on('com.chhtv.udts.team1win.keyDown', (jsonObj) => onClick("/win/team1"));
-    $SD.on('com.chhtv.udts.team2win.keyDown', (jsonObj) => onClick("/win/team2"));
+    $SD.on('com.chhtv.udts.team1win.keyDown', (jsonObj) => onClick("/win/blue"));
+    $SD.on('com.chhtv.udts.team2win.keyDown', (jsonObj) => onClick("/win/red"));
     $SD.on('com.chhtv.udts.swapsides.keyUp', (jsonObj) => onClick("/sideswap"));
     $SD.on('com.chhtv.udts.undo.keyDown', (jsonObj) => onClick("/undo"));
     $SD.on('com.chhtv.udts.forcerefreshstream.keyDown', (jsonObj) => onClick("/stream/refresh"));
@@ -131,29 +131,30 @@ function set_team_logo(team_uuid, team_index) {
 function updateSides(data) {
     let team_1 = data["teams"][0]
     let team_2 = data["teams"][1]
-    let team_1_tricode = get_team_tricode(data["teams"][0])
-    if (team_1_tricode == "") {
-        team_1_tricode = "Team 1"
+    let swapped = data["swap_state"]
+    let t1 = 0
+    let t2 = 1
+    if (swapped){
+      t1 = 1
+      t2 = 0
     }
-    let team_2_tricode = get_team_tricode(data["teams"][1])
-    if (team_2_tricode == "") {
-        team_2_tricode = "Team 2"
+
+    let blue_team_tricode = get_team_tricode(data["teams"][t1])
+    if (blue_team_tricode == "") {
+        blue_team_tricode = "Blue"
+    }
+    let red_team_tricode = get_team_tricode(data["teams"][t2])
+    if (red_team_tricode == "") {
+        red_team_tricode = "Red"
     } 
-    setTitle(knownButtons["com.chhtv.udts.team1win"], team_1_tricode + "\nWin")
-    setTitle(knownButtons["com.chhtv.udts.team2win"], team_2_tricode + "\nWin")
+    setTitle(knownButtons["com.chhtv.udts.team1win"], blue_team_tricode + "\nWin")
+    setTitle(knownButtons["com.chhtv.udts.team2win"], red_team_tricode + "\nWin")
 
     let team_1_uuid = get_team_uuid(team_1)
     let team_2_uuid = get_team_uuid(team_2)
-    set_team_logo(team_1_uuid, 0)
-    set_team_logo(team_2_uuid, 1)
-    
-    let swapped = data["swap_state"]
-    if (swapped) {
-      setState(knownButtons["com.chhtv.udts.swapsides"], 1)
-    }
-    else {
-      setState(knownButtons["com.chhtv.udts.swapsides"], 0)
-    }
+    set_team_logo(team_1_uuid, t1)
+    set_team_logo(team_2_uuid, t2)
+
 }
 
 function setTitle(jsn, new_name) {

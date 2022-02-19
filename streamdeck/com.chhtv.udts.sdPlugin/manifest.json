@@ -1,55 +1,51 @@
 {
   "Actions": [
     {
-      "Icon": "action/images/win",
+      "Icon": "action/images/blue-win",
       "Name": "Team 1",
       "States": [
         {
-          "Image": "action/images/win",
-          "Title": "Team 1\nWin"
+          "Image": "action/images/blue-win",
+          "Title": "Blue Win"
         }
       ],
-      "Tooltip": "Team 1 Win",
+      "Tooltip": "Blue Team Win",
       "UUID": "com.chhtv.udts.team1win"
     },
     {
-      "Icon": "action/images/win",
+      "Icon": "action/images/red-win",
       "Name": "Team 2",
       "States": [
         {
-          "Image": "action/images/win",
-          "Title": "Team 2\nWin"
+          "Image": "action/images/red-win",
+          "Title": "Red Win"
         }
       ],
-      "Tooltip": "Team 2 Win",
+      "Tooltip": "Red Win",
       "UUID": "com.chhtv.udts.team2win"
     },
     {
       "Icon": "action/images/sideswap",
-      "Name": "Swap Teams",
+      "Name": "Teams Swap Side",
       "States": [
         {
           "Image": "action/images/sideswap",
-          "Title": "Swap\nBlue/Red"
-        },
-        {
-          "Image": "action/images/sideswap-swapped",
-          "Title": "Swap\nRed/Blue"
+          "Title": "Sideswap"
         }
       ],
-      "Tooltip": "Swap Teams",
+      "Tooltip": "Teams Swap Sides",
       "UUID": "com.chhtv.udts.swapsides"
     },
     {
       "Icon": "action/images/forcerefreshstream",
-      "Name": "Force Refresh Stream",
+      "Name": "Refresh Stream",
       "States": [
         {
           "Image": "action/images/forcerefreshstream",
-          "Title": "Refresh\nStream"
+          "Title": "Refresh"
         }
       ],
-      "Tootip": "Force Refresh Stream",
+      "Tootip": "Writes the current data out to the stream",
       "UUID": "com.chhtv.udts.forcerefreshstream"
     },
     {
