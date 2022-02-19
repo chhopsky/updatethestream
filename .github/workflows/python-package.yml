@@ -66,9 +66,9 @@ jobs:
       run: |
         mkdir dist/plugins
         if [ "$RUNNER_OS" == "Windows" ]; then
-          $GITHUB_WORKSPACE/DistributionTool.exe -b -i streamdeck/com.udts.sdPlugin -o dist/plugins
+          $GITHUB_WORKSPACE/DistributionTool.exe -b -i streamdeck/com.chhtv.udts.sdPlugin -o dist/plugins
         else
-          $GITHUB_WORKSPACE/DistributionTool -b -i streamdeck/com.udts.sdPlugin -o dist/plugins
+          $GITHUB_WORKSPACE/DistributionTool -b -i streamdeck/com.chhtv.udts.sdPlugin -o dist/plugins
         fi
       shell: bash
            

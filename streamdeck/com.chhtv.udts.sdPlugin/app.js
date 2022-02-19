@@ -5,21 +5,21 @@ $SD.on('connected', (jsonObj) => connected(jsonObj));
 
 function connected(jsn) {
     // Subscribe to the willAppear and other events
-    $SD.on('com.udts.team1win.willAppear', (jsonObj) => action.onWillAppear(jsonObj));
-    $SD.on('com.udts.team2win.willAppear', (jsonObj) => action.onWillAppear(jsonObj));
-    $SD.on('com.udts.swapsides.willAppear', (jsonObj) => action.onWillAppear(jsonObj));
-    $SD.on('com.udts.forcerefreshstream.willAppear', (jsonObj) => action.onWillAppear(jsonObj));
-    $SD.on('com.udts.undo.willAppear', (jsonObj) => action.onWillAppear(jsonObj));
-    $SD.on('com.udts.team1win.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
-    $SD.on('com.udts.team2win.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
-    $SD.on('com.udts.swapsides.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
-    $SD.on('com.udts.forcerefreshstream.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
-    $SD.on('com.udts.undo.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
-    $SD.on('com.udts.team1win.keyDown', (jsonObj) => onClick("/win/team1"));
-    $SD.on('com.udts.team2win.keyDown', (jsonObj) => onClick("/win/team2"));
-    $SD.on('com.udts.swapsides.keyUp', (jsonObj) => onClick("/sideswap"));
-    $SD.on('com.udts.undo.keyDown', (jsonObj) => onClick("/undo"));
-    $SD.on('com.udts.forcerefreshstream.keyDown', (jsonObj) => onClick("/stream/refresh"));
+    $SD.on('com.chhtv.udts.team1win.willAppear', (jsonObj) => action.onWillAppear(jsonObj));
+    $SD.on('com.chhtv.udts.team2win.willAppear', (jsonObj) => action.onWillAppear(jsonObj));
+    $SD.on('com.chhtv.udts.swapsides.willAppear', (jsonObj) => action.onWillAppear(jsonObj));
+    $SD.on('com.chhtv.udts.forcerefreshstream.willAppear', (jsonObj) => action.onWillAppear(jsonObj));
+    $SD.on('com.chhtv.udts.undo.willAppear', (jsonObj) => action.onWillAppear(jsonObj));
+    $SD.on('com.chhtv.udts.team1win.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
+    $SD.on('com.chhtv.udts.team2win.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
+    $SD.on('com.chhtv.udts.swapsides.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
+    $SD.on('com.chhtv.udts.forcerefreshstream.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
+    $SD.on('com.chhtv.udts.undo.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
+    $SD.on('com.chhtv.udts.team1win.keyDown', (jsonObj) => onClick("/win/team1"));
+    $SD.on('com.chhtv.udts.team2win.keyDown', (jsonObj) => onClick("/win/team2"));
+    $SD.on('com.chhtv.udts.swapsides.keyUp', (jsonObj) => onClick("/sideswap"));
+    $SD.on('com.chhtv.udts.undo.keyDown', (jsonObj) => onClick("/undo"));
+    $SD.on('com.chhtv.udts.forcerefreshstream.keyDown', (jsonObj) => onClick("/stream/refresh"));
     $SD.on('applicationDidLaunch', (jsonObj) => currentmatch_call())
 };
 
@@ -51,8 +51,8 @@ function currentmatch_call()
         console.log("Error: " + error);
         team_1_tricode = "Team 1\nWin"
         team_2_tricode = "Team 2\nWin"
-        setTitle(knownButtons["com.udts.team1win"], team_1_tricode)
-        setTitle(knownButtons["com.udts.team2win"], team_2_tricode)
+        setTitle(knownButtons["com.chhtv.udts.team1win"], team_1_tricode)
+        setTitle(knownButtons["com.chhtv.udts.team2win"], team_2_tricode)
     });
 }
 
@@ -117,10 +117,10 @@ function set_team_logo(team_uuid, team_index) {
         logo = fmt_to_b64[logo_fmt] + team["logo_small_b64"]
       }
       if (team_index == 0) {
-        setImage(knownButtons["com.udts.team1win"], logo)
+        setImage(knownButtons["com.chhtv.udts.team1win"], logo)
       }
       else {
-        setImage(knownButtons["com.udts.team2win"], logo)
+        setImage(knownButtons["com.chhtv.udts.team2win"], logo)
       }
     })
     .catch(function (error){
@@ -139,8 +139,8 @@ function updateSides(data) {
     if (team_2_tricode == "") {
         team_2_tricode = "Team 2"
     } 
-    setTitle(knownButtons["com.udts.team1win"], team_1_tricode + "\nWin")
-    setTitle(knownButtons["com.udts.team2win"], team_2_tricode + "\nWin")
+    setTitle(knownButtons["com.chhtv.udts.team1win"], team_1_tricode + "\nWin")
+    setTitle(knownButtons["com.chhtv.udts.team2win"], team_2_tricode + "\nWin")
 
     let team_1_uuid = get_team_uuid(team_1)
     let team_2_uuid = get_team_uuid(team_2)
@@ -149,10 +149,10 @@ function updateSides(data) {
     
     let swapped = data["swap_state"]
     if (swapped) {
-      setState(knownButtons["com.udts.swapsides"], 1)
+      setState(knownButtons["com.chhtv.udts.swapsides"], 1)
     }
     else {
-      setState(knownButtons["com.udts.swapsides"], 0)
+      setState(knownButtons["com.chhtv.udts.swapsides"], 0)
     }
 }
 
@@ -171,7 +171,7 @@ function setState(jsn, state) {
 const action = {
     onWillAppear: function (jsn) {
         knownButtons[jsn.action] = jsn
-        if (jsn.action == "com.udts.swapsides") {
+        if (jsn.action == "com.chhtv.udts.swapsides") {
             currentmatch_call()
         }
     },

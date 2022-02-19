@@ -10,7 +10,7 @@
         }
       ],
       "Tooltip": "Team 1 Win",
-      "UUID": "com.udts.team1win"
+      "UUID": "com.chhtv.udts.team1win"
     },
     {
       "Icon": "action/images/win",
@@ -22,7 +22,7 @@
         }
       ],
       "Tooltip": "Team 2 Win",
-      "UUID": "com.udts.team2win"
+      "UUID": "com.chhtv.udts.team2win"
     },
     {
       "Icon": "action/images/sideswap",
@@ -38,7 +38,7 @@
         }
       ],
       "Tooltip": "Swap Teams",
-      "UUID": "com.udts.swapsides"
+      "UUID": "com.chhtv.udts.swapsides"
     },
     {
       "Icon": "action/images/forcerefreshstream",
@@ -50,7 +50,7 @@
         }
       ],
       "Tootip": "Force Refresh Stream",
-      "UUID": "com.udts.forcerefreshstream"
+      "UUID": "com.chhtv.udts.forcerefreshstream"
     },
     {
       "Icon": "action/images/undo",
@@ -62,17 +62,19 @@
         }
       ],
       "Tooltip": "Undo Last Result",
-      "UUID": "com.udts.undo"
+      "UUID": "com.chhtv.udts.undo"
     }
   ],
   "SDKVersion": 2,
   "Author": "UDTS Team", 
   "CodePath": "index.html", 
-  "Description": "Someone, Update The Stream!", 
+  "Description": "Easily update esports teams, schedules, standings and icons while live.", 
   "Name": "UDTS", 
   "Icon": "action/images/chhtv", 
   "URL": "https://github.com/chhopsky/updatethestream", 
   "Version": "0.0.1",
+  "Category": "Update The Stream",
+  "CategoryIcon": "action/images/forcerefreshstream",
   "OS": [
     {
         "Platform": "mac", 
