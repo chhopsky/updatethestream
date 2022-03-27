@@ -1,6 +1,6 @@
 # Version History
 
-### v0.4-alpha: Coming Soon
+### v0.4-alpha: 26/03/2022
 ## Features
 Added: 
 - Mac version now available
@@ -16,7 +16,6 @@ Added:
 - Option to clear all matches
 - Best-of defaults
 - Many new outputs
-
 
 Removed:
 - "Refresh from Challonge" removed until it can be done safely
