@@ -1,5 +1,11 @@
 ### Roadmap
 
+## 0.4.0
+- Signed releases (no more UAC errors!)  
+- Remote control  
+- Stream deck integration
+- FACEIT support
+
 ## 0.5.0
 - Support for matches with more than two participants like TFT or Battle Royales
 
