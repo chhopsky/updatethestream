@@ -32,6 +32,7 @@ import shutil
 from pathlib import Path
 from inspect import signature
 from functools import wraps
+from version import version as udtsversion
 
 
 class Ui(QtWidgets.QMainWindow):
@@ -1109,12 +1110,12 @@ if __name__ == "__main__":
         if not os.path.isdir(exec_dir / "static"):
             shutil.copytree(bundle_dir / "static", exec_dir / "static")
             
-    version = "0.4"
+    version = udtsversion
     LOGLEVEL = "DEBUG"
     try:
         with open(exec_dir / 'config.cfg') as f:
             config = json.load(f)
-            config["version"] = "0.4"
+            config["version"] = version
 
     except (json.JSONDecodeError, FileNotFoundError):
         config = { "openfile": str(exec_dir / "default-tournament.json"),
