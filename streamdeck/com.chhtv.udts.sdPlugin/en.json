@@ -2,23 +2,23 @@
   "Description": "Someone, update the stream!", 
   "Name": "UDTS", 
   "Category": "Templates", 
-  "com.udts.team1": {
+  "com.chhtv.udts.team1": {
     "Name": "Team 1 Win",
     "Tooltip": "Team 1 Win"
   },
-  "com.udts.team2": {
+  "com.chhtv.udts.team2": {
     "Name": "Team 2 Win",
     "Tooltip": "Team 2 Win"
   },
-  "com.udts.swapsides": {
+  "com.chhtv.udts.swapsides": {
     "Name": "Swap Red/Blue",
     "Tooltip": "Swap Red/Blue"
   },
-  "com.udts.forceupdate": {
+  "com.chhtv.udts.forceupdate": {
     "Name": "Force Update",
     "Tooltip": "Force Update"
   },
-  "com.udts.undo": {
+  "com.chhtv.udts.undo": {
     "Name": "Undo",
     "Tooltip": "Undo Last Result"
   },

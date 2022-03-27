@@ -920,6 +920,31 @@ def web_win_team2(response: Response):
     response.status_code = 400
     return response
 
+@webservice.get("/win/blue")
+def web_win_blue(response: Response):
+    request_id = uuid4()
+    if window.team1_win_button.isEnabled():
+        if window.swapstate == False:
+            thread.web_team1_win.emit(request_id)
+        else:
+            thread.web_team2_win.emit(request_id)
+        thread.web_update_ui.emit()
+        return {}
+    response.status_code = 400
+    return response
+
+@webservice.get("/win/red")
+def web_win_red(response: Response):
+    request_id = uuid4()
+    if window.team2_win_button.isEnabled():
+        if window.swapstate == False:
+            thread.web_team2_win.emit(request_id)
+        else:
+            thread.web_team1_win.emit(request_id)
+        thread.web_update_ui.emit()
+        return {}
+    response.status_code = 400
+    return response
 
 @webservice.get("/sideswap")
 def web_sideswap(response: Response):
