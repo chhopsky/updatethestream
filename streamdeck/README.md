@@ -2,7 +2,7 @@
 
 
 # How to contribute:
-Copy the `com.udts.sdPlugin folder` into your Stream Deck Plugins folder (Default is `C:/Program Files/Elgato/StreamDeck/Plugins`). When you launch StreamDeck, the UDTS buttons will be at the very bottom under `Custom`
+Copy the `com.chhtv.udts.sdPlugin folder` into your Stream Deck Plugins folder (Default is `C:/Program Files/Elgato/StreamDeck/Plugins`). When you launch StreamDeck, the UDTS buttons will be at the very bottom under `Custom`
 
 # Included Buttons:
 
