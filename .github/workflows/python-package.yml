@@ -131,8 +131,8 @@ jobs:
         security create-keychain -p tempbuildpassword build.keychain
         security default-keychain -s build.keychain
         security unlock-keychain -p tempbuildpassword build.keychain
-        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k tempbuildpassword build.keychain
         security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k tempbuildpassword build.keychain
         /usr/bin/codesign --force -s "Developer ID Application: CHRISTOPHER JAMES POLLOCK (U2NR7VW388)" ${{ steps.foldername.outputs.foldername }}/udts -v
         
     - name: compress & sign for mac
