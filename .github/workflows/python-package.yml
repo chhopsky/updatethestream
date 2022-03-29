@@ -120,8 +120,22 @@ jobs:
         files: ${{ steps.foldername.outputs.foldername }}
         recursive: false
         dest: ${{ steps.foldername.outputs.foldername }}.zip
+    
+    - name: sign on mac
+      env: 
+        MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+        MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+      if: runner.os != 'Windows'
+      run: |
+        echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+        security create-keychain -p tempbuildpassword build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p tempbuildpassword build.keychain
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k tempbuildpassword build.keychain
+        security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
+        /usr/bin/codesign --force -s "Developer ID Application: CHRISTOPHER JAMES POLLOCK (U2NR7VW388)" ${{ steps.foldername.outputs.foldername }}/udts -v
         
-    - name: compress for mac
+    - name: compress & sign for mac
       if: runner.os != 'Windows'
       run: | 
         tar -czvf ${{ steps.foldername.outputs.foldername }}.tgz ${{ steps.foldername.outputs.foldername }}/
