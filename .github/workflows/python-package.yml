@@ -56,11 +56,33 @@ jobs:
         cache: 'pipenv'
         cache-dependency-path: '**/Pipfile'
 
-    - name: Build package
+    
+    - name: Build package windows
+      if: runner.os == 'Windows'
       run: |
         python -m pip install -U pip pipenv
         pipenv install -d pyinstaller
         pipenv run pyinstaller -y udts.spec
+        
+    - name: keychain on mac
+      env: 
+        MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+        MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+      if: runner.os != 'Windows'
+      run: |
+        echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+        security create-keychain -p tempbuildpassword build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p tempbuildpassword build.keychain
+        security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k tempbuildpassword build.keychain
+        
+    - name: Build package mac
+      if: runner.os != 'Windows'
+      run: |
+        python -m pip install -U pip pipenv
+        pipenv install -d pyinstaller
+        pipenv run pyinstaller -y udts.spec --codesign-identity "Developer ID Application: CHRISTOPHER JAMES POLLOCK (U2NR7VW388)" --osx-entitlements-file "entitlements.plist"
 
     - name: Package Streamdeck plugin
       run: |
@@ -126,33 +148,33 @@ jobs:
         recursive: false
         dest: ${{ steps.foldername.outputs.foldername }}.zip
     
-    - name: sign on mac
-      env: 
-        MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-        MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+#     - name: sign on mac
+#       env: 
+#         MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+#         MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+#       if: runner.os != 'Windows'
+#       run: |
+#         echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+#         security create-keychain -p tempbuildpassword build.keychain
+#         security default-keychain -s build.keychain
+#         security unlock-keychain -p tempbuildpassword build.keychain
+#         security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
+#         security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k tempbuildpassword build.keychain
+#         /usr/bin/codesign --force --deep --timestamp --entitlements entitlements.plist -s "Developer ID Application: CHRISTOPHER JAMES POLLOCK (U2NR7VW388)" -o runtime ${{ steps.foldername.outputs.foldername }}/udts.app -v
+        
+    - name: "Notarize Release Build"
+      uses: devbotsxyz/xcode-notarize@v1
       if: runner.os != 'Windows'
-      run: |
-        echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
-        security create-keychain -p tempbuildpassword build.keychain
-        security default-keychain -s build.keychain
-        security unlock-keychain -p tempbuildpassword build.keychain
-        security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
-        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k tempbuildpassword build.keychain
-        /usr/bin/codesign --force --deep --timestamp --entitlements entitlements.plist -s "Developer ID Application: CHRISTOPHER JAMES POLLOCK (U2NR7VW388)" -o runtime ${{ steps.foldername.outputs.foldername }}/udts.app -v
+      with:
+        product-path: "${{ steps.foldername.outputs.foldername }}/udts.app"
+        appstore-connect-username: ${{ secrets.APPLE_APP_USERNAME }}
+        appstore-connect-password: ${{ secrets.APPLE_APP_PASSWORD }}
         
-#     - name: "Notarize Release Build"
-#       uses: devbotsxyz/xcode-notarize@v1
-#       if: runner.os != 'Windows'
-#       with:
-#         product-path: "${{ steps.foldername.outputs.foldername }}/udts.app"
-#         appstore-connect-username: ${{ secrets.APPLE_APP_USERNAME }}
-#         appstore-connect-password: ${{ secrets.APPLE_APP_PASSWORD }}
-        
-#     - name: "Staple Release Build"
-#       uses: devbotsxyz/xcode-staple@v1
-#       if: runner.os != 'Windows'
-#       with:
-#         product-path: "${{ steps.foldername.outputs.foldername }}/udts.app"
+    - name: "Staple Release Build"
+      uses: devbotsxyz/xcode-staple@v1
+      if: runner.os != 'Windows'
+      with:
+        product-path: "${{ steps.foldername.outputs.foldername }}/udts.app"
 
     - name: compress & sign for mac
       if: runner.os != 'Windows'
