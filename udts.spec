@@ -39,4 +39,13 @@ exe = EXE(pyz,
 app = BUNDLE(exe,
              name='udts.app',
              icon='static/chhtv.ico',
-             bundle_identifier=None)
+             bundle_identifier='com.chhopskytv.updatethestream',
+             info_plist={
+                'CFBundleName': 'updatethestream',
+                'CFBundleDisplayName': 'Update The Stream',
+                'CFBundleVersion': '0.4',
+                'CFBundleShortVersionString': '0.4',
+                'NSRequiresAquaSystemAppearance': 'No',
+                'NSHighResolutionCapable': 'True',
+                },
+             )
