@@ -138,7 +138,7 @@ jobs:
         security unlock-keychain -p tempbuildpassword build.keychain
         security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
         security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k tempbuildpassword build.keychain
-        /usr/bin/codesign --force -s "Developer ID Application: CHRISTOPHER JAMES POLLOCK (U2NR7VW388)" ${{ steps.foldername.outputs.foldername }}/udts.app -v
+        /usr/bin/codesign --force --deep --timestamp --entitlements entitlements.plist -s "Developer ID Application: CHRISTOPHER JAMES POLLOCK (U2NR7VW388)" -o runtime ${{ steps.foldername.outputs.foldername }}/udts.app -v
         
     - name: "Notarize Release Build"
       uses: devbotsxyz/xcode-notarize@v1
