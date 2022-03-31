@@ -96,6 +96,11 @@ jobs:
         mkdir dist/static
         cp static/* dist/static
       shell: bash
+    
+    - name: Copy entitlements file
+      run: |
+        cp entitlements.plist dist/
+      shell: bash
 
     - uses: nelonoel/branch-name@v1.0.1
 
