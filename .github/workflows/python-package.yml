@@ -152,7 +152,7 @@ jobs:
       uses: devbotsxyz/xcode-staple@v1
       if: runner.os != 'Windows'
       with:
-        product-path: "${{ steps.foldername.outputs.foldername }}/udts"
+        product-path: "${{ steps.foldername.outputs.foldername }}/udts.app"
 
     - name: compress & sign for mac
       if: runner.os != 'Windows'
