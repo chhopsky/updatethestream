@@ -36,7 +36,7 @@ exe = EXE(pyz,
           target_arch=None,
           codesign_identity=None,
           entitlements_file=None , icon='static/chhtv.ico')
-app = BUNDLE(coll,
+app = BUNDLE(exe,
              name='udts.app',
              icon='static/chhtv.ico',
              bundle_identifier='com.chhopskytv.updatethestream',
