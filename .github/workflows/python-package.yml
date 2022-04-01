@@ -130,12 +130,12 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
-        security create-keychain -p tempbuildpassword build.keychain
+        security create-keychain -p ${{ secrets.TEMP_BUILD_PW }} build.keychain
         security default-keychain -s build.keychain
-        security unlock-keychain -p tempbuildpassword build.keychain
+        security unlock-keychain -p ${{ secrets.TEMP_BUILD_PW }} build.keychain
         security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
-        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k tempbuildpassword build.keychain
-        /usr/bin/codesign --force --deep --options=runtime --entitlements ./entitlements.plist -s "Developer ID Application: CHRISTOPHER JAMES POLLOCK (U2NR7VW388)"  ${{ steps.foldername.outputs.foldername }}/udts.app --timestamp
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ${{ secrets.TEMP_BUILD_PW }} build.keychain
+        /usr/bin/codesign --force --deep --options=runtime --entitlements ./entitlements.plist -s "${{ secrets.APPLE_IDENTITY }}"  ${{ steps.foldername.outputs.foldername }}/udts.app --timestamp
         
     - name: "Notarize Release Build"
       uses: devbotsxyz/xcode-notarize@v1
