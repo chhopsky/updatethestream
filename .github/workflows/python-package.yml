@@ -99,13 +99,8 @@ jobs:
         cp static/* dist/static
       shell: bash
     
-    - name: Copy entitlements file
-      run: |
-        cp entitlements.plist dist/
-      shell: bash
 
     - uses: nelonoel/branch-name@v1.0.1
-
     - name: Change folder name
       id: foldername
       run: |
