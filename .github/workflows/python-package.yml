@@ -141,7 +141,6 @@ jobs:
         security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
         security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k tempbuildpassword build.keychain
         /usr/bin/codesign --force --deep --options=runtime --entitlements ./entitlements.plist -s "Developer ID Application: CHRISTOPHER JAMES POLLOCK (U2NR7VW388)"  ${{ steps.foldername.outputs.foldername }}/udts.app --timestamp
-        rm entitlements.plist
         
     - name: "Notarize Release Build"
       uses: devbotsxyz/xcode-notarize@v1
@@ -161,6 +160,8 @@ jobs:
     - name: compress & sign for mac
       if: runner.os != 'Windows'
       run: | 
+        rm ${{ steps.foldername.outputs.foldername }}/entitlements.plist
+        rm ${{ steps.foldername.outputs.foldername }}/udts
         tar -czvf ${{ steps.foldername.outputs.foldername }}.tgz ${{ steps.foldername.outputs.foldername }}/
         
     - name: Set file extension
