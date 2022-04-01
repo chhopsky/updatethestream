@@ -155,7 +155,6 @@ jobs:
     - name: compress & sign for mac
       if: runner.os != 'Windows'
       run: | 
-        rm ${{ steps.foldername.outputs.foldername }}/entitlements.plist
         rm ${{ steps.foldername.outputs.foldername }}/udts
         tar -czvf ${{ steps.foldername.outputs.foldername }}.tgz ${{ steps.foldername.outputs.foldername }}/
         
