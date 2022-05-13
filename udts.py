@@ -116,6 +116,7 @@ def setup():
     window.save_tournament_config_button.clicked.connect(edit_tournament_config)
     window.save_program_config_button.clicked.connect(edit_program_config)
     window.edit_tbd_team_icon_select_button.clicked.connect(add_tbd_icon)
+    window.round_robin_button.clicked.connect(generate_round_robin)
     disable_move_buttons()
     populate_teams()
     populate_matches()
@@ -146,6 +147,71 @@ def setup():
     window.web_controller_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
     window.web_controller_label.setOpenExternalLinks(True)
 
+def generate_round_robin():
+    class RoundRobinDialog(QtWidgets.QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Round Robin")
+            QBtn = QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+
+            self.buttonBox = QtWidgets.QDialogButtonBox(QBtn)
+            self.buttonBox.accepted.connect(self.on_accept)
+            self.buttonBox.rejected.connect(self.reject)
+
+            teams = broadcast.get_all_teams()
+            # Make a new dict that's the same as the teams dict, however the item's are the team's names, not their ids
+            self.teams = {teams[team].name: teams[team] for team in teams}
+            self.teamSelect = QtWidgets.QListWidget()
+            self.teamSelect.setSelectionMode(QtWidgets.QListWidget.MultiSelection)
+            #self.teamSelect.addItems([self.teams[team].name for team in self.teams])
+            for team in self.teams:
+                text = self.teams[team].name
+                item = QtWidgets.QListWidgetItem(text)
+                item.setCheckState(Qt.Unchecked)
+                self.teamSelect.addItem(item)
+
+            self.bestOfMessage = QtWidgets.QLabel()
+            self.bestOfMessage.setText("Select Best of X:")
+
+            self.bestOfDropdown = QtWidgets.QComboBox()
+            self.bestOfDropdown.placeholderText = "Best Of X"
+            self.bestOfDropdown.addItems(["1", "2", "3", "5"])
+            
+            self.roundRobinLengthMessage = QtWidgets.QLabel()
+            self.roundRobinLengthMessage.setText("Select Number Of Rounds:")
+
+            self.roundRobinLengthDropdown = QtWidgets.QComboBox()
+            self.roundRobinLengthDropdown.placeholderText = "Number Of Rounds"
+            self.roundRobinLengthDropdown.addItems(["Single Round Robin", "Double Round Robin", "Triple Round Robin", "Quadruple Round Robin"])
+
+            self.layout = QtWidgets.QVBoxLayout()
+            self.layout.addWidget(self.teamSelect)
+            self.layout.addWidget(self.bestOfMessage)
+            self.layout.addWidget(self.bestOfDropdown)
+            self.layout.addWidget(self.roundRobinLengthMessage)
+            self.layout.addWidget(self.roundRobinLengthDropdown)
+            self.layout.addWidget(self.buttonBox)
+            self.setLayout(self.layout)
+
+        def on_accept(self):
+            teams_checked = []
+            for i in range(self.teamSelect.count()):
+                if self.teamSelect.item(i).checkState() == Qt.Checked:
+                    teams_checked.append(self.teams[self.teamSelect.item(i).text()].id)
+            best_of = int(self.bestOfDropdown.currentText())
+            rounds = int(self.roundRobinLengthDropdown.currentIndex())+1
+            broadcast.generate_round_robin(teams_checked, best_of, rounds)
+            super().accept()
+
+    dlg = RoundRobinDialog()
+    if dlg.exec():
+        populate_matches()
+        update_schedule()
+        refresh_team_win_labels()
+        set_button_states()
+        write_to_stream_if_enabled()
+   
+    
 @frontend_function
 def on_team_text_change():
     # Team UI Tab
