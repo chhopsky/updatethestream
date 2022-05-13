@@ -325,6 +325,30 @@ class Tournament(BaseModel):
         self.write_to_stream()
         return True
 
+    def generate_round_robin(self, teams, best_of=1, rounds=1): 
+        # Circle Method
+        if len(teams) % 2:
+            teams.append("Bye")
+
+        all_teams_but_1st = teams[1:]
+        matchups = []
+        for _ in range(1, len(teams)):
+            matchups.append([teams[0], all_teams_but_1st[-1]])
+            for i in range(int(len(teams)/2)-1):
+                matchups.append([all_teams_but_1st[i], all_teams_but_1st[-i-2]])
+            all_teams_but_1st.append(all_teams_but_1st.pop(0))
+
+        for _ in range(rounds):
+            for matchup in matchups:
+                if "Bye" in matchup:
+                    continue
+                new_match = Match()
+                new_match.id = str(uuid4())
+                new_match.teams.extend(matchup)
+                new_match.best_of = best_of
+                self.add_match(new_match)
+                
+
     ## Program outputs
 
     def write_to_stream(self, swap=False):
