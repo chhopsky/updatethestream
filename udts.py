@@ -506,8 +506,8 @@ def set_team_win_buttons_enabled(new_state = True):
 def refresh_team_win_labels():
     if broadcast.current_match < len(broadcast.schedule):
         team1, team2 = broadcast.get_teams_from_scheduleid(broadcast.current_match)
-        window.team1_win_button.setText(f"{team1.name} Win")
-        window.team2_win_button.setText(f"{team2.name} Win")
+        window.team1_win_button.setText(f"{team1.name} Win".replace('&', '&&'))
+        window.team2_win_button.setText(f"{team2.name} Win".replace('&', '&&'))
         if window.swapstate:
             window.blue_label.setText(f"Blue: {team2.name}")
             window.red_label.setText(f"Red: {team1.name}")
