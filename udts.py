@@ -152,39 +152,37 @@ def generate_round_robin():
         def __init__(self):
             super().__init__()
             self.setWindowTitle("Round Robin")
-            QBtn = QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
 
-            self.buttonBox = QtWidgets.QDialogButtonBox(QBtn)
-            self.buttonBox.accepted.connect(self.on_accept)
-            self.buttonBox.rejected.connect(self.reject)
+            self.teamSelectMessage = QtWidgets.QLabel(text="Select which teams will participate:")\
 
             teams = broadcast.get_all_teams()
             # Make a new dict that's the same as the teams dict, however the item's are the team's names, not their ids
             self.teams = {teams[team].name: teams[team] for team in teams}
             self.teamSelect = QtWidgets.QListWidget()
-            self.teamSelect.setSelectionMode(QtWidgets.QListWidget.MultiSelection)
-            #self.teamSelect.addItems([self.teams[team].name for team in self.teams])
             for team in self.teams:
                 text = self.teams[team].name
                 item = QtWidgets.QListWidgetItem(text)
                 item.setCheckState(Qt.Unchecked)
                 self.teamSelect.addItem(item)
 
-            self.bestOfMessage = QtWidgets.QLabel()
-            self.bestOfMessage.setText("Select Best of X:")
+            self.bestOfMessage = QtWidgets.QLabel(text="Select Best of X:")
 
             self.bestOfDropdown = QtWidgets.QComboBox()
-            self.bestOfDropdown.placeholderText = "Best Of X"
             self.bestOfDropdown.addItems(["1", "2", "3", "5"])
             
-            self.roundRobinLengthMessage = QtWidgets.QLabel()
-            self.roundRobinLengthMessage.setText("Select Number Of Rounds:")
+            self.roundRobinLengthMessage = QtWidgets.QLabel(text="Select Number Of Rounds:")
 
             self.roundRobinLengthDropdown = QtWidgets.QComboBox()
-            self.roundRobinLengthDropdown.placeholderText = "Number Of Rounds"
             self.roundRobinLengthDropdown.addItems(["Single Round Robin", "Double Round Robin", "Triple Round Robin", "Quadruple Round Robin"])
 
+            QBtn = QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+
+            self.buttonBox = QtWidgets.QDialogButtonBox(QBtn)
+            self.buttonBox.accepted.connect(self.on_accept)
+            self.buttonBox.rejected.connect(self.reject)
+
             self.layout = QtWidgets.QVBoxLayout()
+            self.layout.addWidget(self.teamSelectMessage)
             self.layout.addWidget(self.teamSelect)
             self.layout.addWidget(self.bestOfMessage)
             self.layout.addWidget(self.bestOfDropdown)
