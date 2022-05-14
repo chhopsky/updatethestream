@@ -63,7 +63,7 @@ class Tournament(BaseModel):
         output_dict["teams"] = []
 
         for id, team in self.teams.items():
-            if team.id != "666":
+            if team.id != self.placeholder_team.id:
                 output_dict["teams"].append(team.to_dict(savestate))
 
         output_dict["matches"] = []
@@ -726,7 +726,7 @@ class Tournament(BaseModel):
     ## TEAM READ/WRITE/EDIT
 
     def get_team(self, team_id):
-        if team_id == "666":
+        if team_id == self.placeholder_team.id:
             return self.placeholder_team
         team = self.teams.get(team_id)
         if team:
@@ -829,7 +829,7 @@ class Tournament(BaseModel):
         standings = []
         standing_data = {}
         for team in self.teams.values():
-            if team.id != "666":
+            if team.id != self.placeholder_team.id:
                 standing_data[team.id] = 0
                 standing_data[team.id] += int(team.points)
 
@@ -845,7 +845,7 @@ class Tournament(BaseModel):
                 standing_data[match.teams[1]] += pts_on_tie
 
         for team_id, points in standing_data.items():
-            if team.id != "666":
+            if team.id != self.placeholder_team.id:
                 standings.append((team_id, points))
         actual_standings = sorted(standings, key=lambda y:y[1], reverse=True)
         return actual_standings
@@ -959,7 +959,6 @@ class Tournament(BaseModel):
 
     def clear_everything(self):
         self.teams = {}
-        self.add_team(self.placeholder_team)
         self.matches = {}
         self.schedule = []
         self.game_history = []
