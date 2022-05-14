@@ -116,7 +116,6 @@ def default_broadcast():
             "logo_small": "udts-demo-stream/PentanetGG_logo.png"
         }
     ]
-    broadcast.teams[broadcast.placeholder_team.id] = broadcast.placeholder_team
     
     for team in teams:
         new_team = Team(**team)
