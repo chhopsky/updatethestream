@@ -162,11 +162,8 @@ def generate_round_robin():
             for team in self.teams:
                 text = self.teams[team].name
                 item = QtWidgets.QListWidgetItem(text)
-                item.setCheckState(Qt.Unchecked)
+                item.setCheckState(Qt.Checked)
                 self.teamSelect.addItem(item)
-            
-            self.selectAllButton = QtWidgets.QPushButton(text="Select All Teams")
-            self.selectAllButton.clicked.connect(self.select_all_teams)
 
             self.bestOfMessage = QtWidgets.QLabel(text="Select Best of X:")
 
@@ -187,7 +184,6 @@ def generate_round_robin():
             self.layout = QtWidgets.QVBoxLayout()
             self.layout.addWidget(self.teamSelectMessage)
             self.layout.addWidget(self.teamSelect)
-            self.layout.addWidget(self.selectAllButton)
             self.layout.addWidget(self.bestOfMessage)
             self.layout.addWidget(self.bestOfDropdown)
             self.layout.addWidget(self.roundRobinLengthMessage)
