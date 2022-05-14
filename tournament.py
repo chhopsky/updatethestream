@@ -983,7 +983,6 @@ class Tournament(BaseModel):
 
     def clear_everything(self):
         self.teams = {}
-        self.add_team(self.placeholder_team)
         self.matches = {}
         self.schedule = []
         self.game_history = []
