@@ -129,6 +129,7 @@ def setup():
     window.add_match_team2_dropdown.setCurrentIndex(-1)
     window.edit_match_team1_dropdown.setCurrentIndex(-1)
     window.edit_match_team2_dropdown.setCurrentIndex(-1)
+    window.match_list_widget.model().rowsMoved.connect(set_match_order)
     window.add_team_icon_label.filename = False
     window.add_team_hero_label.filename = False
     window.edit_team_icon_label.filename = False
@@ -392,6 +393,16 @@ def match_move_up():
 def match_move_down():
     match_reorder("down")
 
+def set_match_order(_, start_index, __, ___, end_index):
+    result = broadcast.reorder_matches(start_index, end_index)
+    if result:
+        populate_matches()
+        update_schedule()
+        set_button_states()
+        refresh_team_win_labels()
+        write_to_stream_if_enabled()
+    else:
+        show_error("DRAG-N-DROP_BROKE")
 
 def match_reorder(direction):
     scheduleid = window.match_list_widget.currentRow()

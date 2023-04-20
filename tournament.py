@@ -721,7 +721,24 @@ class Tournament(BaseModel):
                 starting_game += 1
 
         return True
-
+    
+    def reorder_matches(self, start_index, end_index):
+        # If moving match UP the schedule, end_index is 0-based
+        #     Match 3 -> Match 1: start_index=2, end_index=0
+        #     Match 3 -> Match 2: start_index=2, end_index=1
+        # If moving match DOWN the schedule, end_index is 1-based
+        #     Match 1 -> Match 3: start_index=0, end_index=3
+        #     Match 1 -> Match 2: start_index=0, end_index=2
+        # If end_index is greater than start_index, take one away from end_index to make it 0-based.
+        if end_index > start_index:
+            end_index -= 1
+        match_to_move = self.get_match_from_scheduleid(start_index)
+        self.schedule.pop(start_index)
+        if end_index == len(self.schedule): # Match was moved to the last match
+            self.schedule.append(match_to_move.id)
+        else:
+            self.schedule.insert(end_index, match_to_move.id)
+        return True
 
     ## TEAM READ/WRITE/EDIT
 
