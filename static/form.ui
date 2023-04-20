@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>813</width>
-    <height>516</height>
+    <width>921</width>
+    <height>606</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -24,7 +24,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="live_tab">
        <attribute name="title">
@@ -792,7 +792,17 @@
          </widget>
         </item>
         <item row="0" column="3" rowspan="7">
-         <widget class="QListWidget" name="match_list_widget"/>
+         <widget class="QListWidget" name="match_list_widget">
+          <property name="dragEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="dragDropMode">
+           <enum>QAbstractItemView::DragDrop</enum>
+          </property>
+          <property name="defaultDropAction">
+           <enum>Qt::MoveAction</enum>
+          </property>
+         </widget>
         </item>
         <item row="0" column="1" colspan="2">
          <layout class="QFormLayout" name="add_match_form_layout">
@@ -1237,8 +1247,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>813</width>
-     <height>21</height>
+     <width>921</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuSomeone_Update_The_Stream">
